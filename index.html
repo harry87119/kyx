@@ -175,6 +175,13 @@ li.virtual .amt{opacity:.75}
 .confirm{margin-top:10px;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-soft);color:var(--ink)}
 .confirm p{margin:0 0 4px}
 .sync.bad{color:var(--warn)}
+.edit-btn{border:1px solid var(--line);background:var(--card);color:var(--accent);border-radius:999px;padding:3px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+.edit-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fx-list{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.fx-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;min-width:0}
+.fx-row .fx-name{min-width:0;overflow-wrap:anywhere}
+.fx-row .fx-name small{color:var(--muted);font-size:12px;margin-left:6px}
+.fx-row .fx-amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -228,13 +235,21 @@ li.virtual .amt{opacity:.75}
           <span class="sub" id="todaySub"></span>
         </div>
         <div class="pair-side">
-          <span class="label">本月還可花</span>
+          <span class="label" id="periodLabel">撐到日前還可花</span>
           <span class="mid" id="periodLeft">—</span>
           <span class="sub" id="periodSub"></span>
         </div>
       </div>
       <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
       <span class="reserve" id="reserve" hidden></span>
+    </div>
+    <div class="box" id="fixedBox">
+      <div class="work-top">
+        <span class="label">每月固定支出</span>
+        <button id="editFixed" type="button" class="edit-btn">修改</button>
+      </div>
+      <div id="fixedSummary" class="fx-list"></div>
+      <span class="sub" id="fixedNext"></span>
     </div>
     <div class="box work">
       <span class="label">工作帳明細</span>
@@ -264,8 +279,9 @@ li.virtual .amt{opacity:.75}
   <details class="settings" id="settingsBox">
     <summary>設定：固定支出、起始結餘、試算表、備份</summary>
     <div class="set-block">
-      <h3>每月固定支出</h3>
+      <h3 id="fixedHead">每月固定支出</h3>
       <p>到了繳費日會自動從目前可花扣掉，不用每個月手動記。撐到日之前要繳的，也會先從今日建議消費裡預留。</p>
+      <p>修改金額、日期或移除時，已經扣過的月份不會變，從下一次扣款開始用新的設定。</p>
       <div id="fixedRows" class="fixed-rows"></div>
       <div class="set-row">
         <button id="addFixed" type="button">＋ 新增一項</button>
@@ -356,7 +372,12 @@ function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function lsLoad(){
   let o=lsGet(LS_DATA);
   if(!o){const old=lsGet(LS_OLD);if(old)o={entries:Object.values(old.months||{}).flat(),opening:old.opening,until:old.until,fixed:old.fixed}}
-  setData(o||{});
+  if(!o){
+    /* 第一次使用：先帶入一項每月固定支出，之後可以隨時修改 */
+    o={fixed:[{id:"fx-default",name:"每月固定支出",amount:18000,day:1,since:firstSince(1)}]};
+    setData(o);lsSave();
+  }
+  setData(o);
   const q=lsGet(LS_QUEUE);queue=Array.isArray(q)?q:[];
   const c=lsGet(LS_SHEET);cfg=c&&c.url&&c.token?{url:c.url,token:c.token}:null;
 }
@@ -518,15 +539,15 @@ function settle(cat,k){
 
 /* ---------- 固定支出 ---------- */
 function dueDate(y,m,day){const dim=new Date(y,m,0).getDate();return y+"-"+pad(m)+"-"+pad(Math.min(day,dim))}
-/* 從 since 月份起，每月一筆，到 endDate（含）為止 */
-function occurrences(endDate){
+/* 從 since 月份起，每月一筆，到 endDate（含）為止；有 end 的（已停用或改過的舊設定）只算到 end 那個月 */
+function occurrences(endDate,list){
   const out=[];
-  for(const f of fixed){
+  for(const f of list||fixed){
     if(!(f.amount>0)||!f.since)continue;
     let [y,m]=f.since.split("-").map(Number);
     for(let i=0;i<600;i++){
       const d=dueDate(y,m,f.day||1);
-      if(d>endDate)break;
+      if(d>endDate||(f.end&&d.slice(0,7)>f.end))break;
       out.push({id:"fx-"+f.id+"-"+d,type:"fixed",amount:f.amount,note:f.name||"固定支出",date:d,ts:0,virtual:true});
       m++;if(m>12){m=1;y++}
     }
@@ -538,10 +559,18 @@ function firstSince(day){
   if(dueDate(y,m,day)>=todayStr())return y+"-"+pad(m);
   return m===12?(y+1)+"-01":y+"-"+pad(m+1);
 }
+const nextMonth=ym=>{let [y,m]=ym.split("-").map(Number);m++;if(m>12){m=1;y++}return y+"-"+pad(m)};
+const activeFixed=()=>fixed.filter(f=>!f.end);
+/* 這一項最後一次已經扣過的月份（今天以前、含今天），沒扣過回傳空字串 */
+function lastChargedMonth(f){
+  const past=occurrences(todayStr(),[f]);
+  return past.length?past[past.length-1].date.slice(0,7):"";
+}
 function drawFixedRows(){
   const box=$("fixedRows");box.textContent="";
-  for(const f of fixed)box.appendChild(fixedRow(f));
-  if(!fixed.length){const p=document.createElement("div");p.className="sub";p.textContent="還沒有固定支出。";box.appendChild(p)}
+  const act=activeFixed();
+  for(const f of act)box.appendChild(fixedRow(f));
+  if(!act.length){const p=document.createElement("div");p.className="sub";p.textContent="還沒有固定支出。";box.appendChild(p)}
 }
 function fixedRow(f){
   const r=document.createElement("div");r.className="frow";r.dataset.id=f.id||"";r.dataset.since=f.since||"";
@@ -556,19 +585,68 @@ $("addFixed").onclick=()=>{
   const box=$("fixedRows");const empty=box.querySelector(".sub");if(empty)empty.remove();
   const r=fixedRow({day:1});box.appendChild(r);r.querySelector(".nameIn").focus();
 };
+/* 改金額、改日期或移除時，已經扣過的月份維持原樣，從下一次扣款才用新的設定 */
 $("saveFixed").onclick=()=>{
-  const next=[];
+  const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const next=fixed.filter(f=>f.end);  // 已停用的舊設定留著，過去的扣款才算得出來
+  const kept=new Set();
   for(const r of $("fixedRows").querySelectorAll(".frow")){
-    const name=r.querySelector(".nameIn").value.trim();
+    const name=r.querySelector(".nameIn").value.trim()||"固定支出";
     const amount=parseAmount(r.querySelector(".amtIn").value);
     let day=parseInt(r.querySelector(".dayIn").value,10);
     if(!(amount>0))continue;
     if(!(day>=1&&day<=31))day=1;
-    const old=fixed.find(f=>f.id===r.dataset.id);
-    const since=old&&old.day===day&&old.since?old.since:firstSince(day);
-    next.push({id:r.dataset.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name||"固定支出",amount:Math.round(amount*100)/100,day,since});
+    const amt=Math.round(amount*100)/100;
+    const old=fixed.find(f=>f.id===r.dataset.id&&!f.end);
+    if(!old){next.push({id:newId(),name,amount:amt,day,since:firstSince(day)});continue}
+    kept.add(old.id);
+    if(old.amount===amt&&old.day===day){next.push(Object.assign({},old,{name}));continue}
+    const last=lastChargedMonth(old);
+    if(!last){
+      /* 還沒扣過：直接改 */
+      const s0=firstSince(day);
+      next.push(Object.assign({},old,{name,amount:amt,day,since:old.since>s0?old.since:s0}));
+    }else{
+      /* 扣過了：舊設定停在最後扣款的月份，新設定從下個月開始 */
+      next.push(Object.assign({},old,{end:last}));
+      next.push({id:newId(),name,amount:amt,day,since:nextMonth(last)});
+    }
+  }
+  for(const old of activeFixed()){
+    if(kept.has(old.id))continue;
+    const last=lastChargedMonth(old);
+    if(last)next.push(Object.assign({},old,{end:last}));  // 移除：之後不再扣，過去扣過的保留
   }
   fixed=next;persistSettings();drawFixedRows();render();toast("固定支出已儲存");
+};
+
+/* 主畫面的固定支出摘要 */
+function drawFixedSummary(today){
+  const box=$("fixedSummary");box.textContent="";
+  const act=activeFixed();
+  if(!act.length){
+    const p=document.createElement("span");p.className="sub";p.textContent="還沒有固定支出。按「修改」新增。";
+    box.appendChild(p);$("fixedNext").textContent="";return;
+  }
+  for(const f of act){
+    const row=document.createElement("div");row.className="fx-row";
+    const n=document.createElement("span");n.className="fx-name";n.textContent=f.name||"固定支出";
+    const d=document.createElement("small");d.textContent="每月 "+(f.day||1)+" 號";n.appendChild(d);
+    const a=document.createElement("span");a.className="fx-amt";a.textContent="NT$"+fmt(f.amount);
+    row.append(n,a);box.appendChild(row);
+  }
+  const far=new Date(parseDate(today).getTime()+70*86400000);
+  const up=occurrences(ymd(far)).filter(e=>e.date>today).sort((a,b)=>a.date.localeCompare(b.date));
+  if(up.length){
+    const first=up.filter(e=>e.date===up[0].date), x=parseDate(up[0].date);
+    $("fixedNext").textContent="下次扣款："+(x.getMonth()+1)+"/"+x.getDate()+" "+first.map(e=>e.note+" NT$"+fmt(e.amount)).join("、");
+  }else $("fixedNext").textContent="";
+}
+$("editFixed").onclick=()=>{
+  $("settingsBox").open=true;
+  $("fixedHead").scrollIntoView({behavior:"smooth",block:"start"});
+  const inp=$("fixedRows").querySelector(".amtIn");
+  if(inp)inp.focus({preventScroll:true});else $("addFixed").click();
 };
 
 /* ---------- 篩選 ---------- */
@@ -590,16 +668,18 @@ $("saveOpening").onclick=()=>{
   opening=isNaN(n)?0:n;persistSettings();render();toast("起始結餘已儲存");
 };
 
-/* 沒有手動設定時：最近一次薪水入帳日往後一個月；還沒有薪水紀錄就用月底 */
+/* 沒有手動設定時：最近一次薪水入帳日往後兩個月（收入不固定，保守一點）；
+   還沒有薪水紀錄，或推算出來的日期已經過了，就用下個月月底 */
 function autoUntil(all){
   const sal=all.filter(e=>e.type==="salary").map(e=>e.date).sort();
   const now=new Date();
   if(sal.length){
     const d=parseDate(sal[sal.length-1]);
-    const next=new Date(d.getFullYear(),d.getMonth()+1,d.getDate());
+    const dim=new Date(d.getFullYear(),d.getMonth()+3,0).getDate();
+    const next=new Date(d.getFullYear(),d.getMonth()+2,Math.min(d.getDate(),dim));
     if(ymd(next)>=todayStr())return ymd(next);
   }
-  return ymd(new Date(now.getFullYear(),now.getMonth()+1,0));
+  return ymd(new Date(now.getFullYear(),now.getMonth()+2,0));
 }
 
 /* ---------- 計算與畫面 ---------- */
@@ -649,7 +729,9 @@ function render(){
   $("periodLeft").textContent=(periodLeft<0?"−":"")+"NT$"+fmt(Math.abs(periodLeft));
   $("periodLeft").classList.toggle("neg",periodLeft<0);
   const td=parseDate(target);
-  $("periodSub").textContent="撐到 "+(td.getMonth()+1)+"/"+td.getDate()+"，"+(reserveAmt>0?"已先扣掉之前要繳的固定支出":"期間沒有要繳的固定支出");
+  $("periodLabel").textContent="撐到 "+(td.getMonth()+1)+"/"+td.getDate()+" 前還可花";
+  $("periodSub").textContent=reserveAmt>0?"已先扣掉之前要繳的固定支出":"期間沒有要繳的固定支出";
+  drawFixedSummary(today);
   const pct=todayMax>0?Math.min(100,todaySpent/todayMax*100):(todaySpent>0?100:0);
   $("todayMeter").querySelector("i").style.width=pct+"%";
   $("todayMeter").classList.toggle("over",todayRemain<0);
@@ -812,7 +894,7 @@ $("importFile").onchange=async()=>{
   pendingImport={fresh,settings:p.settings};
   $("importSummary").textContent="這個備份檔有 "+p.entries.length+" 筆紀錄，其中 "+fresh.length+" 筆是新的"
     +(p.skipped?"（另有 "+p.skipped+" 筆格式不對，會略過）":"")
-    +"；固定支出 "+p.settings.fixed.length+" 項，起始結餘 NT$"+fmt(p.settings.opening)
+    +"；固定支出 "+p.settings.fixed.filter(f=>!f.end).length+" 項，起始結餘 NT$"+fmt(p.settings.opening)
     +"。匯入後，新的紀錄會加進來，固定支出、起始結餘和撐到日會改成備份檔裡的設定。";
   $("importConfirm").hidden=false;importNote("");
 };
