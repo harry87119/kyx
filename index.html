@@ -1,0 +1,623 @@
+<title>兩本帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#f3f5f1; --card:#ffffff; --ink:#1c2624; --muted:#5f6d69; --line:#dce2dd;
+  --accent:#0e6655; --accent-soft:#e0efe9;
+  --salary:#1f7a4a; --quota:#2f55a4; --personal:#b3432c; --advance:#9a6410; --trans:#6a4c9c;
+  --salary-bg:#e4f2e8; --quota-bg:#e5ebf7; --personal-bg:#f7e6e1; --advance-bg:#f5ecdc; --trans-bg:#ece6f5;
+  --warn:#b3432c;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --paper:#121816; --card:#1a2220; --ink:#e7ece9; --muted:#96a39f; --line:#2b3633;
+  --accent:#4fbfa3; --accent-soft:#1d312c;
+  --salary:#5cc48a; --quota:#86a6ec; --personal:#ec8a73; --advance:#dcaa55; --trans:#b9a0ea;
+  --salary-bg:#1b2e23; --quota-bg:#1d2538; --personal-bg:#35211c; --advance-bg:#32291a; --trans-bg:#29223a;
+  --warn:#ec8a73;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#121816; --card:#1a2220; --ink:#e7ece9; --muted:#96a39f; --line:#2b3633;
+  --accent:#4fbfa3; --accent-soft:#1d312c;
+  --salary:#5cc48a; --quota:#86a6ec; --personal:#ec8a73; --advance:#dcaa55; --trans:#b9a0ea;
+  --salary-bg:#1b2e23; --quota-bg:#1d2538; --personal-bg:#35211c; --advance-bg:#32291a; --trans-bg:#29223a;
+  --warn:#ec8a73;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:flex;justify-content:space-between;align-items:baseline}
+h1{font-size:17px;margin:0;letter-spacing:.04em}
+.sync{font-size:12px;color:var(--muted)}
+
+/* 輸入區 */
+.entry{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.amount-row{display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--ink);padding-bottom:4px}
+.amount-row span{font-family:var(--mono);font-size:20px;color:var(--muted)}
+#amount{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font-family:var(--mono);font-size:40px;font-weight:600;padding:4px 0;outline:none}
+#amount::placeholder{color:var(--line)}
+.meta{display:grid;grid-template-columns:1fr auto;gap:8px}
+.meta input{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;min-width:0}
+.meta input:focus-visible,#amount:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.group-label{grid-column:1/-1;font-size:12px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.tbtn{border:1px solid transparent;border-radius:10px;padding:12px 10px;font:inherit;font-weight:500;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:2px;transition:transform .08s}
+.tbtn small{font-weight:400;font-size:12px;opacity:.8}
+.tbtn:active{transform:scale(.98)}
+.tbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.tbtn:disabled{opacity:.45;cursor:not-allowed}
+.t-salary{background:var(--salary-bg);color:var(--salary);border-color:color-mix(in srgb,var(--salary) 30%,transparent)}
+.t-quota{background:var(--quota-bg);color:var(--quota);border-color:color-mix(in srgb,var(--quota) 30%,transparent)}
+.t-personal{background:var(--personal-bg);color:var(--personal);border-color:color-mix(in srgb,var(--personal) 30%,transparent)}
+.wide{grid-column:1/-1}
+.t-trans{background:var(--trans-bg);color:var(--trans);border-color:color-mix(in srgb,var(--trans) 30%,transparent)}
+.t-advance{background:var(--advance-bg);color:var(--advance);border-color:color-mix(in srgb,var(--advance) 30%,transparent)}
+.settle{border:1px dashed var(--line);border-radius:10px;padding:12px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.settle .mid{font-size:20px;overflow-wrap:anywhere}
+.settle.owe{border-style:solid;border-color:color-mix(in srgb,var(--quota) 40%,transparent);background:var(--quota-bg)}
+.settle.owe .mid{color:var(--quota)}
+.settle.owed{border-style:solid;border-color:color-mix(in srgb,var(--advance) 40%,transparent);background:var(--advance-bg)}
+.settle.owed .mid{color:var(--advance)}
+.clear{align-self:flex-start;margin-top:6px;border:1px solid currentColor;background:transparent;color:var(--ink);border-radius:999px;padding:3px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+.clear.armed{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.box.work{grid-column:1/-1}
+.settle-grid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.flow-wrap{overflow-x:auto;margin-top:8px;border-top:1px solid var(--line)}
+.flow-t{width:100%;border-collapse:collapse;font-size:13px}
+.flow-t th{font-weight:400;font-size:11px;color:var(--muted);text-align:right;padding:8px 6px 4px;white-space:nowrap}
+.flow-t th:first-child,.flow-t td:first-child{text-align:left;padding-left:0}
+.flow-t td{padding:4px 6px;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.flow-t td:first-child{font-family:var(--sans);white-space:nowrap}
+.work-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chip{font-size:12px;padding:2px 10px;border-radius:999px;background:var(--line);color:var(--muted);white-space:nowrap}
+.chip.owe{background:var(--quota-bg);color:var(--quota)}
+.chip.owed{background:var(--advance-bg);color:var(--advance)}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line)}
+.flow div{display:flex;flex-direction:column;min-width:0}
+.flow dt{font-size:11px;color:var(--muted)}
+.flow dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13.5px;overflow-wrap:anywhere}
+@media (max-width:520px){.flow{grid-template-columns:repeat(3,1fr)}}
+.until{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--muted)}
+.until input{border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 8px;font:inherit;font-family:var(--mono)}
+.filters{display:flex;gap:4px}
+.filters button{border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:999px;padding:4px 12px;cursor:pointer;font:inherit;font-size:13px}
+.filters button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--card);color:var(--accent);padding:12px;cursor:pointer;font:inherit}
+.toast{font-size:13px;color:var(--accent);min-height:1.2em}
+
+/* 摘要 */
+.summary{display:grid;grid-template-columns:1fr;gap:10px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px}
+.box.hero{grid-column:1/-1;background:var(--accent-soft);border-color:transparent}
+.label{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:34px;font-weight:600;line-height:1.15}
+.mid{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;font-weight:600}
+.sub{font-size:12.5px;color:var(--muted)}
+.neg{color:var(--warn)}
+.meter{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.meter.over i{background:var(--warn)}
+
+/* 明細 */
+.list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.list-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);gap:8px}
+.list-head h2{font-size:15px;margin:0}
+.mnav{display:flex;align-items:center;gap:4px}
+.mnav button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;width:32px;height:32px;cursor:pointer;font:inherit}
+.mnav span{font-family:var(--mono);min-width:76px;text-align:center}
+.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.totals div{background:var(--card);padding:8px 10px;display:flex;flex-direction:column}
+.totals b{font-family:var(--mono);font-weight:500;font-size:13.5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.totals span{font-size:11px;color:var(--muted)}
+ul{list-style:none;margin:0;padding:0}
+li{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+li:last-child{border-bottom:0}
+.dot{width:8px;height:8px;border-radius:50%}
+.info{min-width:0}
+.info .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.info .d{font-size:12px;color:var(--muted)}
+.amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;text-align:right}
+.del{border:0;background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:12px;padding:4px 6px;border-radius:6px}
+.del.armed{background:var(--personal-bg);color:var(--personal)}
+.day-sep{padding:6px 14px;font-size:12px;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.empty{padding:22px 14px;color:var(--muted);font-size:14px}
+details.settings{font-size:13px;color:var(--muted)}
+details.settings summary{cursor:pointer}
+.set-block{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.set-block h3{font-size:14px;color:var(--ink);margin:0 0 4px}
+.set-block p{margin:0 0 8px}
+.fixed-rows{display:flex;flex-direction:column;gap:8px}
+.frow{display:grid;grid-template-columns:1fr 110px auto auto;gap:6px;align-items:center}
+.frow input{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 8px;font:inherit;min-width:0}
+.frow .amtIn{font-family:var(--mono)}
+.frow .day{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.frow .day input{width:46px;font-family:var(--mono);text-align:center}
+.frow button{border:0;background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:12px}
+.set-row button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pair{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+.pair>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pair-side{border-left:1px solid var(--line);padding-left:14px}
+@media (max-width:420px){.pair{grid-template-columns:1fr}.pair-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:10px}}
+.reserve{font-size:12.5px;color:var(--muted);margin-top:4px}
+li.virtual .amt{opacity:.75}
+.auto-tag{font-size:11px;color:var(--muted);padding:2px 6px}
+@media (max-width:420px){.frow{grid-template-columns:1fr 90px}.frow .day{grid-column:1}}
+.set-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.set-row input{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 8px;font-family:var(--mono);width:140px}
+.set-row button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+@media (max-width:420px){.big{font-size:28px}#amount{font-size:34px}.totals{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>兩本帳</h1>
+    <span class="sync" id="sync">連線中…</span>
+  </header>
+
+  <section class="entry" aria-label="新增一筆">
+    <label class="amount-row">
+      <span>NT$</span>
+      <input id="amount" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="金額">
+    </label>
+    <div class="meta">
+      <input id="note" placeholder="備註（選填）" maxlength="60" aria-label="備註">
+      <input id="date" type="date" aria-label="日期">
+    </div>
+    <div class="types">
+      <div class="group-label">收入</div>
+      <button class="tbtn t-salary wide" data-type="salary">真實薪水<small>進私人可花</small></button>
+      <button class="tbtn t-quota" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
+      <button class="tbtn t-quota" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
+      <div class="group-label">花費</div>
+      <button class="tbtn t-personal wide" data-type="personal">私人花費<small>從私人可花扣</small></button>
+      <button class="tbtn t-advance" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
+      <button class="tbtn t-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
+      <div id="settleGrid" class="settle-grid"></div>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </section>
+
+  <section class="summary" aria-label="目前狀況">
+    <div class="box hero">
+      <span class="label">目前可花（私人）</span>
+      <span class="big" id="spendable">—</span>
+      <span class="sub" id="spendableSub"></span>
+      <label class="until">
+        <span>這些錢要撐到</span>
+        <input id="until" type="date">
+        <span id="untilDays" class="num"></span>
+      </label>
+    </div>
+    <div class="box">
+      <div class="pair">
+        <div class="pair-main">
+          <span class="label">今天還可花</span>
+          <span class="big" id="todayLeft">—</span>
+          <span class="sub" id="todaySub"></span>
+        </div>
+        <div class="pair-side">
+          <span class="label">本月還可花</span>
+          <span class="mid" id="periodLeft">—</span>
+          <span class="sub" id="periodSub"></span>
+        </div>
+      </div>
+      <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
+      <span class="reserve" id="reserve" hidden></span>
+    </div>
+    <div class="box work">
+      <span class="label">工作帳明細</span>
+      <span class="sub" id="workSub"></span>
+      <div class="flow-wrap">
+        <table class="flow-t">
+          <thead><tr><th></th><th>收到 quota</th><th>花費</th><th>已還公司</th><th>公司已還我</th></tr></thead>
+          <tbody id="flowBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="list" aria-label="明細">
+    <div class="list-head">
+      <h2>明細</h2>
+      <div class="filters" role="group" aria-label="篩選">
+        <button data-f="all" class="on">全部</button>
+        <button data-f="personal">私人</button>
+        <button data-f="work">工作</button>
+      </div>
+    </div>
+    <ul id="list"></ul>
+    <button id="more" class="more" hidden>顯示更早的紀錄</button>
+  </section>
+
+  <details class="settings" id="settingsBox">
+    <summary>設定：固定支出、起始結餘</summary>
+    <div class="set-block">
+      <h3>每月固定支出</h3>
+      <p>到了繳費日會自動從目前可花扣掉，不用每個月手動記。撐到日之前要繳的，也會先從今日建議消費裡預留。</p>
+      <div id="fixedRows" class="fixed-rows"></div>
+      <div class="set-row">
+        <button id="addFixed" type="button">＋ 新增一項</button>
+        <button id="saveFixed" type="button" class="primary">儲存固定支出</button>
+      </div>
+    </div>
+    <div class="set-block">
+      <h3>起始結餘</h3>
+      <p>開始記帳前手上已有、可以私人花用的錢。不填就從 0 起算。</p>
+      <div class="set-row">
+        <input id="opening" inputmode="decimal" aria-label="起始結餘">
+        <button id="saveOpening">儲存</button>
+      </div>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+const TYPES={
+  fixed:{name:"固定支出",color:"var(--muted)",sign:-1,group:"personal"},
+  salary:{name:"真實薪水",color:"var(--salary)",sign:1,group:"personal"},
+  personal:{name:"私人花費",color:"var(--personal)",sign:-1,group:"personal"},
+  q_prod:{name:"製作費 quota",color:"var(--quota)",sign:1,group:"work",cat:"prod",kind:"q"},
+  q_trans:{name:"交通費 quota",color:"var(--quota)",sign:1,group:"work",cat:"trans",kind:"q"},
+  prod:{name:"製作費",color:"var(--advance)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  trans:{name:"交通費",color:"var(--trans)",sign:-1,group:"work",cat:"trans",kind:"spend"},
+  ret_prod:{name:"還公司・製作費",color:"var(--quota)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  ret_trans:{name:"還公司・交通費",color:"var(--quota)",sign:-1,group:"work",cat:"trans",kind:"ret"},
+  rb_prod:{name:"公司還我・製作費",color:"var(--advance)",sign:1,group:"work",cat:"prod",kind:"rb"},
+  rb_trans:{name:"公司還我・交通費",color:"var(--trans)",sign:1,group:"work",cat:"trans",kind:"rb"},
+  /* 舊版類型，一律算在製作費 */
+  quota:{name:"製作費 quota",color:"var(--quota)",sign:1,group:"work",cat:"prod",kind:"q"},
+  advance:{name:"製作費",color:"var(--advance)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  return:{name:"還公司・製作費",color:"var(--quota)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  reimb:{name:"公司還我・製作費",color:"var(--advance)",sign:1,group:"work",cat:"prod",kind:"rb"}
+};
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString("zh-TW");
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const todayStr=()=>ymd(new Date());
+const parseDate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const dayDiff=(a,b)=>Math.round((parseDate(b)-parseDate(a))/86400000);
+
+/* 資料依月份分檔存，只是儲存用的分段，畫面上不分月 */
+let months={};
+let opening=0, until="", fixed=[];
+let db=null, mode="loading";
+let writeChain=Promise.resolve();
+let filter="all", shown=60;
+
+$("date").value=todayStr();
+
+/* ---------- 儲存 ---------- */
+const LS="ledger-fallback-v1";
+function lsLoad(){try{const o=JSON.parse(localStorage.getItem(LS)||"{}");months=o.months||{};opening=o.opening||0;until=o.until||"";fixed=Array.isArray(o.fixed)?o.fixed:[]}catch(e){}}
+function lsSave(){try{localStorage.setItem(LS,JSON.stringify({months,opening,until,fixed}))}catch(e){}}
+
+function persistBucket(m){
+  if(mode==="db"){
+    const entries=(months[m]||[]).slice();
+    writeChain=writeChain.then(()=>db.doc("ledger/"+m).set({entries})).catch(err=>{
+      toast("儲存失敗："+(err&&err.message||"請稍後再試"),true);
+    });
+  }else lsSave();
+}
+function persistSettings(){
+  if(mode==="db"){
+    const body={opening,until,fixed};
+    writeChain=writeChain.then(()=>db.doc("settings/main").set(body)).catch(()=>toast("儲存失敗，請稍後再試",true));
+  }else lsSave();
+}
+
+/* ---------- 新增 ---------- */
+function parseAmount(v){
+  v=String(v).replace(/[,，\s]/g,"");
+  if(!v)return NaN;
+  const n=Number(v);
+  return isFinite(n)?n:NaN;
+}
+let toastTimer;
+function toast(msg,bad){
+  const t=$("toast");t.textContent=msg;t.style.color=bad?"var(--warn)":"var(--accent)";
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.textContent="",3000);
+}
+document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
+  const amt=parseAmount($("amount").value);
+  if(!(amt>0)){toast("先輸入大於 0 的金額",true);$("amount").focus();return}
+  const date=$("date").value||todayStr();
+  const m=date.slice(0,7);
+  const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:b.dataset.type,amount:Math.round(amt*100)/100,note:$("note").value.trim(),date,ts:Date.now()};
+  (months[m]=months[m]||[]).push(e);
+  persistBucket(m);
+  $("amount").value="";$("note").value="";
+  toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
+  render();
+  $("amount").focus();
+}));
+
+/* ---------- 刪除 ---------- */
+let armed=null;
+$("list").addEventListener("click",ev=>{
+  const btn=ev.target.closest(".del");if(!btn)return;
+  const id=btn.dataset.id;
+  if(armed!==id){armed=id;render();return}
+  for(const m in months){
+    const before=months[m].length;
+    months[m]=months[m].filter(e=>e.id!==id);
+    if(months[m].length!==before){persistBucket(m);break}
+  }
+  armed=null;render();toast("已刪除");
+});
+
+/* ---------- 工作結清 ---------- */
+const CATS=[{id:"prod",name:"製作費"},{id:"trans",name:"交通費"}];
+let settleState={}, clearArmed=null;
+(function buildSettle(){
+  const g=$("settleGrid");
+  for(const c of CATS){
+    const lab=document.createElement("div");lab.className="group-label";lab.textContent="工作結清・"+c.name;
+    g.appendChild(lab);
+    for(const k of ["owe","owed"]){
+      const box=document.createElement("div");box.className="settle";box.id="s_"+c.id+"_"+k;
+      box.innerHTML='<span class="label"></span><span class="mid">NT$0</span><span class="sub"></span><button class="clear" hidden></button>';
+      box.querySelector(".label").textContent=k==="owe"?"我還欠公司":"公司還欠我";
+      box.querySelector(".sub").textContent=k==="owe"?c.name+" quota 沒用完的部分":"超出"+c.name+" quota、我自己墊的";
+      box.querySelector(".clear").onclick=()=>settle(c.id,k);
+      g.appendChild(box);
+    }
+  }
+})();
+function settle(cat,k){
+  const key=cat+"_"+k;
+  if(clearArmed!==key){clearArmed=key;render();return}
+  const amt=Math.round((settleState[key]||0)*100)/100;
+  clearArmed=null;
+  if(!(amt>0)){render();return}
+  const date=todayStr(), m=date.slice(0,7);
+  const type=(k==="owe"?"ret_":"rb_")+cat;
+  const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type,amount:amt,note:"結清",date,ts:Date.now()};
+  (months[m]=months[m]||[]).push(e);persistBucket(m);
+  toast("已記下"+TYPES[type].name+" NT$"+fmt(amt));
+  render();
+}
+
+/* ---------- 固定支出 ---------- */
+function dueDate(y,m,day){const dim=new Date(y,m,0).getDate();return y+"-"+pad(m)+"-"+pad(Math.min(day,dim))}
+/* 從 since 月份起，每月一筆，到 endDate（含）為止 */
+function occurrences(endDate){
+  const out=[];
+  for(const f of fixed){
+    if(!(f.amount>0)||!f.since)continue;
+    let [y,m]=f.since.split("-").map(Number);
+    for(let i=0;i<600;i++){
+      const d=dueDate(y,m,f.day||1);
+      if(d>endDate)break;
+      out.push({id:"fx-"+f.id+"-"+d,type:"fixed",amount:f.amount,note:f.name||"固定支出",date:d,ts:0,virtual:true});
+      m++;if(m>12){m=1;y++}
+    }
+  }
+  return out;
+}
+function firstSince(day){
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
+  if(dueDate(y,m,day)>=todayStr())return y+"-"+pad(m);
+  return m===12?(y+1)+"-01":y+"-"+pad(m+1);
+}
+function drawFixedRows(){
+  const box=$("fixedRows");box.textContent="";
+  for(const f of fixed)box.appendChild(fixedRow(f));
+  if(!fixed.length){const p=document.createElement("div");p.className="sub";p.textContent="還沒有固定支出。";box.appendChild(p)}
+}
+function fixedRow(f){
+  const r=document.createElement("div");r.className="frow";r.dataset.id=f.id||"";r.dataset.since=f.since||"";
+  r.innerHTML='<input class="nameIn" placeholder="名稱，例如房租" maxlength="30"><input class="amtIn" inputmode="decimal" placeholder="金額"><label class="day">每月 <input class="dayIn" inputmode="numeric" maxlength="2"> 號</label><button type="button" class="rm">移除</button>';
+  r.querySelector(".nameIn").value=f.name||"";
+  r.querySelector(".amtIn").value=f.amount||"";
+  r.querySelector(".dayIn").value=f.day||1;
+  r.querySelector(".rm").onclick=()=>{r.remove()};
+  return r;
+}
+$("addFixed").onclick=()=>{
+  const box=$("fixedRows");const empty=box.querySelector(".sub");if(empty)empty.remove();
+  const r=fixedRow({day:1});box.appendChild(r);r.querySelector(".nameIn").focus();
+};
+$("saveFixed").onclick=()=>{
+  const next=[];
+  for(const r of $("fixedRows").querySelectorAll(".frow")){
+    const name=r.querySelector(".nameIn").value.trim();
+    const amount=parseAmount(r.querySelector(".amtIn").value);
+    let day=parseInt(r.querySelector(".dayIn").value,10);
+    if(!(amount>0))continue;
+    if(!(day>=1&&day<=31))day=1;
+    const old=fixed.find(f=>f.id===r.dataset.id);
+    const since=old&&old.day===day&&old.since?old.since:firstSince(day);
+    next.push({id:r.dataset.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name||"固定支出",amount:Math.round(amount*100)/100,day,since});
+  }
+  fixed=next;persistSettings();drawFixedRows();render();toast("固定支出已儲存");
+};
+
+/* ---------- 篩選 ---------- */
+document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
+  filter=b.dataset.f;shown=60;armed=null;
+  document.querySelectorAll(".filters button").forEach(x=>x.classList.toggle("on",x===b));
+  render();
+}));
+$("more").onclick=()=>{shown+=60;render()};
+
+/* ---------- 撐到哪天 ---------- */
+$("until").addEventListener("change",()=>{
+  until=$("until").value||"";persistSettings();render();
+  toast(until?"已設定撐到 "+until.slice(5).replace("-","/"):"已改回自動推算");
+});
+
+$("saveOpening").onclick=()=>{
+  const n=parseAmount($("opening").value);
+  opening=isNaN(n)?0:n;persistSettings();render();toast("起始結餘已儲存");
+};
+
+/* 沒有手動設定時：最近一次薪水入帳日往後一個月；還沒有薪水紀錄就用月底 */
+function autoUntil(all){
+  const sal=all.filter(e=>e.type==="salary").map(e=>e.date).sort();
+  const now=new Date();
+  if(sal.length){
+    const d=parseDate(sal[sal.length-1]);
+    const next=new Date(d.getFullYear(),d.getMonth()+1,d.getDate());
+    if(ymd(next)>=todayStr())return ymd(next);
+  }
+  return ymd(new Date(now.getFullYear(),now.getMonth()+1,0));
+}
+
+/* ---------- 計算與畫面 ---------- */
+function render(){
+  const all=Object.values(months).flat();
+  const today=todayStr();
+  const sum=(t,f)=>all.filter(e=>e.type===t&&(!f||f(e))).reduce((s,e)=>s+e.amount,0);
+  const salary=sum("salary"),personal=sum("personal");
+  const work={};
+  for(const c of CATS)work[c.id]={q:0,spend:0,ret:0,rb:0};
+  for(const e of all){const T=TYPES[e.type];if(T&&T.cat)work[T.cat][T.kind]+=e.amount}
+  for(const c of CATS){const w=work[c.id];w.left=w.q-w.spend-w.ret+w.rb}
+  const overflow=CATS.reduce((s,c)=>s+Math.max(0,-work[c.id].left),0);
+  const paidFixed=occurrences(today);
+  const fixedPaid=paidFixed.reduce((s,e)=>s+e.amount,0);
+  const spendable=opening+salary-personal-overflow-fixedPaid;
+
+  const manual=!!until;
+  let target=manual?until:autoUntil(all);
+  let daysLeft=dayDiff(today,target)+1;
+  const expired=daysLeft<1;
+  if(expired)daysLeft=1;
+  if(document.activeElement!==$("until"))$("until").value=target;
+  $("untilDays").textContent=expired?"已過期，請改日期":"還有 "+daysLeft+" 天"+(manual?"":"（自動）");
+  $("untilDays").classList.toggle("neg",expired);
+
+  const todaySpent=sum("personal",e=>e.date===today);
+  const upcoming=occurrences(target).filter(e=>e.date>today);
+  const reserveAmt=upcoming.reduce((s,e)=>s+e.amount,0);
+  const startOfDay=spendable+todaySpent-reserveAmt;
+  if(reserveAmt>0){
+    const byDate={};for(const e of upcoming)(byDate[e.date]=byDate[e.date]||[]).push(e.note);
+    $("reserve").textContent="已先預留撐到日前要繳的 NT$"+fmt(reserveAmt)+"（"+Object.keys(byDate).sort().map(d=>{const x=parseDate(d);return (x.getMonth()+1)+"/"+x.getDate()+" "+byDate[d].join("、")}).join("；")+"）";
+    $("reserve").hidden=false;
+  }else $("reserve").hidden=true;
+  const todayMax=Math.max(0,startOfDay/daysLeft);
+  const todayRemain=todayMax-todaySpent;
+
+  $("spendable").textContent="NT$"+fmt(spendable);
+  $("spendable").classList.toggle("neg",spendable<0);
+  $("spendableSub").textContent=(spendable<0?"已經透支。":"")+"累計薪水減掉私人花費"+(fixedPaid>0?"、已到期的固定支出":"")+(overflow>0?"，也扣掉了公司還欠你的 NT$"+fmt(overflow):"")+"。";
+
+  $("todayLeft").textContent=(todayRemain<0?"−":"")+"NT$"+fmt(Math.abs(todayRemain));
+  $("todayLeft").classList.toggle("neg",todayRemain<0);
+  $("todaySub").innerHTML="今日額度 <span class='num'>NT$"+fmt(todayMax)+"</span>，已花 <span class='num'>NT$"+fmt(todaySpent)+"</span>";
+  const periodLeft=spendable-reserveAmt;
+  $("periodLeft").textContent=(periodLeft<0?"−":"")+"NT$"+fmt(Math.abs(periodLeft));
+  $("periodLeft").classList.toggle("neg",periodLeft<0);
+  const td=parseDate(target);
+  $("periodSub").textContent="撐到 "+(td.getMonth()+1)+"/"+td.getDate()+"，"+(reserveAmt>0?"已先扣掉之前要繳的固定支出":"期間沒有要繳的固定支出");
+  const pct=todayMax>0?Math.min(100,todaySpent/todayMax*100):(todaySpent>0?100:0);
+  $("todayMeter").querySelector("i").style.width=pct+"%";
+  $("todayMeter").classList.toggle("over",todayRemain<0);
+
+  const fb=$("flowBody");fb.textContent="";
+  const notes=[];
+  for(const c of CATS){
+    const w=work[c.id];
+    const owe=Math.max(0,w.left), owed=Math.max(0,-w.left);
+    for(const [k,v] of [["owe",owe],["owed",owed]]){
+      const key=c.id+"_"+k, box=$("s_"+key), btn=box.querySelector(".clear");
+      settleState[key]=v;
+      box.querySelector(".mid").textContent="NT$"+fmt(v);
+      box.classList.toggle(k,v>=0.005);
+      btn.hidden=v<0.005;
+      btn.classList.toggle("armed",clearArmed===key);
+      btn.textContent=clearArmed===key?(k==="owe"?"確定已還 NT$":"確定已收到 NT$")+fmt(v)+"？":(k==="owe"?"已還清":"已收到");
+    }
+    if(owe>=0.005)notes.push("我還欠公司"+c.name+" NT$"+fmt(owe));
+    if(owed>=0.005)notes.push("公司還欠我"+c.name+" NT$"+fmt(owed));
+    const tr=document.createElement("tr");
+    for(const v of [c.name,fmt(w.q),fmt(w.spend),fmt(w.ret),fmt(w.rb)]){const td=document.createElement("td");td.textContent=v;tr.appendChild(td)}
+    fb.appendChild(tr);
+  }
+  $("workSub").textContent=notes.length?notes.join("，")+"。兩筆 quota 各算各的，不會互相抵。":"製作費和交通費目前都打平。";
+
+  /* 明細：一條時間軸，不分月 */
+  const full=all.concat(paidFixed).filter(e=>filter==="all"||(TYPES[e.type]||TYPES.personal).group===filter)
+    .sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+  const list=full.slice(0,shown);
+  $("more").hidden=full.length<=shown;
+
+  const ul=$("list");ul.textContent="";
+  if(!list.length){
+    const li=document.createElement("div");li.className="empty";
+    li.textContent=mode==="loading"?"讀取中…":(all.length?"這個分類還沒有紀錄。":"還沒有紀錄。在最上面輸入金額，再點一個類型就記好了。");
+    ul.appendChild(li);return;
+  }
+  let lastDate=null, lastYear=today.slice(0,4);
+  const wk="日一二三四五六";
+  for(const e of list){
+    if(e.date!==lastDate){
+      lastDate=e.date;
+      const d=parseDate(e.date);
+      const daySpent=all.filter(x=>x.date===e.date&&x.type==="personal").reduce((s,x)=>s+x.amount,0);
+      const sep=document.createElement("li");sep.className="day-sep";
+      const l=document.createElement("span");
+      l.textContent=(e.date.slice(0,4)!==lastYear?d.getFullYear()+"/":"")+(d.getMonth()+1)+"/"+d.getDate()+"（"+wk[d.getDay()]+"）"+(e.date===today?" 今天":"");
+      const r=document.createElement("span");r.className="num";r.textContent=daySpent&&filter!=="work"?"私人 −"+fmt(daySpent):"";
+      sep.append(l,r);ul.appendChild(sep);
+    }
+    const T=TYPES[e.type]||TYPES.personal;
+    const li=document.createElement("li");
+    const dot=document.createElement("span");dot.className="dot";dot.style.background=T.color;
+    const info=document.createElement("div");info.className="info";
+    const n=document.createElement("div");n.className="n";n.textContent=e.note||T.name;
+    const dd=document.createElement("div");dd.className="d";dd.textContent=T.name;
+    info.append(n,dd);
+    const amt=document.createElement("span");amt.className="amt";amt.style.color=T.color;
+    amt.textContent=(T.sign>0?"+":"−")+fmt(e.amount);
+    if(e.virtual){
+      li.className="virtual";
+      const tag=document.createElement("span");tag.className="auto-tag";tag.textContent="自動";
+      li.append(dot,info,amt,tag);ul.appendChild(li);continue;
+    }
+    const del=document.createElement("button");del.className="del"+(armed===e.id?" armed":"");del.dataset.id=e.id;
+    del.textContent=armed===e.id?"確定刪除":"刪除";
+    li.append(dot,info,amt,del);ul.appendChild(li);
+  }
+}
+
+/* ---------- 啟動 ---------- */
+render();
+setInterval(render,60000);
+
+(async()=>{
+  try{ db=window.claude&&window.claude.use?await window.claude.use("db"):null }catch(e){db=null}
+  if(!db){
+    mode="local";lsLoad();
+    $("sync").textContent="未連上雲端，只存在這個瀏覽器";
+    $("opening").value=opening||"";drawFixedRows();render();return;
+  }
+  mode="db";$("sync").textContent="已同步";
+  db.collection("ledger").onSnapshot(snap=>{
+    const next={};
+    snap.docs.forEach(d=>{const v=d.data();next[d.id]=(v&&Array.isArray(v.entries))?v.entries.slice():[]});
+    months=next;render();
+  },()=>{$("sync").textContent="同步中斷，請重新整理";});
+  db.doc("settings/main").onSnapshot(s=>{
+    const v=s.exists?s.data():{};
+    opening=Number(v.opening)||0;
+    until=typeof v.until==="string"?v.until:"";
+    fixed=Array.isArray(v.fixed)?v.fixed:[];
+    if(!$("settingsBox").open)drawFixedRows();
+    if(document.activeElement!==$("opening"))$("opening").value=opening||"";
+    render();
+  },()=>{});
+})();
+})();
+</script>
