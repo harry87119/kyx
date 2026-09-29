@@ -1,4 +1,17 @@
-<title>兩本帳</title>
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KYX記帳</title>
+<meta name="theme-color" content="#0e6655">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KYX記帳">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
@@ -88,6 +101,7 @@ h1{font-size:17px;margin:0;letter-spacing:.04em}
 .filters{display:flex;gap:4px}
 .filters button{border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:999px;padding:4px 12px;cursor:pointer;font:inherit;font-size:13px}
 .filters button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.more[hidden]{display:none}
 .more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--card);color:var(--accent);padding:12px;cursor:pointer;font:inherit}
 .toast{font-size:13px;color:var(--accent);min-height:1.2em}
 
@@ -152,12 +166,23 @@ li.virtual .amt{opacity:.75}
 .set-row input{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 8px;font-family:var(--mono);width:140px}
 .set-row button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
 @media (max-width:420px){.big{font-size:28px}#amount{font-size:34px}.totals{grid-template-columns:1fr 1fr}}
+.set-col{display:flex;flex-direction:column;gap:8px}
+.set-col input{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;font-family:var(--mono);font-size:13px;width:100%;min-width:0}
+.set-col label{display:flex;flex-direction:column;gap:2px;font-size:12px}
+.set-row button.armed{background:var(--personal-bg);color:var(--personal);border-color:var(--personal)}
+.set-note{margin-top:8px;font-size:12.5px}
+.set-note.bad{color:var(--warn)}
+.confirm{margin-top:10px;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-soft);color:var(--ink)}
+.confirm p{margin:0 0 4px}
+.sync.bad{color:var(--warn)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header>
-    <h1>兩本帳</h1>
+    <h1>KYX記帳</h1>
     <span class="sync" id="sync">連線中…</span>
   </header>
 
@@ -237,7 +262,7 @@ li.virtual .amt{opacity:.75}
   </section>
 
   <details class="settings" id="settingsBox">
-    <summary>設定：固定支出、起始結餘</summary>
+    <summary>設定：固定支出、起始結餘、試算表、備份</summary>
     <div class="set-block">
       <h3>每月固定支出</h3>
       <p>到了繳費日會自動從目前可花扣掉，不用每個月手動記。撐到日之前要繳的，也會先從今日建議消費裡預留。</p>
@@ -254,6 +279,36 @@ li.virtual .amt{opacity:.75}
         <input id="opening" inputmode="decimal" aria-label="起始結餘">
         <button id="saveOpening">儲存</button>
       </div>
+    </div>
+    <div class="set-block">
+      <h3>連結 Google 試算表</h3>
+      <p>貼上 Apps Script 網頁應用程式的網址和通行碼，手機和電腦就會同步，資料存在你自己的 Google 試算表。沒有連結也能用，資料只會存在這個瀏覽器。</p>
+      <div class="set-col">
+        <label>網頁應用程式網址<input id="sheetUrl" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
+        <label>通行碼<input id="sheetToken" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="和指令碼屬性 TOKEN 一樣"></label>
+      </div>
+      <div class="set-row">
+        <button id="saveSheet" type="button" class="primary">儲存並同步</button>
+        <button id="unlinkSheet" type="button" hidden>取消連結</button>
+      </div>
+      <p id="sheetNote" class="set-note" role="status"></p>
+    </div>
+    <div class="set-block">
+      <h3>備份</h3>
+      <p>匯出會下載一個包含全部紀錄和設定的 JSON 檔。匯入時，已經有的紀錄會略過、只加入新的；固定支出、起始結餘和撐到日會改成檔案裡的設定。</p>
+      <div class="set-row">
+        <button id="exportBtn" type="button">匯出備份</button>
+        <button id="importBtn" type="button">匯入備份</button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+      </div>
+      <div id="importConfirm" class="confirm" hidden>
+        <p id="importSummary"></p>
+        <div class="set-row">
+          <button id="importYes" type="button" class="primary">確定匯入</button>
+          <button id="importNo" type="button">取消</button>
+        </div>
+      </div>
+      <p id="importNote" class="set-note" role="status"></p>
     </div>
   </details>
 </div>
@@ -286,33 +341,111 @@ const todayStr=()=>ymd(new Date());
 const parseDate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
 const dayDiff=(a,b)=>Math.round((parseDate(b)-parseDate(a))/86400000);
 
-/* 資料依月份分檔存，只是儲存用的分段，畫面上不分月 */
-let months={};
+let entries=[];
 let opening=0, until="", fixed=[];
-let db=null, mode="loading";
-let writeChain=Promise.resolve();
+let cfg=null, queue=[], loaded=false;
 let filter="all", shown=60;
 
 $("date").value=todayStr();
 
 /* ---------- 儲存 ---------- */
-const LS="ledger-fallback-v1";
-function lsLoad(){try{const o=JSON.parse(localStorage.getItem(LS)||"{}");months=o.months||{};opening=o.opening||0;until=o.until||"";fixed=Array.isArray(o.fixed)?o.fixed:[]}catch(e){}}
-function lsSave(){try{localStorage.setItem(LS,JSON.stringify({months,opening,until,fixed}))}catch(e){}}
-
-function persistBucket(m){
-  if(mode==="db"){
-    const entries=(months[m]||[]).slice();
-    writeChain=writeChain.then(()=>db.doc("ledger/"+m).set({entries})).catch(err=>{
-      toast("儲存失敗："+(err&&err.message||"請稍後再試"),true);
-    });
-  }else lsSave();
+/* 所有資料都快取在這個瀏覽器；有連結試算表時，每個動作也排進待送清單，依序送到試算表 */
+const LS_DATA="kyx-data-v1", LS_QUEUE="kyx-queue-v1", LS_SHEET="kyx-sheet-v1", LS_OLD="ledger-fallback-v1";
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function lsLoad(){
+  let o=lsGet(LS_DATA);
+  if(!o){const old=lsGet(LS_OLD);if(old)o={entries:Object.values(old.months||{}).flat(),opening:old.opening,until:old.until,fixed:old.fixed}}
+  setData(o||{});
+  const q=lsGet(LS_QUEUE);queue=Array.isArray(q)?q:[];
+  const c=lsGet(LS_SHEET);cfg=c&&c.url&&c.token?{url:c.url,token:c.token}:null;
 }
-function persistSettings(){
-  if(mode==="db"){
-    const body={opening,until,fixed};
-    writeChain=writeChain.then(()=>db.doc("settings/main").set(body)).catch(()=>toast("儲存失敗，請稍後再試",true));
-  }else lsSave();
+function setData(o){
+  entries=Array.isArray(o.entries)?o.entries.slice():[];
+  opening=Number(o.opening)||0;
+  until=typeof o.until==="string"?o.until:"";
+  fixed=Array.isArray(o.fixed)?o.fixed:[];
+}
+function lsSave(){lsSet(LS_DATA,{entries,opening,until,fixed})}
+function settingsObj(){return {opening,until,fixed}}
+
+/* 先存進瀏覽器，有連結試算表再排進待送清單 */
+function commit(op){
+  lsSave();
+  if(!cfg)return;
+  queue.push(op);lsSet(LS_QUEUE,queue);
+  sync();
+}
+function persistSettings(){commit({action:"saveSettings",settings:settingsObj()})}
+/* 以試算表的資料為基準，再套上還沒送出的動作 */
+function applyOps(d,ops){
+  let list=(d.entries||[]).slice(), s={opening:d.opening,until:d.until,fixed:d.fixed};
+  for(const op of ops){
+    if(op.action==="add"){const ids=new Set(list.map(e=>e.id));for(const e of op.entries)if(!ids.has(e.id)){list.push(e);ids.add(e.id)}}
+    else if(op.action==="delete")list=list.filter(e=>e.id!==op.id);
+    else if(op.action==="saveSettings")s=op.settings;
+  }
+  return Object.assign({entries:list},s);
+}
+
+/* ---------- 同步 ---------- */
+let syncing=false, syncAgain=false, retryTimer=null;
+const STATUS={local:"未連上雲端，只存在這個瀏覽器",ok:"已同步",syncing:"同步中…",offline:"離線，恢復連線後會自動補送"};
+function setStatus(kind,msg){
+  const el=$("sync");
+  el.textContent=STATUS[kind]||msg;
+  el.classList.toggle("bad",kind==="error");
+}
+function SyncError(kind,message,code){this.kind=kind;this.message=message;this.code=code}
+async function api(payload){
+  const ctl=new AbortController(), timer=setTimeout(()=>ctl.abort(),25000);
+  let res, j;
+  try{
+    res=payload
+      ?await fetch(cfg.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({token:cfg.token},payload)),signal:ctl.signal})
+      :await fetch(cfg.url+(cfg.url.includes("?")?"&":"?")+"token="+encodeURIComponent(cfg.token),{cache:"no-store",signal:ctl.signal});
+  }catch(e){clearTimeout(timer);throw new SyncError("offline","連不上試算表")}
+  try{j=await res.json()}catch(e){throw new SyncError("error","試算表回傳的內容看不懂，請確認網址是部署後拿到、/exec 結尾的網址，而且存取權是「任何人」")}
+  finally{clearTimeout(timer)}
+  if(!j||!j.ok)throw new SyncError(j&&j.error==="bad_token"?"token":"error",(j&&j.message)||"試算表回報錯誤",j&&j.error);
+  return j;
+}
+function syncErrorText(e){
+  if(e.kind==="token")return "同步失敗：通行碼不對";
+  return "同步失敗："+e.message;
+}
+async function sync(){
+  if(!cfg)return;
+  if(syncing){syncAgain=true;return}
+  syncing=true;clearTimeout(retryTimer);setStatus("syncing");
+  const c=cfg;
+  try{
+    while(queue.length&&cfg===c){
+      const op=queue[0];
+      try{await api(op)}
+      catch(e){if(e.code==="bad_request")console.warn("試算表不接受這個動作，已略過",op,e.message);else throw e}
+      if(queue[0]===op){queue.shift();lsSet(LS_QUEUE,queue)}
+    }
+    if(cfg!==c)return;
+    const d=await api(null);
+    if(cfg!==c)return;
+    applyRemote(d);
+    if(!queue.length)setStatus("ok");
+  }catch(e){
+    if(cfg!==c)return;
+    if(e.kind==="offline")setStatus("offline");else setStatus("error",syncErrorText(e));
+    retryTimer=setTimeout(sync,30000);
+  }finally{
+    syncing=false;
+    if(syncAgain){syncAgain=false;sync()}
+  }
+}
+function applyRemote(d){
+  setData(applyOps(d,queue));
+  loaded=true;lsSave();
+  if(!$("settingsBox").open)drawFixedRows();
+  if(document.activeElement!==$("opening"))$("opening").value=opening||"";
+  render();
 }
 
 /* ---------- 新增 ---------- */
@@ -331,10 +464,9 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   const amt=parseAmount($("amount").value);
   if(!(amt>0)){toast("先輸入大於 0 的金額",true);$("amount").focus();return}
   const date=$("date").value||todayStr();
-  const m=date.slice(0,7);
   const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:b.dataset.type,amount:Math.round(amt*100)/100,note:$("note").value.trim(),date,ts:Date.now()};
-  (months[m]=months[m]||[]).push(e);
-  persistBucket(m);
+  entries.push(e);
+  commit({action:"add",entries:[e]});
   $("amount").value="";$("note").value="";
   toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
   render();
@@ -347,11 +479,8 @@ $("list").addEventListener("click",ev=>{
   const btn=ev.target.closest(".del");if(!btn)return;
   const id=btn.dataset.id;
   if(armed!==id){armed=id;render();return}
-  for(const m in months){
-    const before=months[m].length;
-    months[m]=months[m].filter(e=>e.id!==id);
-    if(months[m].length!==before){persistBucket(m);break}
-  }
+  entries=entries.filter(e=>e.id!==id);
+  commit({action:"delete",id});
   armed=null;render();toast("已刪除");
 });
 
@@ -379,10 +508,10 @@ function settle(cat,k){
   const amt=Math.round((settleState[key]||0)*100)/100;
   clearArmed=null;
   if(!(amt>0)){render();return}
-  const date=todayStr(), m=date.slice(0,7);
+  const date=todayStr();
   const type=(k==="owe"?"ret_":"rb_")+cat;
   const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type,amount:amt,note:"結清",date,ts:Date.now()};
-  (months[m]=months[m]||[]).push(e);persistBucket(m);
+  entries.push(e);commit({action:"add",entries:[e]});
   toast("已記下"+TYPES[type].name+" NT$"+fmt(amt));
   render();
 }
@@ -475,7 +604,7 @@ function autoUntil(all){
 
 /* ---------- 計算與畫面 ---------- */
 function render(){
-  const all=Object.values(months).flat();
+  const all=entries;
   const today=todayStr();
   const sum=(t,f)=>all.filter(e=>e.type===t&&(!f||f(e))).reduce((s,e)=>s+e.amount,0);
   const salary=sum("salary"),personal=sum("personal");
@@ -556,7 +685,7 @@ function render(){
   const ul=$("list");ul.textContent="";
   if(!list.length){
     const li=document.createElement("div");li.className="empty";
-    li.textContent=mode==="loading"?"讀取中…":(all.length?"這個分類還沒有紀錄。":"還沒有紀錄。在最上面輸入金額，再點一個類型就記好了。");
+    li.textContent=cfg&&!loaded?"讀取中…":(all.length?"這個分類還沒有紀錄。":"還沒有紀錄。在最上面輸入金額，再點一個類型就記好了。");
     ul.appendChild(li);return;
   }
   let lastDate=null, lastYear=today.slice(0,4);
@@ -592,32 +721,125 @@ function render(){
   }
 }
 
-/* ---------- 啟動 ---------- */
-render();
-setInterval(render,60000);
-
-(async()=>{
-  try{ db=window.claude&&window.claude.use?await window.claude.use("db"):null }catch(e){db=null}
-  if(!db){
-    mode="local";lsLoad();
-    $("sync").textContent="未連上雲端，只存在這個瀏覽器";
-    $("opening").value=opening||"";drawFixedRows();render();return;
+/* ---------- 連結 Google 試算表 ---------- */
+let unlinkArmed=false;
+function sheetNote(msg,bad){const n=$("sheetNote");n.textContent=msg;n.classList.toggle("bad",!!bad)}
+function drawSheetBox(){
+  $("sheetUrl").value=cfg?cfg.url:"";
+  $("sheetToken").value=cfg?cfg.token:"";
+  $("unlinkSheet").hidden=!cfg;
+  unlinkArmed=false;$("unlinkSheet").classList.remove("armed");$("unlinkSheet").textContent="取消連結";
+}
+$("saveSheet").onclick=async()=>{
+  const url=$("sheetUrl").value.trim(), token=$("sheetToken").value.trim();
+  if(!/^https?:\/\/\S+\/exec$/.test(url)){sheetNote("網址要是部署後拿到的「網頁應用程式」網址，結尾是 /exec。",true);return}
+  if(!token){sheetNote("請填通行碼。",true);return}
+  const prev=cfg;
+  cfg={url,token};
+  $("saveSheet").disabled=true;sheetNote("連線中…");
+  let d;
+  try{d=await api(null)}
+  catch(e){
+    cfg=prev;$("saveSheet").disabled=false;
+    sheetNote(e.kind==="offline"?"連不上這個網址。請確認網路正常、網址正確，而且部署時存取權選了「任何人」。":syncErrorText(e),true);
+    return;
   }
-  mode="db";$("sync").textContent="已同步";
-  db.collection("ledger").onSnapshot(snap=>{
-    const next={};
-    snap.docs.forEach(d=>{const v=d.data();next[d.id]=(v&&Array.isArray(v.entries))?v.entries.slice():[]});
-    months=next;render();
-  },()=>{$("sync").textContent="同步中斷，請重新整理";});
-  db.doc("settings/main").onSnapshot(s=>{
-    const v=s.exists?s.data():{};
-    opening=Number(v.opening)||0;
-    until=typeof v.until==="string"?v.until:"";
-    fixed=Array.isArray(v.fixed)?v.fixed:[];
-    if(!$("settingsBox").open)drawFixedRows();
-    if(document.activeElement!==$("opening"))$("opening").value=opening||"";
-    render();
-  },()=>{});
-})();
+  $("saveSheet").disabled=false;
+  let added=0;
+  if(!prev||prev.url!==url){
+    /* 換成新的試算表：把這個瀏覽器裡有、試算表沒有的紀錄補上去 */
+    const has=new Set((d.entries||[]).map(e=>e.id));
+    const missing=entries.filter(e=>!has.has(e.id));
+    queue=[];
+    if(missing.length){queue.push({action:"add",entries:missing});added=missing.length}
+    const sheetEmpty=!Number(d.opening)&&!d.until&&!(d.fixed&&d.fixed.length);
+    if(sheetEmpty&&(opening||until||fixed.length))queue.push({action:"saveSettings",settings:settingsObj()});
+  }
+  lsSet(LS_SHEET,cfg);lsSet(LS_QUEUE,queue);
+  applyRemote(d);drawFixedRows();drawSheetBox();
+  sheetNote("已連結試算表。"+(added?"這個瀏覽器裡的 "+added+" 筆紀錄會一併補到試算表。":""));
+  sync();
+};
+$("unlinkSheet").onclick=()=>{
+  if(!unlinkArmed){
+    unlinkArmed=true;$("unlinkSheet").classList.add("armed");
+    $("unlinkSheet").textContent=queue.length?"還有 "+queue.length+" 個動作沒送出，確定取消連結？":"確定取消連結？";
+    return;
+  }
+  cfg=null;queue=[];clearTimeout(retryTimer);
+  lsSet(LS_SHEET,null);lsSet(LS_QUEUE,queue);
+  drawSheetBox();setStatus("local");sheetNote("已取消連結。資料還留在這個瀏覽器裡。");
+};
+
+/* ---------- 備份 ---------- */
+let pendingImport=null;
+function importNote(msg,bad){const n=$("importNote");n.textContent=msg;n.classList.toggle("bad",!!bad)}
+$("exportBtn").onclick=()=>{
+  const data={app:"KYX記帳",version:1,exportedAt:new Date().toISOString(),entries,opening,until,fixed};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="KYX-backup-"+todayStr()+".json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  importNote("已匯出 "+entries.length+" 筆紀錄和設定。");
+};
+function parseBackup(o){
+  if(!o||typeof o!=="object")return null;
+  const list=Array.isArray(o.entries)?o.entries:(o.months&&typeof o.months==="object"?Object.values(o.months).flat():null);
+  if(!list)return null;
+  const out=[];
+  for(const e of list){
+    if(!e||!e.id||!TYPES[e.type]||e.type==="fixed")continue;
+    const amount=Number(e.amount);
+    if(!(amount>0)||!/^\d{4}-\d{2}-\d{2}$/.test(e.date))continue;
+    out.push({id:String(e.id),type:e.type,amount,note:String(e.note||""),date:e.date,ts:Number(e.ts)||0});
+  }
+  return {entries:out,skipped:list.length-out.length,settings:{
+    opening:Number(o.opening)||0,
+    until:typeof o.until==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(o.until)?o.until:"",
+    fixed:Array.isArray(o.fixed)?o.fixed.filter(f=>f&&f.amount>0):[]
+  }};
+}
+$("importBtn").onclick=()=>{$("importFile").value="";$("importFile").click()};
+$("importFile").onchange=async()=>{
+  const f=$("importFile").files[0];if(!f)return;
+  let p=null;
+  try{p=parseBackup(JSON.parse(await f.text()))}catch(e){p=null}
+  $("importFile").value="";
+  if(!p){$("importConfirm").hidden=true;importNote("這個檔案不是 KYX記帳 的備份檔。",true);return}
+  const ids=new Set(entries.map(e=>e.id));
+  const fresh=p.entries.filter(e=>!ids.has(e.id));
+  pendingImport={fresh,settings:p.settings};
+  $("importSummary").textContent="這個備份檔有 "+p.entries.length+" 筆紀錄，其中 "+fresh.length+" 筆是新的"
+    +(p.skipped?"（另有 "+p.skipped+" 筆格式不對，會略過）":"")
+    +"；固定支出 "+p.settings.fixed.length+" 項，起始結餘 NT$"+fmt(p.settings.opening)
+    +"。匯入後，新的紀錄會加進來，固定支出、起始結餘和撐到日會改成備份檔裡的設定。";
+  $("importConfirm").hidden=false;importNote("");
+};
+$("importNo").onclick=()=>{pendingImport=null;$("importConfirm").hidden=true;importNote("已取消匯入。")};
+$("importYes").onclick=()=>{
+  if(!pendingImport)return;
+  const {fresh,settings}=pendingImport;
+  pendingImport=null;$("importConfirm").hidden=true;
+  if(fresh.length){entries=entries.concat(fresh);commit({action:"add",entries:fresh})}
+  opening=settings.opening;until=settings.until;fixed=settings.fixed;
+  persistSettings();
+  $("opening").value=opening||"";drawFixedRows();render();
+  importNote("已匯入 "+fresh.length+" 筆新紀錄，設定也已更新。");
+};
+
+/* ---------- 啟動 ---------- */
+lsLoad();
+$("opening").value=opening||"";drawFixedRows();drawSheetBox();render();
+setInterval(render,60000);
+if(cfg)sync();else setStatus("local");
+window.addEventListener("online",()=>sync());
+window.addEventListener("offline",()=>{if(cfg&&!syncing)setStatus("offline")});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){render();sync()}});
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
 })();
 </script>
+</body>
+</html>

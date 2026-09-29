@@ -1,8 +1,8 @@
-# 兩本帳：交接說明
+# KYX記帳：交接說明
 
 ## 任務目標
 
-`兩本帳.html` 是一個已經做好的記帳頁面。原本在 claude.ai 上以 artifact 發布，資料存在 claude.ai 的雲端資料庫（`window.claude.use("db")`）。
+`index.html` 是一個已經做好的記帳頁面（KYX記帳）。原本在 claude.ai 上以 artifact 發布，資料存在 claude.ai 的雲端資料庫（`window.claude.use("db")`）。
 
 現在要把它改成可以**完全免費**給一位朋友長期使用的版本。只有他一個人記帳，但要能在手機和電腦之間同步：
 
@@ -99,7 +99,7 @@
 
 ### 3. 加入主畫面
 - 加上 `manifest.json` 和 apple-touch-icon，圖示自己設計，簡單就好。
-- 名稱使用「兩本帳」。
+- 名稱使用「KYX記帳」（只能用英文的地方用 KYX）。
 
 ### 4. 部署
 - 放上 GitHub Pages，檔名改成 `index.html`。
