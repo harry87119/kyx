@@ -218,10 +218,14 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .t-in{background:var(--cat);border-color:var(--cat);color:var(--on-cat)}
 .t-out{background:transparent;border:2px solid var(--cat);color:var(--fg)}
 /* 滑過時只動外框：收入的框由下往上畫出（錢進來），支出的框由上往下畫出（錢出去） */
-.tbtn::before{content:"";position:absolute;inset:0;border:3px solid currentColor;pointer-events:none;transition:clip-path var(--dur-base) var(--ease-wipe)}
-.t-in::before{clip-path:inset(100% 0 0 0)}
-.t-out::before{inset:-2px;clip-path:inset(0 0 100% 0)}
-.tbtn:hover::before,.tbtn:focus-visible::before{clip-path:inset(0 0 0 0)}
+/* 滑過時整塊底色移動：收入由下往上升（錢進來），支出由上往下降（錢出去） */
+.tbtn{isolation:isolate}
+.tbtn::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transform:scaleY(0);transition:transform var(--dur-base) var(--ease-wipe)}
+.t-in::before{background:currentColor;opacity:.16;transform-origin:bottom}
+.t-out::before{background:var(--cat);transform-origin:top}
+.tbtn:hover::before,.tbtn:focus-visible::before{transform:scaleY(1)}
+.t-out{transition:color var(--dur-base) var(--ease-wipe),transform var(--dur-instant) var(--ease)}
+.t-out:hover,.t-out:focus-visible{color:var(--on-cat)}
 .settle-grid{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px}
 .types-rule{grid-column:1/-1;height:0;border-top:1px solid var(--line-2);margin-top:20px}
 .settle-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
@@ -299,8 +303,8 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .frow .amtIn,.frow .dayIn{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 .frow .day{display:flex;align-items:baseline;gap:6px;white-space:nowrap;font-size:13px;color:var(--fg-2)}
 .frow .day input{width:40px;text-align:center}
-.frow .rm{border:0;background:transparent;color:var(--fg-3);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:10px 0 10px 4px}
-.frow .rm:hover{color:var(--gh-red)}
+.frow .rm{align-self:end;border:1px solid var(--line-strong);background:transparent;color:var(--fg-2);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:8px 12px;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.frow .rm:hover{color:var(--gh-red);border-color:var(--gh-red)}
 @media (max-width:480px){.frow{grid-template-columns:minmax(0,1fr) 96px}.frow .day{grid-column:1}}
 .set-row{display:flex;gap:10px;align-items:flex-end;margin-top:18px;flex-wrap:wrap}
 .set-row .b-input{width:180px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
@@ -445,8 +449,8 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <p>修改金額、日期或移除時，已經扣過的月份不會變，從下一次扣款開始用新的設定。</p>
         <div id="fixedRows" class="fixed-rows"></div>
         <div class="set-row">
-          <button id="addFixed" type="button" class="b-btn b-btn--entry b-btn--sm">＋ 新增一項</button>
-          <button id="saveFixed" type="button" class="b-btn b-btn--primary b-btn--sm">儲存固定支出</button>
+          <button id="addFixed" type="button" class="b-btn b-btn--secondary b-btn--sm">＋ 新增一項</button>
+          <button id="saveFixed" type="button" class="b-btn b-btn--secondary b-btn--sm">儲存固定支出</button>
         </div>
       </div>
       <div class="set-block">
@@ -454,7 +458,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <p>開始記帳前手上已有、可以私人花用的錢。不填就從 0 起算。</p>
         <div class="set-row">
           <input id="opening" class="b-input" inputmode="decimal" aria-label="起始結餘" placeholder="0">
-          <button id="saveOpening" class="b-btn b-btn--primary b-btn--sm">儲存</button>
+          <button id="saveOpening" class="b-btn b-btn--secondary b-btn--sm">儲存</button>
         </div>
       </div>
       <div class="set-block">
@@ -465,7 +469,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
           <label class="b-field"><span class="b-field__label">通行碼 / Token</span><input id="sheetToken" class="b-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="和指令碼屬性 TOKEN 一樣"></label>
         </div>
         <div class="set-row">
-          <button id="saveSheet" type="button" class="b-btn b-btn--primary b-btn--sm">儲存並同步</button>
+          <button id="saveSheet" type="button" class="b-btn b-btn--secondary b-btn--sm">儲存並同步</button>
           <button id="unlinkSheet" type="button" class="b-btn b-btn--secondary b-btn--sm" hidden>取消連結</button>
         </div>
         <p id="sheetNote" class="set-note" role="status"></p>
@@ -474,14 +478,14 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <h3>備份</h3>
         <p>匯出會下載一個包含全部紀錄和設定的 JSON 檔。匯入時，已經有的紀錄會略過、只加入新的；固定支出、起始結餘和下次發薪日會改成檔案裡的設定。</p>
         <div class="set-row">
-          <button id="exportBtn" type="button" class="b-btn b-btn--gold b-btn--sm">匯出備份</button>
+          <button id="exportBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">匯出備份</button>
           <button id="importBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">匯入備份</button>
           <input id="importFile" type="file" accept="application/json,.json" hidden>
         </div>
         <div id="importConfirm" class="confirm" hidden>
           <p id="importSummary"></p>
           <div class="set-row">
-            <button id="importYes" type="button" class="b-btn b-btn--primary b-btn--sm">確定匯入</button>
+            <button id="importYes" type="button" class="b-btn b-btn--secondary b-btn--sm">確定匯入</button>
             <button id="importNo" type="button" class="b-btn b-btn--secondary b-btn--sm">取消</button>
           </div>
         </div>
