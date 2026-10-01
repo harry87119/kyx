@@ -180,20 +180,24 @@ button{cursor:pointer}
 .tbtn:disabled{opacity:.32;cursor:not-allowed}
 .wide{grid-column:1/-1}
 /* 分類色：製作費一律金色、交通費一律天藍，兩組不混用 */
+/* 記帳按鈕：上排收入＝實心、下排支出＝外框；顏色代表是哪一筆錢（私人＝黑白、製作費＝金、交通費＝天藍） */
+.cat-own{--cat:var(--fg);--on-cat:var(--bg)}
 .cat-prod{--cat:var(--gh-gold);--on-cat:#000}
 .cat-trans{--cat:var(--gh-sky);--on-cat:#fff}
-.t-salary{background:var(--gh-turquoise);color:#000}
-.t-personal{background:var(--gh-red);color:#fff}
-.t-personal:hover{background:var(--gh-vermilion)}
-.t-quota{background:var(--cat);color:var(--on-cat)}
-.t-spend{background:transparent;border-color:var(--cat);color:var(--fg)}
-.t-spend:hover{background:var(--cat);color:var(--on-cat)}
+.t-in{background:var(--cat);border-color:var(--cat);color:var(--on-cat)}
+.t-out{background:transparent;border:2px solid var(--cat);color:var(--fg)}
+.t-out:hover{background:var(--cat);color:var(--on-cat)}
 .settle-grid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:2px}
 .settle-col{min-width:0;display:flex;flex-direction:column}
-.settle{background:var(--cat);color:var(--on-cat);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1}
-.settle .label{font-family:var(--font-han-sans);font-size:13px;letter-spacing:.06em}
-.settle .mid{font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:var(--on-cat);margin-top:6px}
-.settle .sub{font-size:11.5px;color:inherit;opacity:.85}
+/* 誰欠誰：顏色跟著方向走，方向一翻轉顏色就換；出現時從下方升起 */
+.settle{--dir:var(--gh-turquoise);background:var(--dir);color:#000;padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1;--on-cat:#000}
+.settle.owe{--dir:var(--gh-amber)}
+.settle.owed{--dir:var(--gh-turquoise)}
+.settle:not([hidden]){animation:b-rise var(--dur-base) var(--ease-settle) both}
+.settle .cap{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
+.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:clamp(20px,13cqi,28px);line-height:1.15;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
+.settle .mid{font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:#000;margin-top:4px}
+.settle .sub{font-size:11.5px;color:inherit;opacity:.8}
 .clear{align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid var(--on-cat);border-radius:0;background:transparent;color:var(--on-cat);font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .clear:hover,.clear.armed{background:var(--on-cat);color:var(--cat)}
 .toast{font-size:13px;min-height:1.2em;letter-spacing:.02em}
@@ -201,7 +205,7 @@ button{cursor:pointer}
 /* ===== 固定支出、工作帳 ===== */
 .fx-list{display:flex;flex-direction:column}
 .fx-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
-.fx-row::before{content:"";width:10px;height:10px;background:var(--gh-acid)}
+.fx-row::before{content:"";width:10px;height:10px;background:var(--fg-3)}
 .fx-row .fx-name{min-width:0;overflow-wrap:anywhere;font-family:var(--font-han-sans);letter-spacing:.04em}
 .fx-row .fx-name small{display:block;margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;color:var(--fg-3)}
 .fx-row .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap}
@@ -345,14 +349,14 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="types">
         <div class="group-label">收入 / Income</div>
-        <button class="tbtn t-salary wide" data-type="salary">真實薪水<small>進私人可花</small></button>
-        <button class="tbtn t-quota cat-prod" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
-        <button class="tbtn t-quota cat-trans" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
+        <button class="tbtn t-in cat-own wide" data-type="salary">真實薪水<small>進私人可花</small></button>
+        <button class="tbtn t-in cat-prod" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
+        <button class="tbtn t-in cat-trans" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
         <div class="group-label">支出 / Expense</div>
-        <button class="tbtn t-personal wide" data-type="personal">私人花費<small>從私人可花扣</small></button>
-        <button class="tbtn t-spend cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
-        <button class="tbtn t-spend cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
-        <div class="group-label" id="settleLabel" hidden>誰欠誰 / Settle</div>
+        <button class="tbtn t-out cat-own wide" data-type="personal">私人花費<small>從私人可花扣</small></button>
+        <button class="tbtn t-out cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
+        <button class="tbtn t-out cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
+        <div class="group-label" id="settleLabel" hidden>誰欠誰 · 會隨記帳改變 / Settle</div>
         <div class="settle-grid" id="settleRow" hidden>
           <div class="settle-col cat-prod" id="settle_prod"></div>
           <div class="settle-col cat-trans" id="settle_trans"></div>
@@ -436,9 +440,9 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 (function(){
 /* 分類色：每個分類固定一個品牌色（BITO-STYLE 3.4） */
 const TYPES={
-  fixed:{name:"固定支出",en:"Fixed",color:"var(--gh-acid)",sign:-1,group:"personal"},
-  salary:{name:"真實薪水",en:"Income",color:"var(--gh-turquoise)",sign:1,group:"personal"},
-  personal:{name:"私人花費",en:"Personal",color:"var(--gh-ember)",sign:-1,group:"personal"},
+  fixed:{name:"固定支出",en:"Fixed",color:"var(--fg-3)",sign:-1,group:"personal"},
+  salary:{name:"真實薪水",en:"Income",color:"var(--fg)",sign:1,group:"personal"},
+  personal:{name:"私人花費",en:"Personal",color:"var(--fg)",sign:-1,group:"personal"},
   q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"q"},
   q_trans:{name:"交通費 quota",en:"Quota",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"q"},
   prod:{name:"製作費",en:"Production",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"spend"},
@@ -622,9 +626,10 @@ let settleState={}, clearArmed=null;
     const g=$("settle_"+c.id);
     for(const k of ["owe","owed"]){
       const box=document.createElement("div");box.className="settle";box.id="s_"+c.id+"_"+k;
-      box.innerHTML='<span class="label"></span><span class="mid">NT$0</span><span class="sub"></span><button class="clear" hidden></button>';
-      box.querySelector(".label").textContent=(k==="owe"?"我還欠公司":"公司還欠我")+"・"+c.name;
-      box.querySelector(".sub").textContent=k==="owe"?c.name+" quota 沒用完的部分":"超出"+c.name+" quota、我自己墊的";
+      box.innerHTML='<span class="cap"></span><span class="label"></span><span class="mid">NT$0</span><span class="sub"></span><button class="clear" hidden></button>';
+      box.querySelector(".cap").textContent=c.name+" · 目前 / "+(c.id==="prod"?"Production":"Transit");
+      box.querySelector(".label").textContent=k==="owe"?"我 → 公司":"公司 → 我";
+      box.querySelector(".sub").textContent=k==="owe"?"我還欠公司："+c.name+" quota 沒用完的部分":"公司還欠我：超出"+c.name+" quota、我自己墊的";
       box.querySelector(".clear").onclick=()=>settle(c.id,k);
       g.appendChild(box);
     }
