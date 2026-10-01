@@ -171,11 +171,17 @@ button{cursor:pointer}
 #amount::placeholder{color:var(--fg-3)}
 .meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px}
 .meta #date{font-family:var(--font-display);font-variant-numeric:tabular-nums}
-.types{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
 .group-label{grid-column:1/-1;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-3);margin:14px 0 6px}
 .group-label:first-child{margin-top:0}
-.tbtn{border:1px solid transparent;border-radius:0;padding:16px;font-family:var(--font-han-sans);font-size:15px;font-weight:500;letter-spacing:.06em;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:76px;justify-content:space-between;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),transform var(--dur-instant) var(--ease)}
-.tbtn small{font-family:var(--font-text);font-weight:400;font-size:11.5px;letter-spacing:.02em;opacity:.8}
+.tbtn{position:relative;overflow:hidden;border:1px solid transparent;border-radius:0;padding:14px;font-family:var(--font-han-sans);font-size:15px;font-weight:500;letter-spacing:.04em;line-height:1.35;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:96px;justify-content:space-between;min-width:0;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),transform var(--dur-instant) var(--ease)}
+.tbtn small{font-family:var(--font-text);font-weight:400;font-size:11.5px;letter-spacing:.02em;line-height:1.45;opacity:.8}
+/* 送出動畫：一道色帶從左掃到右再收回（機械式擦入，不彈跳、不縮放） */
+.tbtn::after{content:"";position:absolute;inset:0;background:currentColor;opacity:.22;transform:scaleX(0);transform-origin:left;pointer-events:none}
+.tbtn.sent::after{animation:b-sweep 620ms var(--ease-wipe)}
+.tbtn.sent small{opacity:1;font-weight:500}
+@keyframes b-sweep{0%{transform:scaleX(0);transform-origin:left}48%{transform:scaleX(1);transform-origin:left}52%{transform:scaleX(1);transform-origin:right}100%{transform:scaleX(0);transform-origin:right}}
+@media (max-width:420px){.tbtn{padding:12px 10px;font-size:14px;min-height:104px}.tbtn small{font-size:11px}}
 .tbtn:active{transform:translateY(1px)}
 .tbtn:disabled{opacity:.32;cursor:not-allowed}
 .wide{grid-column:1/-1}
@@ -187,15 +193,18 @@ button{cursor:pointer}
 .t-in{background:var(--cat);border-color:var(--cat);color:var(--on-cat)}
 .t-out{background:transparent;border:2px solid var(--cat);color:var(--fg)}
 .t-out:hover{background:var(--cat);color:var(--on-cat)}
-.settle-grid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.settle-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
+.settle-note{display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding:14px 14px 14px 0;font-family:var(--font-han-serif);font-weight:700;font-size:16px;line-height:1.35;color:var(--fg-2)}
+.settle-note .b-label{font-weight:500}
 .settle-col{min-width:0;display:flex;flex-direction:column}
 /* 誰欠誰：顏色跟著方向走，方向一翻轉顏色就換；出現時從下方升起 */
 .settle{--dir:var(--gh-turquoise);background:var(--dir);color:#000;padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1;--on-cat:#000}
 .settle.owe{--dir:var(--gh-amber)}
 .settle.owed{--dir:var(--gh-turquoise)}
 .settle:not([hidden]){animation:b-rise var(--dur-base) var(--ease-settle) both}
-.settle .cap{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
-.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:clamp(20px,13cqi,28px);line-height:1.15;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
+.settle .cap{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;overflow-wrap:anywhere}
+.settle{border-top:4px solid #000}
+.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:clamp(22px,22cqi,40px);line-height:1.1;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
 .settle .mid{font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:#000;margin-top:4px}
 .settle .sub{font-size:11.5px;color:inherit;opacity:.8}
 .clear{align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid var(--on-cat);border-radius:0;background:transparent;color:var(--on-cat);font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
@@ -349,15 +358,16 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="types">
         <div class="group-label">收入 / Income</div>
-        <button class="tbtn t-in cat-own wide" data-type="salary">真實薪水<small>進私人可花</small></button>
+        <button class="tbtn t-in cat-own" data-type="salary">真實薪水<small>進私人可花</small></button>
         <button class="tbtn t-in cat-prod" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
         <button class="tbtn t-in cat-trans" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
         <div class="group-label">支出 / Expense</div>
-        <button class="tbtn t-out cat-own wide" data-type="personal">私人花費<small>從私人可花扣</small></button>
+        <button class="tbtn t-out cat-own" data-type="personal">私人花費<small>從私人可花扣</small></button>
         <button class="tbtn t-out cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
         <button class="tbtn t-out cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
-        <div class="group-label" id="settleLabel" hidden>誰欠誰 · 會隨記帳改變 / Settle</div>
+        <div class="group-label" id="settleLabel" hidden>誰欠誰 / Settle</div>
         <div class="settle-grid" id="settleRow" hidden>
+          <div class="settle-note">會隨記帳<br>改變方向<span class="b-label">Now</span></div>
           <div class="settle-col cat-prod" id="settle_prod"></div>
           <div class="settle-col cat-trans" id="settle_trans"></div>
         </div>
@@ -602,10 +612,21 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   commit({action:"add",entries:[e]});
   $("amount").value="";$("note").value="";
   render();
+  flashBtn(b,"已記下 NT$"+fmt(e.amount));
   if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow),true);
   else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
   $("amount").focus();
 }));
+
+/* 按下記帳按鈕後：色帶掃過，小字短暫改成「已記下 NT$X」 */
+function flashBtn(b,msg){
+  const sm=b.querySelector("small");
+  if(!sm.dataset.orig)sm.dataset.orig=sm.textContent;
+  b.classList.remove("sent");void b.offsetWidth;b.classList.add("sent");
+  sm.textContent=msg;
+  clearTimeout(b._t);
+  b._t=setTimeout(()=>{b.classList.remove("sent");sm.textContent=sm.dataset.orig},1400);
+}
 
 /* ---------- 刪除 ---------- */
 let armed=null;
@@ -627,8 +648,8 @@ let settleState={}, clearArmed=null;
     for(const k of ["owe","owed"]){
       const box=document.createElement("div");box.className="settle";box.id="s_"+c.id+"_"+k;
       box.innerHTML='<span class="cap"></span><span class="label"></span><span class="mid">NT$0</span><span class="sub"></span><button class="clear" hidden></button>';
-      box.querySelector(".cap").textContent=c.name+" · 目前 / "+(c.id==="prod"?"Production":"Transit");
-      box.querySelector(".label").textContent=k==="owe"?"我 → 公司":"公司 → 我";
+      box.querySelector(".cap").textContent=c.name+" · "+(k==="owe"?"Owe":"Owed");
+      box.querySelector(".label").textContent=k==="owe"?"我欠公司":"公司欠我";
       box.querySelector(".sub").textContent=k==="owe"?"我還欠公司："+c.name+" quota 沒用完的部分":"公司還欠我：超出"+c.name+" quota、我自己墊的";
       box.querySelector(".clear").onclick=()=>settle(c.id,k);
       g.appendChild(box);
