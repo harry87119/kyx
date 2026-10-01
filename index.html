@@ -184,7 +184,7 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .hero{display:flex;flex-direction:column;gap:12px}
 .panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
 @media (max-width:560px){.panels{grid-template-columns:1fr}}
-.panel{display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
+.panel{display:flex;flex-direction:column;justify-content:flex-start;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
 .panel .b-label{color:inherit}
 /* 還可花的三種顏色：充裕＝青綠、偏緊＝琥珀、超支／不夠＝朱紅；色塊內的文字、細線跟著換色 */
 .panel{transition:background var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
@@ -192,20 +192,23 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .tone-low{background:var(--gh-amber);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
 .tone-over{background:var(--gh-red);--fg:#fff;--fg-2:rgba(255,255,255,.85);--fg-3:rgba(255,255,255,.72);--line:rgba(255,255,255,.32);--focus:#fff;--expense:#fff;color:#fff}
 .panel .neg{color:inherit}
+/* 兩塊的大數字放在同一個高度（標題下面），下面的小字和長條貼齊底部 */
+.panel-body{flex:1;display:flex;flex-direction:column;min-width:0}
+.panel-body>.panel-foot{margin-top:auto;padding-top:4px}
 .panel-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .tone-tag{flex:none;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-han-sans);font-size:12px;font-weight:700;letter-spacing:.14em;line-height:1.2}
 .tone-tag::before{content:"";width:8px;height:8px;background:currentColor}
-.big{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1;font-size:clamp(40px,17cqi,88px);white-space:nowrap}
+.big{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1;font-size:64px;font-size:clamp(40px,17cqi,88px);white-space:nowrap}
 .mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
-.panel .mid{font-size:clamp(28px,12cqi,48px);white-space:nowrap}
-.panel .big.is-short{font-size:clamp(28px,12cqi,48px)}
+.panel .mid{font-size:40px;font-size:clamp(28px,12cqi,48px);white-space:nowrap}
+.panel .big.is-short{font-size:40px;font-size:clamp(28px,12cqi,48px)}
 .dg{display:inline-block;height:1em;overflow:hidden;vertical-align:top;line-height:1}
 .dg-strip{display:block;white-space:pre;line-height:1}
 .date-line{display:flex;align-items:baseline;gap:12px;min-width:0}
-.date-line .wk{font-family:var(--font-han-sans);font-size:clamp(14px,5cqi,22px);font-weight:500;letter-spacing:.14em;white-space:nowrap}
+.date-line .wk{font-family:var(--font-han-sans);font-size:18px;font-size:clamp(14px,5cqi,22px);font-weight:500;letter-spacing:.14em;white-space:nowrap}
 .date-line .wk:empty{display:none}
 /* 上面「錢能撐幾天」一條長條（撐到發薪日就是滿的）、下面「離發薪日幾天」只寫字 */
-.cmp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px 12px;margin-top:16px;font-size:12px;letter-spacing:.08em}
+.cmp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px 12px;font-size:12px;letter-spacing:.08em}
 .cmp-l{white-space:nowrap}
 .cmp-l .num,.cmp-v{font-family:var(--font-display);font-variant-numeric:tabular-nums}
 .cmp-v{text-align:right;white-space:nowrap;min-width:3.6em}
@@ -331,8 +334,8 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .settle:not([hidden]){animation:b-rise var(--dur-base) var(--ease-settle) both}
 .settle .cap{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;overflow-wrap:anywhere}
 .settle{border-top:4px solid #000}
-.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:clamp(24px,14cqi,40px);line-height:1.1;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
-.settle .mid{font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:#000;margin-top:4px}
+.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:32px;font-size:clamp(24px,14cqi,40px);line-height:1.1;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
+.settle .mid{font-size:24px;font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:#000;margin-top:4px}
 .settle .sub{font-size:11.5px;color:inherit;opacity:.8}
 /* 已收到＝錢回到我這邊，黑色由下往上升；已還清＝錢還給公司，黑色由上往下降（滑過、按下都會跑） */
 .clear{position:relative;isolation:isolate;overflow:hidden;align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid #000;border-radius:0;background:transparent;color:#000;font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:color var(--dur-base) var(--ease-wipe)}
@@ -523,17 +526,19 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       <div class="panels">
         <div class="panel tone-ok" id="todayPanel">
           <div class="panel-top"><span class="b-label">今天還可花 / Today</span><span class="tone-tag" id="todayTag"></span></div>
-          <div>
+          <div class="panel-body">
             <div class="big" id="todayLeft">—</div>
-            <div class="panel-sub" id="todaySub"></div>
-            <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
+            <div class="panel-foot">
+              <div class="panel-sub" id="todaySub"></div>
+              <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
+            </div>
           </div>
         </div>
         <div class="panel tone-ok" id="periodPanel">
           <div class="panel-top"><span class="b-label"><span id="periodLabel">剩餘的錢可以撐到</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
-          <div>
+          <div class="panel-body">
             <div class="date-line"><div class="big" id="periodDaily">—</div><span class="wk" id="periodWk"></span></div>
-            <div class="cmp" id="periodCmp">
+            <div class="panel-foot cmp" id="periodCmp">
               <span class="cmp-l">錢能撐幾天</span><span class="cmp-bar money"><i id="cmpMoney"></i></span><span class="cmp-v" id="cmpMoneyV"></span>
               <span class="cmp-l" id="cmpPayL">離發薪日</span><span></span><span class="cmp-v" id="cmpPayV"></span>
             </div>
@@ -871,7 +876,8 @@ function applyRemote(d){
 
 /* ---------- 新增 ---------- */
 function parseAmount(v){
-  v=String(v).replace(/[,，\s]/g,"");
+  /* 全形數字（例如注音輸入法的全形模式打出的「５８０」）先轉成半形 */
+  v=String(v).replace(/[０-９．]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[,，\s]/g,"");
   if(!v)return NaN;
   const n=Number(v);
   return isFinite(n)?n:NaN;
