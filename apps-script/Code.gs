@@ -10,8 +10,8 @@
 
 var SHEET_RECORDS = '紀錄';
 var SHEET_SETTINGS = '設定';
-var HEADERS = ['id', 'date', 'type', 'amount', 'note', 'ts'];
-var TYPES = ['salary', 'personal', 'q_prod', 'q_trans', 'prod', 'trans',
+var HEADERS = ['id', 'date', 'type', 'amount', 'note', 'ts', 'fx'];
+var TYPES = ['salary', 'personal', 'fixpay', 'q_prod', 'q_trans', 'prod', 'trans',
   'ret_prod', 'ret_trans', 'rb_prod', 'rb_trans',
   'quota', 'advance', 'return', 'reimb'];
 
@@ -64,14 +64,16 @@ function readAll_() {
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i];
       if (!r[0]) continue;
-      entries.push({
+      var item = {
         id: String(r[0]),
         date: toDateStr_(r[1]),
         type: String(r[2]),
         amount: toNumber_(r[3]),
         note: String(r[4] == null ? '' : r[4]),
         ts: toNumber_(r[5])
-      });
+      };
+      if (r[6]) item.fx = String(r[6]); // 浮動固定支出的實際金額：對應哪一項
+      entries.push(item);
     }
   }
   var s = readSettings_();
@@ -106,7 +108,7 @@ function addEntries_(list) {
     var e = validEntry_(list[j]);
     if (existing[e.id]) continue; // 重送時不會重複新增
     existing[e.id] = true;
-    rows.push([e.id, e.date, e.type, e.amount, safeText_(e.note), e.ts]);
+    rows.push([e.id, e.date, e.type, e.amount, safeText_(e.note), e.ts, safeText_(e.fx)]);
   }
   if (rows.length) {
     sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
@@ -168,8 +170,15 @@ function recordsSheet_() {
     // id、date、type、note 設成純文字，避免日期被自動轉換；amount、ts 是數字
     sh.getRange('A:C').setNumberFormat('@');
     sh.getRange('E:E').setNumberFormat('@');
+    sh.getRange('G:G').setNumberFormat('@');
     sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     sh.setFrozenRows(1);
+  }
+  // 舊版建立的工作表少了後面的欄位（例如 fx），補上標題
+  var head = sh.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+  if (String(head[HEADERS.length - 1]) !== HEADERS[HEADERS.length - 1]) {
+    sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    sh.getRange('G:G').setNumberFormat('@');
   }
   return sh;
 }
@@ -243,13 +252,15 @@ function validEntry_(e) {
   if (TYPES.indexOf(e.type) < 0) throw new AppError_('bad_request', '不認得的類型：' + e.type);
   if (!(amount > 0)) throw new AppError_('bad_request', '金額要大於 0');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new AppError_('bad_request', '日期格式要是 YYYY-MM-DD');
+  if (e.type === 'fixpay' && !e.fx) throw new AppError_('bad_request', '固定支出的實際金額要指定是哪一項');
   return {
     id: id,
     date: date,
     type: e.type,
     amount: amount,
     note: String(e.note || '').slice(0, 200),
-    ts: Number(e.ts) || Date.now()
+    ts: Number(e.ts) || Date.now(),
+    fx: String(e.fx || '').slice(0, 40)
   };
 }
 

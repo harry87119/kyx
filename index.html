@@ -104,6 +104,9 @@ button{cursor:pointer}
 @media (max-width:560px){.top-right .sync{max-width:118px;font-size:10px;line-height:1.35}}
 /* 目錄：一直展開，橫向一排；手機上可以左右滑 */
 body.typing .topbar{position:relative}
+body.typing .tbtn{min-height:58px;padding:10px 12px;gap:0}
+body.typing .tbtn small{display:none}
+body.typing .types .group-label{margin:8px 0 4px}
 .toc{order:10;width:100%;display:flex;gap:28px;overflow-x:auto;scrollbar-width:none;margin:2px 0 -10px;padding-top:4px}
 .toc::-webkit-scrollbar{display:none}
 .toc a{flex:none;display:inline-flex;align-items:baseline;gap:8px;padding:6px 0 10px;border-bottom:2px solid transparent;color:var(--fg-3);text-decoration:none;font-family:var(--font-han-sans);font-size:13.5px;letter-spacing:.1em;white-space:nowrap;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
@@ -187,6 +190,13 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
 .panel .mid{font-size:clamp(28px,12cqi,48px);white-space:nowrap}
 .panel .big.is-short{font-size:clamp(28px,12cqi,48px)}
+.date-line{display:flex;align-items:baseline;gap:12px;min-width:0}
+.date-line .wk{font-family:var(--font-han-sans);font-size:clamp(14px,5cqi,22px);font-weight:500;letter-spacing:.14em;white-space:nowrap}
+.date-line .wk:empty{display:none}
+/* 時間軸：今天 → 下次發薪日（直線刻度）→ 錢撐到的那天（實心長度） */
+.span-bar{position:relative;height:4px;background:var(--line);margin-top:18px}
+.span-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--fg);transition:width var(--dur-reveal) var(--ease-wipe)}
+.span-bar b{position:absolute;top:-6px;bottom:-6px;width:2px;margin-left:-1px;background:var(--fg);transition:left var(--dur-reveal) var(--ease-wipe)}
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
 .panel .panel-sub{color:var(--fg-2)}
 .panel .panel-sub .num{color:var(--fg)}
@@ -238,6 +248,21 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 
 /* ===== 新增一筆 ===== */
 .entry{display:flex;flex-direction:column;gap:20px}
+.amount-wrap{display:flex;align-items:flex-end;gap:14px}
+.amount-wrap .b-field{flex:1;min-width:0}
+.fx-check{position:relative;flex:none;display:flex;align-items:center;gap:8px;padding-bottom:16px;font-size:12px;line-height:1.35;letter-spacing:.06em;color:var(--gold-text);cursor:pointer;-webkit-user-select:none;user-select:none}
+.fx-check input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.fx-check .box{flex:none;width:18px;height:18px;border:1px solid var(--gh-gold);display:grid;place-items:center;transition:background var(--dur-fast) var(--ease)}
+.fx-check input:checked+.box{background:var(--gh-gold)}
+.fx-check input:checked+.box::after{content:"";width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.fx-check input:focus-visible+.box{outline:1px solid var(--focus);outline-offset:2px}
+.fx-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:14px;font-size:12.5px;letter-spacing:.06em;color:var(--fg-2)}
+.fx-chips{display:flex;flex-wrap:wrap;gap:8px}
+.fx-chip{border:1px solid var(--gh-gold);border-radius:0;background:transparent;color:var(--gold-text);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.06em;padding:7px 12px;cursor:pointer;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.fx-chip:hover{background:var(--gh-gold);color:#000}
+.fx-chip.on{background:var(--gh-gold);color:#000}
+.fx-pick-note{flex-basis:100%;margin:0;font-size:12px;line-height:1.6;color:var(--fg-3)}
+.fx-pick-note:empty{display:none}
 .amount-row{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);transition:border-color var(--dur-fast) var(--ease)}
 .amount-row:focus-within{border-bottom-color:var(--focus)}
 .amount-row .cur{font-family:var(--font-display);font-size:13px;letter-spacing:.16em;color:var(--fg-3)}
@@ -312,9 +337,20 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .fx-row::before{content:"";width:10px;height:10px;background:var(--fg-3)}
 .fx-row .fx-name{min-width:0;overflow-wrap:anywhere;font-family:var(--font-han-sans);letter-spacing:.04em}
 .fx-row .fx-name small{display:block;margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;color:var(--fg-3)}
+.amt.struck{text-decoration:line-through;color:var(--fg-3)!important}
 .fx-row .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap}
+.fx-gh{display:flex;align-items:baseline;gap:10px;margin-top:18px;padding-bottom:6px;border-bottom:1px solid var(--line-2);font-family:var(--font-han-sans);font-size:13px;font-weight:700;letter-spacing:.14em}
+.fx-gh small{font-weight:400;font-size:11.5px;letter-spacing:.04em;color:var(--fg-3)}
+.fx-list .fx-gh:first-child{margin-top:4px}
+.fx-row.vary::before{background:transparent;border:1px dashed var(--fg-3)}
+.fx-total small{display:block;margin-top:2px;font-weight:400;font-size:11px;letter-spacing:.04em;color:var(--fg-3)}
 .fx-total{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:14px 0 4px;border-top:2px solid var(--fg);margin-top:-1px;font-family:var(--font-han-sans);font-weight:700;letter-spacing:.06em}
 .fx-total .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:22px;white-space:nowrap}
+.fx-group+.fx-group{margin-top:22px}
+.fx-group .fx-gh{margin-top:0}
+.fx-ghint{margin:8px 0 2px;font-size:12px;line-height:1.6;color:var(--fg-3)}
+.fx-rows{display:flex;flex-direction:column;gap:6px}
+.fx-add{margin-top:12px}
 .fixed-total{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 0;padding-top:10px;border-top:1px solid var(--line);font-size:13.5px;color:var(--fg-2)}
 .fixed-total .num{font-size:18px;color:var(--fg)}
 #fixedNext{margin-top:12px}
@@ -450,7 +486,9 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <div class="panel tone-ok" id="periodPanel">
           <div class="panel-top"><span class="b-label"><span id="periodLabel">剩餘的錢可以撐到</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
           <div>
-            <div class="big" id="periodDaily">—</div>
+            <div class="date-line"><div class="big" id="periodDaily">—</div><span class="wk" id="periodWk"></span></div>
+            <div class="panel-sub" id="periodSub"></div>
+            <div class="span-bar" id="spanBar" aria-hidden="true"><i></i><b></b></div>
           </div>
         </div>
       </div>
@@ -494,10 +532,14 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   <div class="col col-side">
     <section class="entry" id="sec-entry" aria-label="新增一筆">
       <div class="sec-head" style="margin-bottom:0"><h2 class="sec-han">新增一筆</h2><span class="b-label">New entry</span></div>
-      <label class="b-field">
-        <span class="b-field__label">金額 / Amount</span>
-        <span class="amount-row"><span class="cur">NT$</span><input id="amount" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="金額"></span>
-      </label>
+      <div class="amount-wrap">
+        <label class="b-field">
+          <span class="b-field__label">金額 / Amount</span>
+          <span class="amount-row"><span class="cur">NT$</span><input id="amount" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="金額"></span>
+        </label>
+        <label class="fx-check"><input type="checkbox" id="isFixed"><span class="box" aria-hidden="true"></span><span>此筆為<br>固定支出</span></label>
+      </div>
+      <div class="fx-pick" id="fxPick" hidden><span class="fx-pick-l">是哪一項</span><span class="fx-chips" id="fxChips"></span><p class="fx-pick-note" id="fxPickNote"></p></div>
       <div class="meta">
         <label class="b-field"><span class="b-field__label">備註 / Note</span><input id="note" class="b-input" placeholder="選填" maxlength="60" aria-label="備註"></label>
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
@@ -549,7 +591,6 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <div id="fixedRows" class="fixed-rows"></div>
         <p class="fixed-total" id="fixedEditTotal"><span>每月合計（照上面填的）</span><span class="num">—</span></p>
         <div class="set-row">
-          <button id="addFixed" type="button" class="b-btn b-btn--secondary b-btn--sm">＋ 新增一項</button>
           <button id="saveFixed" type="button" class="b-btn b-btn--secondary b-btn--sm">儲存固定支出</button>
         </div>
       </div>
@@ -607,6 +648,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 /* 分類色：每個分類固定一個品牌色（BITO-STYLE 3.4） */
 const TYPES={
   fixed:{name:"固定支出",en:"Fixed",color:"var(--fg-3)",sign:-1,group:"personal"},
+  fixpay:{name:"固定支出・實際金額",en:"Bill",color:"var(--fg-3)",sign:-1,group:"personal"},
   salary:{name:"真實薪水",en:"Income",color:"var(--gh-gold)",sign:1,group:"personal"},
   personal:{name:"私人花費",en:"Personal",color:"var(--gh-gold)",sign:-1,group:"personal"},
   q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
@@ -779,7 +821,11 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   const amt=parseAmount($("amount").value);
   if(!(amt>0)){toast("先輸入大於 0 的金額",true);$("amount").focus();return}
   const date=$("date").value||todayStr();
-  const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:b.dataset.type,amount:Math.round(amt*100)/100,note:$("note").value.trim(),date,ts:Date.now()};
+  const fxMode=$("isFixed").checked;
+  if(fxMode&&(b.dataset.type!=="personal"||!fxSel))return;
+  const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:fxMode?"fixpay":b.dataset.type,amount:Math.round(amt*100)/100,note:$("note").value.trim(),date,ts:Date.now()};
+  if(fxMode)e.fx=fxSel;
+  const est=fxMode?pendingEst(fxSel,date).reduce((a,o)=>a+o.est,0):0;
   const beforeEnd=endNow, isWork=!!TYPES[e.type].cat, fresh0=freshTotal;
   noticeScrollPending=false;
   holdNoticeScroll=isWork;   // 記工作帳：捲到誰欠誰，不捲到最上面
@@ -794,7 +840,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
     notes.alloc={sid:e.id,date:todayStr()};notes.impact=null;notes.early=null;
   }else{
     render();
-    const afterEnd=endNow, head="已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"：";
+    const afterEnd=endNow, head="已記下 "+(fxMode?fxName(e.fx)+" 實際金額":TYPES[e.type].name)+" NT$"+fmt(e.amount)+"：";
     let text=null, kind="warn";
     if(beforeEnd&&afterEnd&&afterEnd!==beforeEnd){
       const n=Math.abs(dayDiff(afterEnd,beforeEnd));
@@ -806,10 +852,12 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   }
   saveNotes();
   render();
+  if(fxMode){$("isFixed").checked=false;drawFxPick()}
   flashBtn(b,"已記下 NT$"+fmt(e.amount));
   if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow),true);
   else if(smallPay)toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。這是小筆收入（不到常規薪水一半），會算進剩餘資產，但不算進每日基準。");
   else if(e.type==="salary")toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。錢怎麼分配，請看最上面。");
+  else if(fxMode)toast("已記下 "+fxName(e.fx)+" 實際金額 NT$"+fmt(e.amount)+(est>0?"，取代預估 NT$"+fmt(est)+(Math.abs(e.amount-est)<0.5?"，剛好一樣。":e.amount>est?"，多付 NT$"+fmt(e.amount-est)+"。":"，少付的 NT$"+fmt(est-e.amount)+" 回到剩餘資產。"):"。"),e.amount>est+0.5&&est>0);
   else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+(isWork&&freshTotal>fresh0?"。最上面有新的提示。":""));
   holdNoticeScroll=false;
   /* 送出後收起鍵盤；記工作帳捲到誰欠誰；其他的有新提示就捲到最上面看提示（render 會處理），沒有就捲到還可花 */
@@ -818,28 +866,72 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   if(go)setTimeout(()=>go.scrollIntoView({behavior:reduceMotion()?"auto":"smooth",block:"start"}),reduceMotion()?0:500);
 }));
 
-/* 手機點備註：頂部列先讓開，備註那一行捲到畫面最上面，鍵盤上方就是六個記帳按鈕 */
+/* 手機點備註：從備註到六個記帳按鈕這一塊，放在鍵盤上方「看得到的範圍」中間偏下，打字時看得到、打完直接點按鈕。
+   看得到的範圍用 visualViewport 算（不同 iPhone、不同鍵盤、App 裡的頂部列都會不一樣）；打字時按鈕縮矮、頂部列讓開 */
 {
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px)").matches;
-  const pin=()=>{if(document.activeElement!==$("note"))return;window.scrollTo({top:Math.max(0,$("note").closest(".meta").getBoundingClientRect().top+window.scrollY-8),behavior:"auto"})};
+  let pinUntil=0;
+  const place=()=>{
+    if(document.activeElement!==$("note")||Date.now()>pinUntil)return;
+    const vv=window.visualViewport, top=vv?vv.offsetTop:0, h=vv?vv.height:window.innerHeight;
+    const a=$("note").closest(".meta").getBoundingClientRect().top;
+    const b=document.querySelector('.tbtn[data-type="personal"]').getBoundingClientRect().bottom;
+    const want=top+Math.max(12,(h-(b-a))*0.6);   // 稍微偏下：上面可能有 App 的頂部列，下面是鍵盤上方的工具列
+    if(Math.abs(a-want)>4)window.scrollBy(0,a-want);
+  };
   $("note").addEventListener("focus",()=>{
     if(!small())return;
     document.body.classList.add("typing");
-    pin();setTimeout(pin,350);           // 鍵盤升起之後再對一次
-    if(window.visualViewport)visualViewport.addEventListener("resize",pin,{once:true});
+    pinUntil=Date.now()+1500;
+    place();setTimeout(place,300);setTimeout(place,700);
   });
-  $("note").addEventListener("blur",()=>document.body.classList.remove("typing"));
+  if(window.visualViewport)visualViewport.addEventListener("resize",place);
+  /* 晚一點才恢復，免得按鈕在手指按下去的瞬間變高、按錯 */
+  $("note").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("note"))document.body.classList.remove("typing")},400));
 }
 
 /* 按下記帳按鈕後：色帶掃過，小字短暫改成「已記下 NT$X」 */
 function flashBtn(b,msg){
   const sm=b.querySelector("small");
-  if(!sm.dataset.orig)sm.dataset.orig=sm.textContent;
   b.classList.remove("sent");void b.offsetWidth;b.classList.add("sent");
   sm.textContent=msg;
   clearTimeout(b._t);
-  b._t=setTimeout(()=>{b.classList.remove("sent");sm.textContent=sm.dataset.orig},1400);
+  b._t=setTimeout(()=>{b.classList.remove("sent");sm.textContent=btnSmall(b)},1400);
 }
+document.querySelectorAll(".tbtn small").forEach(sm=>sm.dataset.base=sm.textContent);
+function btnSmall(b){
+  if(b.dataset.type==="personal"&&$("isFixed").checked&&fxSel)return "記成「"+fxName(fxSel)+"」實際金額";
+  return b.querySelector("small").dataset.base;
+}
+/* ---------- 此筆為固定支出：浮動的固定支出繳了以後記實際金額 ---------- */
+let fxSel=null;
+function drawFxPick(){
+  const on=$("isFixed").checked, items=activeFixed().filter(f=>f.vary);
+  $("fxPick").hidden=!on;
+  if(on&&!items.some(f=>sidOf(f)===fxSel)){
+    /* 預設選繳費日離記帳日期最近的那一項 */
+    const ds=$("date").value||todayStr(), [y,m]=ds.split("-").map(Number);
+    const near=f=>Math.min(...[-1,0,1].map(k=>Math.abs(dayDiff(ds,dueDate(y+Math.floor((m-1+k)/12),((m-1+k)%12+12)%12+1,f.day||1)))));
+    fxSel=items.length?sidOf(items.slice().sort((a,b)=>near(a)-near(b))[0]):null;
+  }
+  if(!on)fxSel=null;
+  $("fxChips").innerHTML=items.map(f=>'<button type="button" class="fx-chip'+(sidOf(f)===fxSel?" on":"")+'" data-sid="'+esc(sidOf(f))+'">'+esc(f.name||"固定支出")+'</button>').join("");
+  let note="";
+  if(on&&!items.length)note="設定裡還沒有「浮動」的固定支出。先到最下面的設定新增一項（例如電費），金額填預估。";
+  else if(on&&fxSel){
+    const pend=pendingEst(fxSel,$("date").value||todayStr()), est=pend.reduce((a,o)=>a+o.est,0);
+    note=pend.length?"按「私人花費」記下實際金額，會取代 "+pend.map(o=>mdOf(o.date)).join("、")+" 的預估 NT$"+fmt(est)+"，多退少補。"
+      :"這段期間的預估已經換成實際金額了，這筆會直接從剩餘資產扣。";
+  }
+  $("fxPickNote").textContent=note;
+  document.querySelectorAll(".tbtn").forEach(b=>{
+    b.disabled=on&&(b.dataset.type!=="personal"||!fxSel);
+    if(!b.classList.contains("sent"))b.querySelector("small").textContent=btnSmall(b);
+  });
+}
+$("isFixed").addEventListener("change",drawFxPick);
+$("date").addEventListener("change",()=>{if($("isFixed").checked)drawFxPick()});
+$("fxChips").addEventListener("click",ev=>{const c=ev.target.closest(".fx-chip");if(!c)return;fxSel=c.dataset.sid;drawFxPick()});
 
 /* ---------- 刪除 ---------- */
 let armed=null;
@@ -892,20 +984,40 @@ function settle(cat,k){
 
 /* ---------- 固定支出 ---------- */
 function dueDate(y,m,day){const dim=new Date(y,m,0).getDate();return y+"-"+pad(m)+"-"+pad(Math.min(day,dim))}
+/* 同一項固定支出改過金額會分成好幾段設定，sid 把它們串成同一項 */
+const sidOf=f=>f.sid||f.id;
+/* 浮動的固定支出：記了實際金額（fixpay）以後，到繳費那個月為止、還沒被取代的預估扣款都改用實際金額
+   （兩個月一期的帳單也一樣：一次取代兩個月的預估）。before：只看這天以前的實際金額 */
+function coverMonths(before){
+  const m={};
+  for(const e of entries)if(e.type==="fixpay"&&e.fx&&(!before||e.date<before)){const ym=e.date.slice(0,7);if(!m[e.fx]||ym>m[e.fx])m[e.fx]=ym}
+  return m;
+}
 /* 從 since 月份起，每月一筆，到 endDate（含）為止；有 end 的（已停用或改過的舊設定）只算到 end 那個月 */
-function occurrences(endDate,list){
-  const out=[];
+function occurrences(endDate,list,before){
+  const out=[], cov=coverMonths(before);
   for(const f of list||fixed){
     if(!(f.amount>0)||!f.since)continue;
     let [y,m]=f.since.split("-").map(Number);
+    const sid=sidOf(f);
     for(let i=0;i<600;i++){
       const d=dueDate(y,m,f.day||1);
       if(d>endDate||(f.end&&d.slice(0,7)>f.end))break;
-      out.push({id:"fx-"+f.id+"-"+d,type:"fixed",amount:f.amount,note:f.name||"固定支出",date:d,ts:0,virtual:true});
+      const covered=!!(f.vary&&cov[sid]&&d.slice(0,7)<=cov[sid]);
+      out.push({id:"fx-"+f.id+"-"+d,type:"fixed",amount:covered?0:f.amount,est:f.amount,covered,vary:!!f.vary,sid,note:f.name||"固定支出",date:d,ts:0,virtual:true});
       m++;if(m>12){m=1;y++}
     }
   }
   return out;
+}
+/* 這一項還沒被實際金額取代、到 date 那個月月底為止的預估扣款 */
+function pendingEst(sid,date){
+  const [y,m]=date.split("-").map(Number);
+  return occurrences(ymd(new Date(y,m,0)),fixed.filter(f=>sidOf(f)===sid)).filter(o=>o.vary&&!o.covered);
+}
+function fxName(sid){
+  const f=fixed.filter(x=>sidOf(x)===sid).sort((a,b)=>(b.since||"").localeCompare(a.since||""))[0];
+  return f?(f.name||"固定支出"):"固定支出";
 }
 function firstSince(day){
   const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
@@ -919,11 +1031,24 @@ function lastChargedMonth(f){
   const past=occurrences(todayStr(),[f]);
   return past.length?past[past.length-1].date.slice(0,7):"";
 }
+/* 設定裡分兩組：定額（每期一樣）、浮動（每期不同，填預估）。一項建好之後不能換組，要換就移除再新增 */
+const FX_GROUPS=[
+  {v:0,title:"定額",hint:"每期金額一樣，例如房租、卡費、訂閱。",add:"＋ 新增定額",id:"addFixed",ph:"名稱，例如房租"},
+  {v:1,title:"浮動",hint:"每期金額不一樣，例如水電瓦斯。金額先填預估（抓高一點）；繳了帳單以後，記帳時勾「此筆為固定支出」記實際金額，會取代預估，多退少補。",add:"＋ 新增浮動",id:"addFixedVary",ph:"名稱，例如電費"}
+];
 function drawFixedRows(){
   const box=$("fixedRows");box.textContent="";
   const act=activeFixed();
-  for(const f of act)box.appendChild(fixedRow(f));
-  if(!act.length){const p=document.createElement("div");p.className="sub";p.textContent="還沒有固定支出。";box.appendChild(p)}
+  for(const G of FX_GROUPS){
+    const g=document.createElement("div");g.className="fx-group";g.dataset.vary=String(G.v);
+    g.innerHTML='<h4 class="fx-gh"><span>'+G.title+'</span></h4><p class="fx-ghint">'+G.hint+'</p><div class="fx-rows"></div>';
+    const rows=g.querySelector(".fx-rows"), list=act.filter(f=>!!f.vary===!!G.v);
+    for(const f of list)rows.appendChild(fixedRow(f,G));
+    if(!list.length){const p=document.createElement("div");p.className="sub";p.textContent="還沒有。";rows.appendChild(p)}
+    const add=document.createElement("button");add.type="button";add.id=G.id;add.className="b-btn b-btn--secondary b-btn--sm fx-add";add.textContent=G.add;
+    add.onclick=()=>{const e=rows.querySelector(".sub");if(e)e.remove();const r=fixedRow({day:1},G);rows.appendChild(r);r.querySelector(".nameIn").focus()};
+    g.appendChild(add);box.appendChild(g);
+  }
   fixedEditTotal();
 }
 /* 設定裡的每月合計：邊改邊算 */
@@ -932,19 +1057,15 @@ function fixedEditTotal(){
   $("fixedEditTotal").querySelector(".num").textContent="NT$"+fmt(t);
 }
 $("fixedRows").addEventListener("input",fixedEditTotal);
-function fixedRow(f){
+function fixedRow(f,G){
   const r=document.createElement("div");r.className="frow";r.dataset.id=f.id||"";r.dataset.since=f.since||"";
-  r.innerHTML='<input class="nameIn" placeholder="名稱，例如房租" maxlength="30"><input class="amtIn" inputmode="decimal" placeholder="金額"><label class="day">每月 <input class="dayIn" inputmode="numeric" maxlength="2"> 號</label><button type="button" class="rm">移除</button>';
+  r.innerHTML='<input class="nameIn" placeholder="'+G.ph+'" maxlength="30"><input class="amtIn" inputmode="decimal" placeholder="'+(G.v?"預估金額":"金額")+'"><label class="day">每月 <input class="dayIn" inputmode="numeric" maxlength="2"> 號</label><button type="button" class="rm">移除</button>';
   r.querySelector(".nameIn").value=f.name||"";
   r.querySelector(".amtIn").value=f.amount||"";
   r.querySelector(".dayIn").value=f.day||1;
   r.querySelector(".rm").onclick=()=>{r.remove();fixedEditTotal()};
   return r;
 }
-$("addFixed").onclick=()=>{
-  const box=$("fixedRows");const empty=box.querySelector(".sub");if(empty)empty.remove();
-  const r=fixedRow({day:1});box.appendChild(r);r.querySelector(".nameIn").focus();
-};
 /* 改金額、改日期或移除時，已經扣過的月份維持原樣，從下一次扣款才用新的設定 */
 $("saveFixed").onclick=()=>{
   const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -957,8 +1078,9 @@ $("saveFixed").onclick=()=>{
     if(!(amount>0))continue;
     if(!(day>=1&&day<=31))day=1;
     const amt=Math.round(amount*100)/100;
+    const vary=r.closest(".fx-group").dataset.vary==="1";
     const old=fixed.find(f=>f.id===r.dataset.id&&!f.end);
-    if(!old){next.push({id:newId(),name,amount:amt,day,since:firstSince(day)});continue}
+    if(!old){const id=newId();next.push(Object.assign({id,sid:id,name,amount:amt,day,since:firstSince(day)},vary?{vary:true}:{}));continue}
     kept.add(old.id);
     if(old.amount===amt&&old.day===day){next.push(Object.assign({},old,{name}));continue}
     const last=lastChargedMonth(old);
@@ -969,7 +1091,7 @@ $("saveFixed").onclick=()=>{
     }else{
       /* 扣過了：舊設定停在最後扣款的月份，新設定從下個月開始 */
       next.push(Object.assign({},old,{end:last}));
-      next.push({id:newId(),name,amount:amt,day,since:nextMonth(last)});
+      next.push(Object.assign({id:newId(),sid:sidOf(old),name,amount:amt,day,since:nextMonth(last)},old.vary?{vary:true}:{}));
     }
   }
   for(const old of activeFixed()){
@@ -988,18 +1110,27 @@ function drawFixedSummary(today){
     const p=document.createElement("span");p.className="sub";p.textContent="還沒有固定支出。";
     box.appendChild(p);$("fixedNext").textContent="";return;
   }
-  for(const f of act){
-    const row=document.createElement("div");row.className="fx-row";
-    const n=document.createElement("span");n.className="fx-name";n.textContent=f.name||"固定支出";
-    const d=document.createElement("small");d.textContent="每月 "+(f.day||1)+" 號";n.appendChild(d);
-    const a=document.createElement("span");a.className="fx-amt";a.textContent="NT$"+fmt(f.amount);
-    row.append(n,a);box.appendChild(row);
+  for(const [vary,title,hint] of [[false,"定額","每期一樣"],[true,"浮動","每期不同，先用預估"]]){
+    const list=act.filter(f=>!!f.vary===vary);
+    if(!list.length)continue;
+    const h=document.createElement("div");h.className="fx-gh";h.innerHTML="<span>"+title+"</span><small>"+hint+"</small>";box.appendChild(h);
+    for(const f of list){
+      const row=document.createElement("div");row.className="fx-row"+(vary?" vary":"");
+      const n=document.createElement("span");n.className="fx-name";n.textContent=f.name||"固定支出";
+      const d=document.createElement("small");d.textContent="每月 "+(f.day||1)+" 號"+(vary?" · 預估":"");n.appendChild(d);
+      if(vary){
+        const lp=entries.filter(e=>e.type==="fixpay"&&e.fx===sidOf(f)).sort((a,b)=>b.date.localeCompare(a.date))[0];
+        if(lp){const x=document.createElement("small");x.textContent="上次實際 NT$"+fmt(lp.amount)+"（"+mdOf(lp.date)+"）";n.appendChild(x)}
+      }
+      const a=document.createElement("span");a.className="fx-amt";a.textContent="NT$"+fmt(f.amount);
+      row.append(n,a);box.appendChild(row);
+    }
   }
   const tot=document.createElement("div");tot.className="fx-total";
-  tot.innerHTML='<span>每月合計</span><span class="fx-amt">NT$'+fmt(act.reduce((s,f)=>s+f.amount,0))+'</span>';
+  tot.innerHTML='<span>每月合計'+(act.some(f=>f.vary)?'<small>浮動的用預估算</small>':'')+'</span><span class="fx-amt">NT$'+fmt(act.reduce((s,f)=>s+f.amount,0))+'</span>';
   box.appendChild(tot);
   const far=new Date(parseDate(today).getTime()+70*86400000);
-  const up=occurrences(ymd(far)).filter(e=>e.date>today).sort((a,b)=>a.date.localeCompare(b.date));
+  const up=occurrences(ymd(far)).filter(e=>e.date>today&&!e.covered).sort((a,b)=>a.date.localeCompare(b.date));
   if(up.length){
     const first=up.filter(e=>e.date===up[0].date), x=parseDate(up[0].date);
     $("fixedNext").textContent="下次扣款："+(x.getMonth()+1)+"/"+x.getDate()+" "+first.map(e=>e.note+" NT$"+fmt(e.amount)).join("、");
@@ -1192,6 +1323,13 @@ $("noticeHead").addEventListener("click",()=>{
   notes.fold=f?[...$("noticeList").children].map(x=>x.dataset.key):null;
   saveNotes();setFold(f);
 });
+/* 時間軸：實心＝錢撐得到的長度、直線刻度＝下次發薪日 */
+function spanBar(fill,pay){
+  if(quietNotices)return;
+  const bar=$("spanBar");
+  bar.querySelector("i").style.width=Math.max(0,Math.min(1,fill))*100+"%";
+  bar.querySelector("b").style.left=Math.max(0,Math.min(1,pay))*100+"%";
+}
 function setTone(panelId,tagId,tone,words){
   const el=$(panelId);
   el.classList.remove("tone-ok","tone-low","tone-over");el.classList.add("tone-"+tone);
@@ -1200,18 +1338,19 @@ function setTone(panelId,tagId,tone,words){
 /* 某一天「一開始」的每日額度：只算那天以前（含那天）的紀錄，不扣那天的私人花費 */
 function quotaAt(day,target){
   const es=entries.filter(e=>e.date<=day);
-  let sal=0,per=0;
+  let sal=0,per=0,fp=0;
   const work={};for(const c of CATS)work[c.id]=0;
   for(const e of es){
     if(e.type==="salary")sal+=e.amount;
     else if(e.type==="personal"&&e.date<day)per+=e.amount;
+    else if(e.type==="fixpay"&&e.date<day)fp+=e.amount;
     const T=TYPES[e.type];if(T&&T.cat)work[T.cat]+=(T.kind==="q"||T.kind==="rb"?1:-1)*e.amount;
   }
   const over=CATS.reduce((s,c)=>s+Math.max(0,-work[c.id]),0);
-  const paid=occurrences(day).reduce((s,e)=>s+e.amount,0);
-  const reserve=occurrences(target).filter(e=>e.date>day).reduce((s,e)=>s+e.amount,0);
+  const paid=occurrences(day,null,day).reduce((s,e)=>s+e.amount,0);
+  const reserve=occurrences(target,null,day).filter(e=>e.date>day).reduce((s,e)=>s+e.amount,0);
   const days=Math.max(1,dayDiff(day,target)+1);
-  return Math.max(0,(opening+sal-per-over-paid-reserve)/days);
+  return Math.max(0,(opening+sal-per-fp-over-paid-reserve)/days);
 }
 /* 起算日：最近一次（今天以前）發薪的那天；還沒有薪水紀錄就用第一筆紀錄的日期 */
 function baseDay(today){
@@ -1225,7 +1364,7 @@ function render(){
   const all=entries;
   const today=todayStr();
   const sum=(t,f)=>all.filter(e=>e.type===t&&(!f||f(e))).reduce((s,e)=>s+e.amount,0);
-  const salary=sum("salary"),personal=sum("personal");
+  const salary=sum("salary"),personal=sum("personal"),billPaid=sum("fixpay");
   const work={};
   for(const c of CATS)work[c.id]={q:0,spend:0,ret:0,rb:0};
   for(const e of all){const T=TYPES[e.type];if(T&&T.cat)work[T.cat][T.kind]+=e.amount}
@@ -1233,7 +1372,7 @@ function render(){
   const overflow=CATS.reduce((s,c)=>s+Math.max(0,-work[c.id].left),0);
   const paidFixed=occurrences(today);
   const fixedPaid=paidFixed.reduce((s,e)=>s+e.amount,0);
-  const spendable=opening+salary-personal-overflow-fixedPaid;
+  const spendable=opening+salary-personal-billPaid-overflow-fixedPaid;
 
   /* 手動輸入的下次發薪日已經過了（薪水還沒進來）：先照預設日期算，不讓每天的額度暴增；最上面會問他要再等多久 */
   const passed=!!until&&until<today;
@@ -1249,7 +1388,7 @@ function render(){
   $("pctIn").value=String(pct);
 
   const todaySpent=sum("personal",e=>e.date===today);
-  const upcoming=occurrences(target).filter(e=>e.date>today);
+  const upcoming=occurrences(target).filter(e=>e.date>today&&!e.covered);
   const reserveAmt=upcoming.reduce((s,e)=>s+e.amount,0);
   const startOfDay=spendable+todaySpent-reserveAmt;
   if(reserveAmt>0){
@@ -1299,7 +1438,7 @@ function render(){
   $("wfOwed").textContent="另外公司還欠你 NT$"+fmt(overflow)+"（你先墊的），還回來之前不算你的錢。";
 
   $("spendable").classList.toggle("neg",spendable<0);
-  $("spendableSub").textContent=(spendable<0?"已經透支。":"")+"累計薪水減掉私人花費"+(fixedPaid>0?"、已到期的固定支出":"")+(overflow>0?"，也扣掉了公司還欠你的 NT$"+fmt(overflow):"")+"。";
+  $("spendableSub").textContent=(spendable<0?"已經透支。":"")+"累計薪水減掉私人花費"+(fixedPaid+billPaid>0?"、已到期的固定支出":"")+(overflow>0?"，也扣掉了公司還欠你的 NT$"+fmt(overflow):"")+"。";
 
   setMoney($("todayLeft"),todayRemain);
   $("todayLeft").classList.toggle("neg",todayRemain<0);
@@ -1339,6 +1478,9 @@ function render(){
   if(periodLeft<-0.5){
     $("periodDaily").classList.add("is-short");
     setMoney($("periodDaily"),-periodLeft,"還差 ");
+    $("periodWk").textContent="";
+    $("periodSub").innerHTML="下次發薪日 <span class='num'>"+tgs+"</span>，還有 <span class='num'>"+daysLeft+"</span> 天";
+    spanBar(0,1);
     runout="到下次發薪日 "+tgs+" 前，錢已經不夠用。";periodTone="over";endNow=null;
   }else{
     const rem=periodLeft-Math.max(0,todayMax-todaySpent);
@@ -1346,7 +1488,10 @@ function render(){
     const endD=dayAt(lastDays), end=ymd(endD);
     endNow=end;
     $("periodDaily").classList.remove("is-short");
-    setMoney($("periodDaily"),lastDays,"",n=>md(dayAt(n)),"date");
+    setMoney($("periodDaily"),lastDays,"",n=>{const d=dayAt(n);$("periodWk").textContent="週"+"日一二三四五六"[d.getDay()];return md(d)},"date");
+    $("periodSub").innerHTML="還能撐 <span class='num'>"+lastDays+"</span> 天 · 下次發薪日 <span class='num'>"+tgs+"</span>";
+    const toPay=Math.max(0,dayDiff(today,target)), span=Math.max(1,toPay,lastDays);
+    spanBar(lastDays/span,toPay/span);
     const diff=dayDiff(target,end), pr="照每天 NT$"+fmt(plan)+" 花，";
     if(diff===0){runout=pr+"剛好撐到下次發薪日 "+tgs+"。";periodTone="ok"}
     else if(diff>0){runout=pr+"比下次發薪日 "+tgs+" 多撐 "+diff+" 天。";periodTone="ok"}
@@ -1365,7 +1510,7 @@ function render(){
     +'<div class="n-actions"><button class="b-btn b-btn--secondary b-btn--sm" data-act="got">已經進來，去記一筆</button><button class="b-btn b-btn--secondary b-btn--sm" data-act="wait7">還沒，再等一週</button><button class="b-btn b-btn--secondary b-btn--sm" data-act="wait14">還沒，再等兩週</button></div>'});
   /* ② 發薪日分配：記常規薪水的那天 */
   if(notes.alloc&&notes.alloc.date===today&&lastSal&&lastSal.id===notes.alloc.sid){
-    const todayFixed=paidFixed.filter(e=>e.date===today);
+    const todayFixed=paidFixed.filter(e=>e.date===today&&!e.covered);
     const fxList=todayFixed.concat(upcoming), fxAmt=fxList.reduce((a,e)=>a+e.amount,0);
     const byDate={};for(const e of fxList)(byDate[e.date]=byDate[e.date]||[]).push(e.note);
     const fxDates=Object.keys(byDate).sort().map(d=>mdOf(d)).join("、");
@@ -1451,11 +1596,17 @@ function render(){
     const li=document.createElement("li");
     const dot=document.createElement("span");dot.className="dot";dot.style.setProperty("--c",T.color);
     const info=document.createElement("div");info.className="info";
-    const n=document.createElement("div");n.className="n";n.textContent=e.note||T.name;
-    const dd=document.createElement("div");dd.className="d";dd.textContent=T.name+" · "+T.en;
-    info.append(n,dd);
+    const n=document.createElement("div");n.className="n";
+    const dd=document.createElement("div");dd.className="d";
     const amt=document.createElement("span");amt.className="amt";amt.style.color=T.sign>0?"var(--income)":"var(--expense)";
     amt.textContent=(T.sign>0?"+":"−")+fmt(e.amount);
+    if(e.type==="fixpay"){n.textContent=e.note||fxName(e.fx);dd.textContent=(e.note?fxName(e.fx):"固定支出")+"・實際金額 · "+T.en}
+    else if(e.virtual&&e.vary){
+      n.textContent=e.note;
+      dd.textContent=e.covered?"預估，已換成實際金額":"固定支出・預估 · "+T.en;
+      if(e.covered){amt.textContent="−"+fmt(e.est);amt.classList.add("struck")}
+    }else{n.textContent=e.note||T.name;dd.textContent=T.name+" · "+T.en}
+    info.append(n,dd);
     if(e.virtual){
       li.className="virtual";
       const tag=document.createElement("span");tag.className="auto-tag";tag.textContent="自動";
@@ -1538,7 +1689,7 @@ function parseBackup(o){
     if(!e||!e.id||!TYPES[e.type]||e.type==="fixed")continue;
     const amount=Number(e.amount);
     if(!(amount>0)||!/^\d{4}-\d{2}-\d{2}$/.test(e.date))continue;
-    out.push({id:String(e.id),type:e.type,amount,note:String(e.note||""),date:e.date,ts:Number(e.ts)||0});
+    out.push(Object.assign({id:String(e.id),type:e.type,amount,note:String(e.note||""),date:e.date,ts:Number(e.ts)||0},e.fx?{fx:String(e.fx)}:{}));
   }
   return {entries:out,skipped:list.length-out.length,settings:{
     opening:Number(o.opening)||0,
