@@ -204,7 +204,7 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .date-line{display:flex;align-items:baseline;gap:12px;min-width:0}
 .date-line .wk{font-family:var(--font-han-sans);font-size:clamp(14px,5cqi,22px);font-weight:500;letter-spacing:.14em;white-space:nowrap}
 .date-line .wk:empty{display:none}
-/* 兩條對照：上面「錢撐得到幾天」、下面「離發薪日幾天」，都從今天算起、同一把尺；上面那條比下面長就撐得到 */
+/* 上面「錢能撐幾天」一條長條（撐到發薪日就是滿的）、下面「離發薪日幾天」只寫字 */
 .cmp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px 12px;margin-top:16px;font-size:12px;letter-spacing:.08em}
 .cmp-l{white-space:nowrap}
 .cmp-l .num,.cmp-v{font-family:var(--font-display);font-variant-numeric:tabular-nums}
@@ -212,9 +212,6 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .cmp-bar{position:relative;height:4px;background:var(--line)}
 .cmp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width var(--dur-reveal) var(--ease-wipe)}
 .cmp-bar.money i{background:var(--fg)}
-.cmp-bar.pay{height:2px}
-.cmp-bar.pay i{background:var(--fg-3)}
-.cmp-bar.pay i::after{content:"";position:absolute;right:-1px;top:-4px;bottom:-4px;width:2px;background:var(--fg)}
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
 .panel .panel-sub{color:var(--fg-2)}
 .panel .panel-sub .num{color:var(--fg)}
@@ -537,8 +534,8 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
           <div>
             <div class="date-line"><div class="big" id="periodDaily">—</div><span class="wk" id="periodWk"></span></div>
             <div class="cmp" id="periodCmp">
-              <span class="cmp-l">錢撐得到</span><span class="cmp-bar money"><i id="cmpMoney"></i></span><span class="cmp-v" id="cmpMoneyV"></span>
-              <span class="cmp-l" id="cmpPayL">離發薪日</span><span class="cmp-bar pay"><i id="cmpPay"></i></span><span class="cmp-v" id="cmpPayV"></span>
+              <span class="cmp-l">錢能撐幾天</span><span class="cmp-bar money"><i id="cmpMoney"></i></span><span class="cmp-v" id="cmpMoneyV"></span>
+              <span class="cmp-l" id="cmpPayL">離發薪日</span><span></span><span class="cmp-v" id="cmpPayV"></span>
             </div>
           </div>
         </div>
@@ -1477,12 +1474,10 @@ $("noticeHead").addEventListener("click",()=>{
   notes.fold=f?[...$("noticeList").children].map(x=>x.dataset.key):null;
   saveNotes();setFold(f);
 });
-/* 兩條對照長條：錢撐得到幾天、離發薪日幾天（同一把尺） */
+/* 錢能撐幾天（長條：撐到發薪日就是滿的）、離發薪日幾天（只寫字） */
 function drawCmp(money,toPay,payLabel){
   if(quietNotices)return;
-  const scale=Math.max(1,money,toPay);
-  $("cmpMoney").style.width=money/scale*100+"%";
-  $("cmpPay").style.width=toPay/scale*100+"%";
+  $("cmpMoney").style.width=Math.min(1,money/Math.max(1,toPay))*100+"%";
   $("cmpMoneyV").textContent=money+" 天";
   $("cmpPayV").textContent=toPay+" 天";
   $("cmpPayL").innerHTML="離發薪日 <span class='num'>"+payLabel+"</span>";
