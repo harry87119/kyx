@@ -168,6 +168,10 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .balance{background:var(--bg-raised);border:1px solid var(--line-2);margin-top:-10px;padding:0 24px}
 .balance summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px 0;font-family:var(--font-han-sans);font-size:14px;font-weight:500;letter-spacing:.08em;color:var(--fg)}
 .balance summary .b-label{margin-left:auto}
+.need-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold-text)}
+.need-tag::before{content:"";width:7px;height:7px;background:var(--gh-gold)}
+.until-field.need .b-input{border-bottom:2px solid var(--gh-gold)}
+.until-field.need .b-field__label{color:var(--gold-text)}
 .balance summary::-webkit-details-marker{display:none}
 .balance summary:hover .bal-title{color:var(--gh-red)}
 .chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform var(--dur-base) var(--ease-wipe)}
@@ -332,14 +336,12 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .set-row{display:flex;gap:10px;align-items:flex-end;margin-top:18px;flex-wrap:wrap}
 .set-row .b-input{width:180px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 .set-col{display:flex;flex-direction:column;gap:18px;margin-top:6px}
-.daily-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:10px;align-items:start}
-.daily-grid .set-row{margin-top:4px}
 .suggest{border-left:4px solid var(--gh-gold);background:var(--bg-card);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
 .sg-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--fg-2)}
 .sg-row .num{font-size:18px;color:var(--fg)}
 .sg-note{font-size:12px!important;color:var(--fg-3)!important;margin:2px 0 6px!important;line-height:1.6!important}
-.suggest .b-btn{align-self:flex-start}
-@media (max-width:560px){.daily-grid{grid-template-columns:1fr;gap:16px}}
+.suggest{margin-top:10px}
+.sg-total{border-top:1px solid var(--line);padding-top:6px;margin-top:2px;color:var(--fg);font-weight:700}
 .set-col .b-input{font-family:var(--font-display);font-size:14px;letter-spacing:.02em}
 .set-note{margin-top:12px;font-size:12.5px;color:var(--fg-3)}
 .set-note:empty{display:none}
@@ -397,7 +399,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         </div>
       </div>
       <details class="balance" id="balanceBox">
-        <summary><span class="bal-title">剩餘資產・下次發薪日</span><span class="b-label">Assets · Next payday</span><span class="chev" aria-hidden="true"></span></summary>
+        <summary><span class="bal-title">剩餘資產・下次發薪日</span><span class="need-tag" id="untilNeed" hidden>請輸入下次發薪日</span><span class="b-label">Assets · Next payday</span><span class="chev" aria-hidden="true"></span></summary>
         <div class="balance-body">
           <div>
             <span class="b-field__label">剩餘資產：錢去哪了 / Where it goes</span>
@@ -496,22 +498,13 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="set-block">
         <h3>每日基準</h3>
-        <p>每天預計花多少錢。「下次發薪日前還可花」會用它算出錢可以撐到哪一天：今天少花，日期就往後；花超過，日期就往前。</p>
-        <div class="daily-grid">
-          <div>
-            <span class="b-field__label">每日基準 / Daily</span>
-            <div class="set-row">
-              <input id="dailyBase" class="b-input" inputmode="decimal" aria-label="每日基準" placeholder="600">
-              <button id="saveDaily" class="b-btn b-btn--secondary b-btn--sm">儲存</button>
-            </div>
-          </div>
-          <div class="suggest" id="dailySuggest">
-            <span class="b-field__label">建議：薪水的 35% / Suggested</span>
-            <div class="sg-row"><span>每月可動用</span><span class="num" id="sgMonth">—</span></div>
-            <div class="sg-row"><span>每天可用</span><span class="num" id="sgDay">—</span></div>
-            <p class="sg-note" id="sgNote"></p>
-            <button id="applyDaily" type="button" class="b-btn b-btn--secondary b-btn--sm">套用為每日基準</button>
-          </div>
+        <p>每天預計花多少錢，由系統自動算，不能手動改：上次薪水的 35% 是這段期間可以動用的錢，平均分到下次發薪日。「下次發薪日前還可花」會用它算出錢可以撐到哪一天。</p>
+        <div class="suggest" id="dailyCalc">
+          <div class="sg-row"><span>上次薪水（自動抓）</span><span class="num" id="dcSalary">—</span></div>
+          <div class="sg-row"><span>× 35% ＝ 這段期間可動用</span><span class="num" id="dcBudget">—</span></div>
+          <div class="sg-row"><span>÷ 到下次發薪日的天數</span><span class="num" id="dcDays">—</span></div>
+          <div class="sg-row sg-total"><span>＝ 每日基準</span><span class="num" id="dcDaily">—</span></div>
+          <p class="sg-note" id="dcNote"></p>
         </div>
       </div>
       <div class="set-block">
@@ -586,7 +579,7 @@ const parseDate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1
 const dayDiff=(a,b)=>Math.round((parseDate(b)-parseDate(a))/86400000);
 
 let entries=[];
-let opening=0, until="", fixed=[], daily=600;
+let opening=0, until="", fixed=[];
 let cfg=null, queue=[], loaded=false;
 let filter="all", shown=60, todayRemainNow=0;
 
@@ -617,10 +610,9 @@ function setData(o){
   opening=Number(o.opening)||0;
   until=typeof o.until==="string"?o.until:"";
   fixed=Array.isArray(o.fixed)?o.fixed:[];
-  daily=Number(o.daily)>0?Number(o.daily):600;
 }
-function lsSave(){lsSet(LS_DATA,{entries,opening,until,fixed,daily})}
-function settingsObj(){return {opening,until,fixed,daily}}
+function lsSave(){lsSet(LS_DATA,{entries,opening,until,fixed})}
+function settingsObj(){return {opening,until,fixed}}
 
 /* 先存進瀏覽器，有連結試算表再排進待送清單 */
 function commit(op){
@@ -632,7 +624,7 @@ function commit(op){
 function persistSettings(){commit({action:"saveSettings",settings:settingsObj()})}
 /* 以試算表的資料為基準，再套上還沒送出的動作 */
 function applyOps(d,ops){
-  let list=(d.entries||[]).slice(), s={opening:d.opening,until:d.until,fixed:d.fixed,daily:d.daily};
+  let list=(d.entries||[]).slice(), s={opening:d.opening,until:d.until,fixed:d.fixed};
   for(const op of ops){
     if(op.action==="add"){const ids=new Set(list.map(e=>e.id));for(const e of op.entries)if(!ids.has(e.id)){list.push(e);ids.add(e.id)}}
     else if(op.action==="delete")list=list.filter(e=>e.id!==op.id);
@@ -699,7 +691,6 @@ function applyRemote(d){
   loaded=true;lsSave();
   if(!$("settingsBox").open)drawFixedRows();
   if(document.activeElement!==$("opening"))$("opening").value=opening||"";
-  if(document.activeElement!==$("dailyBase"))$("dailyBase").value=daily;
   render();
 }
 
@@ -725,7 +716,9 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   $("amount").value="";$("note").value="";
   render();
   flashBtn(b,"已記下 NT$"+fmt(e.amount));
+  if(e.type==="salary"){$("balanceBox").open=true;until="";persistSettings();render()}
   if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow),true);
+  else if(e.type==="salary")toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。請在「剩餘資產・下次發薪日」輸入下次預計發薪日。");
   else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
   /* 送出後收起鍵盤，等按鈕動畫跑完再捲到還可花 */
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
@@ -911,32 +904,6 @@ $("until").addEventListener("change",()=>{
   toast(until?"已設定下次發薪日 "+until.slice(5).replace("-","/"):"已改回自動推算");
 });
 
-/* 建議每日基準：最近一次薪水的 35% 當每月可動用，÷ 30 天＝每天可用 */
-var suggestDaily=0;
-function drawSuggest(){
-  const sal=entries.filter(e=>e.type==="salary").sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts)[0];
-  if(!sal){
-    suggestDaily=0;
-    $("sgMonth").textContent="—";$("sgDay").textContent="—";
-    $("sgNote").textContent="還沒有薪水紀錄。記一筆真實薪水後會自動算出建議。";
-    $("applyDaily").hidden=true;return;
-  }
-  const month=Math.round(sal.amount*0.35);
-  suggestDaily=Math.round(month/30);
-  const d=parseDate(sal.date);
-  $("sgMonth").textContent="NT$"+fmt(month);
-  $("sgDay").textContent="NT$"+fmt(suggestDaily);
-  $("sgNote").textContent="依最近一次薪水 NT$"+fmt(sal.amount)+"（"+(d.getMonth()+1)+"/"+d.getDate()+"）計算，每天以 30 天平均。";
-  $("applyDaily").hidden=suggestDaily===daily;
-}
-$("applyDaily").onclick=()=>{
-  if(!(suggestDaily>0))return;
-  daily=suggestDaily;$("dailyBase").value=daily;persistSettings();render();toast("每日基準已改成 NT$"+fmt(daily));
-};
-$("saveDaily").onclick=()=>{
-  const n=parseAmount($("dailyBase").value);
-  daily=n>0?Math.round(n):600;$("dailyBase").value=daily;persistSettings();render();toast("每日基準已儲存：NT$"+fmt(daily));
-};
 $("saveOpening").onclick=()=>{
   const n=parseAmount($("opening").value);
   opening=isNaN(n)?0:n;persistSettings();render();toast("起始結餘已儲存");
@@ -1037,6 +1004,8 @@ function render(){
   if(document.activeElement!==$("until"))$("until").value=target;
   $("untilDays").textContent=expired?"已過期，請改日期":"還有 "+daysLeft+" 天"+(manual?"":"（自動）");
   $("untilDays").classList.toggle("neg",expired);
+  $("untilNeed").hidden=manual;
+  $("until").closest(".until-field").classList.toggle("need",!manual);
 
   const todaySpent=sum("personal",e=>e.date===today);
   const upcoming=occurrences(target).filter(e=>e.date>today);
@@ -1087,6 +1056,24 @@ function render(){
   $("periodLeft").textContent=money(periodLeft);
   const td=parseDate(target);
   $("periodLabel").textContent="下次發薪日 "+(td.getMonth()+1)+"/"+td.getDate()+" 前還可花";
+  /* 每日基準（自動算）＝ 上次薪水 × 35% ÷ 上次發薪日到下次發薪日的天數；還沒有薪水紀錄時暫用 600 */
+  /* 上次薪水：日期最近的一筆；同一天有好幾筆就取最後記的 */
+  const lastSal=all.filter(e=>e.type==="salary"&&e.date<=today).reduce((b,e)=>!b||e.date>b.date||(e.date===b.date&&e.ts>=b.ts)?e:b,null);
+  let daily=600, salDays=0;
+  if(lastSal){
+    salDays=Math.max(1,dayDiff(lastSal.date,target));
+    daily=Math.max(1,Math.round(lastSal.amount*0.35/salDays));
+    const sd=parseDate(lastSal.date);
+    $("dcSalary").textContent="NT$"+fmt(lastSal.amount)+"（"+(sd.getMonth()+1)+"/"+sd.getDate()+"）";
+    $("dcBudget").textContent="NT$"+fmt(lastSal.amount*0.35);
+    $("dcDays").textContent=salDays+" 天";
+    const tg=parseDate(target), tgs=(tg.getMonth()+1)+"/"+tg.getDate();
+    $("dcNote").textContent=manual?"下次發薪日 "+tgs+"（你設定的）。":"還沒設定下次發薪日，暫時用上次發薪後兩個月（"+tgs+"）。請在「剩餘資產・下次發薪日」裡輸入。";
+  }else{
+    $("dcSalary").textContent="—";$("dcBudget").textContent="—";$("dcDays").textContent="—";
+    $("dcNote").textContent="還沒有薪水紀錄，暫時用每天 NT$600。記一筆真實薪水後會自動算。";
+  }
+  $("dcDaily").textContent="NT$"+fmt(daily);
   /* 主數字是日期：照每日基準花，錢可以撐到哪一天。今天少花日期就往後，花超過就往前 */
   const dailyAvg=periodLeft/daysLeft;
   const t0=parseDate(today);
@@ -1109,7 +1096,6 @@ function render(){
   /* 顏色：撐到的日期在下次發薪日當天或之後＝青綠、提早 7 天內用完＝琥珀、提早超過 7 天或已經不夠＝朱紅 */
   setTone("periodPanel","periodTag",periodTone,{ok:"撐得到",low:"偏緊",over:"不夠"});
   drawFixedSummary(today);
-  drawSuggest();
   /* 超支提醒：今天花超過額度、或撐到日前的錢已經不夠 */
   const warn=[];
   if(todayRemain<-0.5)warn.push("今天已經超支 NT$"+fmt(-todayRemain)+"，之後每天的額度會變少。");
@@ -1247,7 +1233,7 @@ $("unlinkSheet").onclick=()=>{
 let pendingImport=null;
 function importNote(msg,bad){const n=$("importNote");n.textContent=msg;n.classList.toggle("bad",!!bad)}
 $("exportBtn").onclick=()=>{
-  const data={app:"KYX記帳",version:1,exportedAt:new Date().toISOString(),entries,opening,until,fixed,daily};
+  const data={app:"KYX記帳",version:1,exportedAt:new Date().toISOString(),entries,opening,until,fixed};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="KYX-backup-"+todayStr()+".json";
@@ -1269,8 +1255,7 @@ function parseBackup(o){
   return {entries:out,skipped:list.length-out.length,settings:{
     opening:Number(o.opening)||0,
     until:typeof o.until==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(o.until)?o.until:"",
-    fixed:Array.isArray(o.fixed)?o.fixed.filter(f=>f&&f.amount>0):[],
-    daily:Number(o.daily)>0?Number(o.daily):600
+    fixed:Array.isArray(o.fixed)?o.fixed.filter(f=>f&&f.amount>0):[]
   }};
 }
 $("importBtn").onclick=()=>{$("importFile").value="";$("importFile").click()};
@@ -1295,7 +1280,7 @@ $("importYes").onclick=()=>{
   const {fresh,settings}=pendingImport;
   pendingImport=null;$("importConfirm").hidden=true;
   if(fresh.length){entries=entries.concat(fresh);commit({action:"add",entries:fresh})}
-  opening=settings.opening;until=settings.until;fixed=settings.fixed;daily=settings.daily;$("dailyBase").value=daily;
+  opening=settings.opening;until=settings.until;fixed=settings.fixed;
   persistSettings();
   $("opening").value=opening||"";drawFixedRows();render();
   importNote("已匯入 "+fresh.length+" 筆新紀錄，設定也已更新。");
@@ -1331,7 +1316,7 @@ drawThemeBtn();
 
 /* ---------- 啟動 ---------- */
 lsLoad();
-$("opening").value=opening||"";$("dailyBase").value=daily;drawFixedRows();drawSheetBox();render();
+$("opening").value=opening||"";drawFixedRows();drawSheetBox();render();
 setInterval(render,60000);
 if(cfg)sync();else setStatus("local");
 window.addEventListener("online",()=>sync());

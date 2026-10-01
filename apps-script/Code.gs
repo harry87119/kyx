@@ -85,8 +85,7 @@ function readAll_() {
     entries: entries,
     opening: toNumber_(s.opening),
     until: s.until ? toDateStr_(s.until) : '',
-    fixed: Array.isArray(fixed) ? fixed : [],
-    daily: toNumber_(s.daily) || 600
+    fixed: Array.isArray(fixed) ? fixed : []
   };
 }
 
@@ -133,13 +132,11 @@ function saveSettings_(s) {
   var opening = toNumber_(s.opening);
   var until = typeof s.until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.until) ? s.until : '';
   var fixed = Array.isArray(s.fixed) ? s.fixed : [];
-  var daily = toNumber_(s.daily) > 0 ? toNumber_(s.daily) : 600;
   var sh = settingsSheet_();
-  sh.getRange(2, 1, 4, 2).setValues([
+  sh.getRange(2, 1, 3, 2).setValues([
     ['opening', opening],
     ['until', until],
-    ['fixed', JSON.stringify(fixed)],
-    ['daily', daily]
+    ['fixed', JSON.stringify(fixed)]
   ]);
   return { saved: true };
 }
@@ -172,12 +169,11 @@ function settingsSheet_() {
   if (!sh) {
     sh = ss.insertSheet(SHEET_SETTINGS);
     sh.getRange('A:B').setNumberFormat('@');
-    sh.getRange(1, 1, 5, 2).setValues([
+    sh.getRange(1, 1, 4, 2).setValues([
       ['name', 'value'],
       ['opening', '0'],
       ['until', ''],
-      ['fixed', '[]'],
-      ['daily', '600']
+      ['fixed', '[]']
     ]);
     sh.setFrozenRows(1);
   }
