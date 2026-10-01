@@ -34,7 +34,7 @@ repo 裡不放任何個人記帳資料。
 ## 資料格式
 
 - 每筆紀錄：`{id, type, amount, note, date: "YYYY-MM-DD", ts}`
-- 設定：`{opening, until, fixed: [{id, name, amount, day, since: "YYYY-MM", end?: "YYYY-MM"}]}`
+- 設定：`{opening, until, pay, fixed: [{id, name, amount, day, since: "YYYY-MM", end?: "YYYY-MM"}]}`（pay＝手動改過的上次薪水，0＝自動抓）
 - 瀏覽器裡的 `localStorage`：
   - `kyx-data-v1`：資料快取
   - `kyx-queue-v1`：待送清單
