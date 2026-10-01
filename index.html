@@ -498,9 +498,9 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="set-block">
         <h3>每日基準</h3>
-        <p>每天預計花多少錢，由系統自動算，不能手動改：上次薪水的 35% 是這段期間可以動用的錢，平均分到下次發薪日。「下次發薪日前還可花」會用它算出錢可以撐到哪一天。</p>
+        <p>每天預計花多少錢，由系統自動算，不能手動改：上次常規薪水的 35% 是這段期間可以動用的錢，平均分到下次發薪日。不到常規薪水一半的小筆收入會算進剩餘資產，但不算進每日基準。「下次發薪日前還可花」會用它算出錢可以撐到哪一天。</p>
         <div class="suggest" id="dailyCalc">
-          <div class="sg-row"><span>上次薪水（自動抓）</span><span class="num" id="dcSalary">—</span></div>
+          <div class="sg-row"><span>上次常規薪水（自動抓）</span><span class="num" id="dcSalary">—</span></div>
           <div class="sg-row"><span>× 35% ＝ 這段期間可動用</span><span class="num" id="dcBudget">—</span></div>
           <div class="sg-row"><span>÷ 到下次發薪日的天數</span><span class="num" id="dcDays">—</span></div>
           <div class="sg-row sg-total"><span>＝ 每日基準</span><span class="num" id="dcDaily">—</span></div>
@@ -716,8 +716,10 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   $("amount").value="";$("note").value="";
   render();
   flashBtn(b,"已記下 NT$"+fmt(e.amount));
-  if(e.type==="salary"){$("balanceBox").open=true;until="";persistSettings();render()}
+  const smallPay=e.type==="salary"&&!mainSalaries().some(x=>x.id===e.id);
+  if(e.type==="salary"&&!smallPay){$("balanceBox").open=true;until="";persistSettings();render()}
   if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow),true);
+  else if(smallPay)toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。這是小筆收入（不到常規薪水一半），會算進剩餘資產，但不算進每日基準。");
   else if(e.type==="salary")toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。請在「剩餘資產・下次發薪日」輸入下次預計發薪日。");
   else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
   /* 送出後收起鍵盤，等按鈕動畫跑完再捲到還可花 */
@@ -911,11 +913,20 @@ $("saveOpening").onclick=()=>{
 
 /* 沒有手動設定時：最近一次薪水入帳日往後兩個月（收入不固定，保守一點）；
    還沒有薪水紀錄，或推算出來的日期已經過了，就用下個月月底 */
+/* 常規薪水：照日期順序看，金額至少是前一筆常規薪水一半的才算；更小的是小筆收入
+   （小筆收入照樣算進剩餘資產，但不算進每日基準、不改下次發薪日和起算日） */
+function mainSalaries(today){
+  const sals=entries.filter(e=>e.type==="salary"&&(!today||e.date<=today)).slice().sort((a,b)=>a.date.localeCompare(b.date)||a.ts-b.ts);
+  const out=[];let last=null;
+  for(const e of sals){if(!last||e.amount>=last.amount*0.5){out.push(e);last=e}}
+  return out;
+}
+function mainSalary(today){const m=mainSalaries(today);return m.length?m[m.length-1]:null}
 function autoUntil(all){
-  const sal=all.filter(e=>e.type==="salary").map(e=>e.date).sort();
+  const ms=mainSalary();
   const now=new Date();
-  if(sal.length){
-    const d=parseDate(sal[sal.length-1]);
+  if(ms){
+    const d=parseDate(ms.date);
     const dim=new Date(d.getFullYear(),d.getMonth()+3,0).getDate();
     const next=new Date(d.getFullYear(),d.getMonth()+2,Math.min(d.getDate(),dim));
     if(ymd(next)>=todayStr())return ymd(next);
@@ -976,8 +987,8 @@ function quotaAt(day,target){
 }
 /* 起算日：最近一次（今天以前）發薪的那天；還沒有薪水紀錄就用第一筆紀錄的日期 */
 function baseDay(today){
-  const sal=entries.filter(e=>e.type==="salary"&&e.date<=today).map(e=>e.date).sort();
-  if(sal.length)return sal[sal.length-1];
+  const ms=mainSalary(today);
+  if(ms)return ms.date;
   const first=entries.map(e=>e.date).filter(d=>d<=today).sort()[0];
   return first||today;
 }
@@ -1057,8 +1068,8 @@ function render(){
   const td=parseDate(target);
   $("periodLabel").textContent="下次發薪日 "+(td.getMonth()+1)+"/"+td.getDate()+" 前還可花";
   /* 每日基準（自動算）＝ 上次薪水 × 35% ÷ 上次發薪日到下次發薪日的天數；還沒有薪水紀錄時暫用 600 */
-  /* 上次薪水：日期最近的一筆；同一天有好幾筆就取最後記的 */
-  const lastSal=all.filter(e=>e.type==="salary"&&e.date<=today).reduce((b,e)=>!b||e.date>b.date||(e.date===b.date&&e.ts>=b.ts)?e:b,null);
+  /* 上次薪水：最近一筆常規薪水（小筆收入不算） */
+  const lastSal=mainSalary(today);
   let daily=600, salDays=0;
   if(lastSal){
     salDays=Math.max(1,dayDiff(lastSal.date,target));
