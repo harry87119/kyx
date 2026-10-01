@@ -4,379 +4,448 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>KYX記帳</title>
-<meta name="theme-color" content="#0e6655">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="KYX記帳">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Archivo:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap">
+<script>try{var kt=localStorage.getItem("kyx-theme");if(kt==="light"||kt==="dark")document.documentElement.setAttribute("data-theme",kt)}catch(e){}</script>
 <style>
-/* 版面：單欄、安靜的白卡片；整頁只有一張深色主卡（今天還可花），其餘都退到後面 */
+/* ===== Bito UI 規格（BITO-STYLE.md）：黑色是舞臺，顏色以整塊平塗色面出現；直角、1px 細線、無陰影、無漸層 ===== */
+/* 版面：手機單欄；寬螢幕左 7 右 5 兩欄（左：總覽色塊、目前可花、明細；右：新增一筆、固定支出、工作帳、設定） */
 :root{
-  --paper:#f3f5f3; --card:#ffffff; --tile:#f1f4f2; --ink:#16201d; --muted:#6a7672; --line:#e5e9e6;
-  --accent:#0f6b58; --accent-soft:#e2f0eb; --on-accent:#ffffff;
-  --hero-bg:#13302a; --hero-ink:#f1f7f4; --hero-muted:#9fbdb3; --hero-line:rgba(255,255,255,.14); --hero-bar:#6fd6b9; --hero-neg:#ff9f8c;
-  --salary:#1d7a49; --quota:#2f57a8; --personal:#b8442d; --advance:#9a6410; --trans:#6b4ca0;
-  --warn:#c0432b; --warn-soft:#fbe9e4; --ok:#2a9d73; --busy:#c98a12;
-  --shadow:0 1px 2px rgba(22,32,29,.04),0 4px 16px rgba(22,32,29,.04);
-  --num:"Manrope","Noto Sans TC",system-ui,sans-serif;
-  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
-  --r-lg:20px; --r-md:14px; --r-sm:10px;
+/* 品牌色（深淺模式共用） */
+--gh-red:#f92c16;--gh-vermilion:#ee5522;--gh-gold:#a89379;--gh-turquoise:#03c2b8;--gh-navy:#071729;--gh-blue:#041bca;--gh-blue-hover:#0a22e0;--gh-camel:#b0967a;--gh-ember:#df6a33;--gh-amber:#ffbb22;--gh-lime:#9bba05;--gh-acid:#a8da40;--gh-sky:#1178cb;
+--ink-900:#1b1919;
+/* 字體 */
+--font-display:"Jost","Futura","Avenir Next",system-ui,sans-serif;
+--font-text:"Archivo","Helvetica Neue",Arial,"Noto Sans TC","PingFang TC",sans-serif;
+--font-han-serif:"Noto Serif TC","Songti TC",serif;
+--font-han-sans:"Noto Sans TC","PingFang TC",sans-serif;
+--page-margin:48px;
+--dur-instant:80ms;--dur-fast:140ms;--dur-base:240ms;--dur-reveal:700ms;
+--ease:cubic-bezier(.22,.61,.36,1);--ease-wipe:cubic-bezier(.76,0,.24,1);--ease-settle:cubic-bezier(.16,1,.3,1);
+/* 語意色：深色（預設） */
+color-scheme:dark;
+--bg:#000000;--bg-raised:#111111;--bg-card:rgba(255,255,255,.04);--bg-card-hover:rgba(255,255,255,.08);--bg-header:rgba(0,0,0,.80);
+--fg:#ffffff;--fg-2:#bdbdba;--fg-3:#888884;
+--line:rgba(255,255,255,.16);--line-2:rgba(255,255,255,.24);--line-strong:rgba(255,255,255,.56);
+--invert-bg:#ffffff;--invert-fg:#000000;
+--focus:#03c2b8;--accent-text:#03c2b8;--gold-text:#a89379;
+--expense:#f92c16;--income:#03c2b8;
+/* 給程式用的別名 */
+--accent:var(--accent-text);--warn:var(--expense);--muted:var(--fg-3);--ink:var(--fg);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  color-scheme:dark;
-  --paper:#0e1312; --card:#161d1b; --tile:#1d2523; --ink:#e7ecea; --muted:#8f9d98; --line:#252f2c;
-  --accent:#5fcbad; --accent-soft:#183029; --on-accent:#0b1c17;
-  --hero-bg:#1b3d35; --hero-ink:#f1f7f4; --hero-muted:#9cc0b4; --hero-line:rgba(255,255,255,.12); --hero-bar:#7fe0c4; --hero-neg:#ffab9a;
-  --salary:#62c690; --quota:#8eabef; --personal:#f08e77; --advance:#ddb060; --trans:#bda4ec;
-  --warn:#f08e77; --warn-soft:#33201b; --ok:#4fc79a; --busy:#e2a93a;
-  --shadow:none;
+/* 語意色：淺色（系統是淺色、或手動切換） */
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+color-scheme:light;
+--bg:#eeeeee;--bg-raised:#e4e4e1;--bg-card:rgba(0,0,0,.04);--bg-card-hover:rgba(0,0,0,.07);--bg-header:rgba(238,238,238,.85);
+--fg:#000000;--fg-2:#2b2b28;--fg-3:#5a5a57;
+--line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
+--invert-bg:#000000;--invert-fg:#ffffff;
+--focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
+--expense:#d81e0a;--income:#00807a;
 }}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --paper:#0e1312; --card:#161d1b; --tile:#1d2523; --ink:#e7ecea; --muted:#8f9d98; --line:#252f2c;
-  --accent:#5fcbad; --accent-soft:#183029; --on-accent:#0b1c17;
-  --hero-bg:#1b3d35; --hero-ink:#f1f7f4; --hero-muted:#9cc0b4; --hero-line:rgba(255,255,255,.12); --hero-bar:#7fe0c4; --hero-neg:#ffab9a;
-  --salary:#62c690; --quota:#8eabef; --personal:#f08e77; --advance:#ddb060; --trans:#bda4ec;
-  --warn:#f08e77; --warn-soft:#33201b; --ok:#4fc79a; --busy:#e2a93a;
-  --shadow:none;
+:root[data-theme="light"]{
+color-scheme:light;
+--bg:#eeeeee;--bg-raised:#e4e4e1;--bg-card:rgba(0,0,0,.04);--bg-card-hover:rgba(0,0,0,.07);--bg-header:rgba(238,238,238,.85);
+--fg:#000000;--fg-2:#2b2b28;--fg-3:#5a5a57;
+--line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
+--invert-bg:#000000;--invert-fg:#ffffff;
+--focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
+--expense:#d81e0a;--income:#00807a;
 }
-*{box-sizing:border-box}
+
+/* ===== 基礎 ===== */
+*,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-text);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background var(--dur-base) var(--ease),color var(--dur-base) var(--ease)}
+h1,h2,h3,p{margin:0}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.wrap{max-width:600px;margin:0 auto;padding-inline:16px;padding-block:calc(18px + env(safe-area-inset-top,0px)) calc(56px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
-.num{font-family:var(--num);font-variant-numeric:tabular-nums}
-.neg{color:var(--warn)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+::selection{background:var(--gh-red);color:#fff}
 [hidden]{display:none!important}
+.b-label{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;line-height:1.2;color:var(--fg-3)}
+.num{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums}
+.neg{color:var(--expense)}
+.sub{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
 
-/* 頁首 */
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:2px 4px}
-.brand{display:flex;align-items:center;gap:10px}
-.brand svg{width:30px;height:30px;border-radius:9px;flex:none}
-h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.02em}
-.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--card);border-radius:999px;padding:5px 11px 5px 9px;box-shadow:var(--shadow);text-align:right}
-.sync::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
-.sync[data-state="ok"]::before{background:var(--ok)}
-.sync[data-state="syncing"]::before{background:var(--busy)}
-.sync[data-state="offline"]::before{background:var(--busy)}
-.sync[data-state="error"]::before{background:var(--warn)}
-.sync.bad{color:var(--warn)}
+/* ===== 按鈕 ===== */
+.b-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 24px;font-family:var(--font-display);font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;line-height:1.2;border:1px solid transparent;border-radius:0;background:transparent;color:var(--fg);white-space:nowrap;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),transform var(--dur-instant) var(--ease)}
+.b-btn:active:not(:disabled){transform:translateY(1px)}
+.b-btn:disabled{opacity:.32;cursor:not-allowed}
+.b-btn--sm{padding:8px 16px;font-size:11px;letter-spacing:.16em}
+.b-btn--full{display:flex;width:100%}
+.b-btn--primary{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
+.b-btn--primary:hover:not(:disabled){background:var(--gh-vermilion);border-color:var(--gh-vermilion)}
+.b-btn--entry{background:var(--gh-blue);border-color:var(--gh-blue);color:#fff}
+.b-btn--entry:hover:not(:disabled){background:var(--gh-blue-hover);border-color:var(--gh-blue-hover)}
+.b-btn--gold{background:var(--gh-gold);border-color:var(--gh-gold);color:#000}
+.b-btn--gold:hover:not(:disabled){background:#bda88d;border-color:#bda88d}
+.b-btn--secondary{border-color:var(--line-strong)}
+.b-btn--secondary:hover:not(:disabled){background:var(--invert-bg);border-color:var(--invert-bg);color:var(--invert-fg)}
+.b-btn--ghost:hover:not(:disabled){color:var(--gh-red)}
+.b-btn.armed,.b-btn.armed:hover{background:var(--gh-red)!important;border-color:var(--gh-red)!important;color:#fff!important}
 
-/* 超支提醒 */
-.alert{background:var(--warn-soft);color:var(--warn);border-radius:var(--r-md);padding:12px 14px 12px 44px;font-weight:500;font-size:14px;display:flex;flex-direction:column;gap:2px;position:relative}
-.alert::before{content:"!";position:absolute;left:14px;top:12px;width:20px;height:20px;border-radius:50%;background:var(--warn);color:var(--warn-soft);font-weight:700;font-size:13px;line-height:20px;text-align:center}
+/* ===== 頂部列（唯一固定元素） ===== */
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;padding:calc(env(safe-area-inset-top,0px) + 10px) var(--page-margin) 10px;background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0}
+.brand h1{font-family:var(--font-han-serif);font-weight:900;font-size:22px;line-height:1.12;letter-spacing:.02em;white-space:nowrap}
+.top-right{display:flex;align-items:center;gap:14px;min-width:0}
+.sync{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.06em;color:var(--fg-3);text-align:right;min-width:0}
+.sync::before{content:"";width:6px;height:6px;flex:none;background:var(--fg-3)}
+.sync[data-state="ok"]::before{background:var(--gh-turquoise)}
+.sync[data-state="syncing"]::before,.sync[data-state="offline"]::before{background:var(--gh-amber)}
+.sync[data-state="error"]::before{background:var(--gh-red)}
+.sync.bad{color:var(--expense)}
 
-/* 卡片 */
-.entry,.box,.list,details.settings{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .entry,:root:not([data-theme="light"]) .box,:root:not([data-theme="light"]) .list,:root:not([data-theme="light"]) details.settings{border:1px solid var(--line)}}
-:root[data-theme="dark"] .entry,:root[data-theme="dark"] .box,:root[data-theme="dark"] .list,:root[data-theme="dark"] details.settings{border:1px solid var(--line)}
-.label{font-size:12.5px;color:var(--muted);letter-spacing:.04em}
-.big{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:44px;font-weight:700;line-height:1.1;letter-spacing:-.02em}
-.mid{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;letter-spacing:-.01em}
-.sub{font-size:12.5px;color:var(--muted)}
+/* ===== 版面 ===== */
+.page{max-width:1280px;margin:0 auto;padding:32px var(--page-margin) calc(96px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:48px;row-gap:32px;align-items:start}
+.alert{grid-column:1/-1}
+.col{display:flex;flex-direction:column;gap:64px;min-width:0}
+@media (max-width:959px){
+  .page{display:flex;flex-direction:column;align-items:stretch;gap:48px}
+  .col{display:contents}
+  .alert{order:0}.entry{order:1}.hero{order:2}.balance{order:3}#fixedBox{order:4}.work{order:5}.list{order:6}.settings{order:7}
+}
+@media (max-width:720px){:root{--page-margin:20px}.page{padding-top:24px}}
 
-/* 輸入區 */
-.entry{padding:18px;display:flex;flex-direction:column;gap:14px}
-.amount-row{display:flex;align-items:baseline;gap:8px;padding-bottom:6px;border-bottom:1.5px solid var(--line);transition:border-color .15s}
-.amount-row:focus-within{border-color:var(--accent)}
-.amount-row span{font-family:var(--num);font-size:18px;font-weight:600;color:var(--muted)}
-#amount{flex:1;min-width:0;border:0;background:transparent;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:44px;font-weight:700;letter-spacing:-.02em;padding:2px 0;outline:none}
-#amount::placeholder{color:color-mix(in srgb,var(--muted) 35%,transparent)}
-.meta{display:grid;grid-template-columns:1fr auto;gap:8px}
-.meta input{border:0;background:var(--tile);border-radius:var(--r-sm);padding:10px 12px;min-width:0}
-.meta input::placeholder{color:var(--muted)}
-.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.group-label{grid-column:1/-1;font-size:12px;color:var(--muted);letter-spacing:.06em;margin-top:6px}
-.tbtn{--c:var(--ink);border:0;border-radius:var(--r-md);padding:13px 14px;font-weight:600;text-align:left;display:flex;flex-direction:column;gap:1px;color:var(--c);background:color-mix(in srgb,var(--c) 9%,var(--card));transition:transform .08s,background .15s}
-.tbtn:hover{background:color-mix(in srgb,var(--c) 15%,var(--card))}
-.tbtn:active{transform:scale(.98)}
-.tbtn small{font-weight:400;font-size:12px;color:color-mix(in srgb,var(--c) 70%,var(--muted))}
-.tbtn:disabled{opacity:.45;cursor:not-allowed}
-.t-salary{--c:var(--salary)} .t-quota{--c:var(--quota)} .t-personal{--c:var(--personal)} .t-advance{--c:var(--advance)} .t-trans{--c:var(--trans)}
+/* 區段標題：上方 2px 主文字色實線 + 中文宋體 + 英文標籤 */
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-top:16px;border-top:2px solid var(--fg);margin-bottom:20px}
+.sec-han{font-family:var(--font-han-serif);font-weight:700;font-size:26px;line-height:1.2;letter-spacing:.02em}
+.sec-right{display:flex;align-items:center;gap:14px}
+
+/* ===== 超支提醒（提示樣式：左側 4px 朱紅色條） ===== */
+.alert{display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--bg-raised);border:1px solid var(--line);border-left:4px solid var(--gh-red);font-size:14px;line-height:1.5;animation:b-rise var(--dur-base) var(--ease-settle) both}
+
+/* ===== 總覽色塊 ===== */
+.hero{display:flex;flex-direction:column;gap:12px}
+.panels{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:2px}
+@media (max-width:560px){.panels{grid-template-columns:1fr}}
+.panel{display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
+.panel .b-label{color:inherit}
+.panel-today{background:var(--gh-navy);color:#fff;transition:background var(--dur-base) var(--ease-wipe)}
+.panel-today.over{background:var(--gh-red)}
+.panel-today .neg{color:inherit}
+.panel-period{background:var(--bg-card)}
+.big{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1;font-size:clamp(40px,17cqi,88px);white-space:nowrap}
+.mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
+.panel .mid{font-size:clamp(28px,12cqi,48px);white-space:nowrap}
+.panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
+.panel-today .panel-sub{color:rgba(255,255,255,.78)}
+.panel-today .panel-sub .num{color:#fff}
+.panel-period .panel-sub{color:var(--fg-3)}
+.panel-period .panel-sub+.panel-sub{margin-top:2px}
+.meter{height:4px;background:rgba(255,255,255,.24);margin-top:18px;overflow:hidden}
+.meter i{display:block;height:100%;background:#fff;transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-base) var(--ease-wipe)}
+.reserve{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
+
+/* ===== 目前可花 ===== */
+.balance .mid{font-size:48px}
+.balance .sub{margin-top:10px}
+.b-field{display:block;min-width:0}
+.b-field__label{display:block;margin-bottom:4px;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3);transition:color var(--dur-fast) var(--ease)}
+.b-field:focus-within .b-field__label{color:var(--focus)}
+.b-input{width:100%;display:block;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 0;color:var(--fg);font-family:var(--font-text);font-size:15px;line-height:1.4;outline:none;transition:border-color var(--dur-fast) var(--ease)}
+.b-input::placeholder{color:var(--fg-3)}
+.b-input:focus{border-bottom-color:var(--focus)}
+.until-field{margin-top:24px}
+.until-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.until-row .b-input{width:auto;min-width:150px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
+#untilDays{font-size:13px;letter-spacing:.06em;color:var(--fg-2)}
+#untilDays.neg{color:var(--expense)}
+
+/* ===== 新增一筆 ===== */
+.entry{display:flex;flex-direction:column;gap:20px}
+.amount-row{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);transition:border-color var(--dur-fast) var(--ease)}
+.amount-row:focus-within{border-bottom-color:var(--focus)}
+.amount-row .cur{font-family:var(--font-display);font-size:13px;letter-spacing:.16em;color:var(--fg-3)}
+#amount{flex:1;min-width:0;border:0;background:transparent;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:48px;font-weight:400;line-height:1.1;padding:6px 0;outline:none}
+#amount::placeholder{color:var(--fg-3)}
+.meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px}
+.meta #date{font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.group-label{grid-column:1/-1;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-3);margin:14px 0 6px}
+.group-label:first-child{margin-top:0}
+.tbtn{border:1px solid transparent;border-radius:0;padding:16px;font-family:var(--font-han-sans);font-size:15px;font-weight:500;letter-spacing:.06em;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:76px;justify-content:space-between;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),transform var(--dur-instant) var(--ease)}
+.tbtn small{font-family:var(--font-text);font-weight:400;font-size:11.5px;letter-spacing:.02em;opacity:.8}
+.tbtn:active{transform:translateY(1px)}
+.tbtn:disabled{opacity:.32;cursor:not-allowed}
 .wide{grid-column:1/-1}
-.settle-grid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.settle{--c:var(--muted);background:var(--tile);border-radius:var(--r-md);padding:12px 14px;display:flex;flex-direction:column;gap:1px;min-width:0}
-.settle .label{font-size:12px}
-.settle .mid{font-size:20px;overflow-wrap:anywhere;color:color-mix(in srgb,var(--muted) 60%,transparent)}
-.settle .sub{font-size:11.5px}
-.settle.owe{--c:var(--quota);background:color-mix(in srgb,var(--quota) 9%,var(--card))}
-.settle.owed{--c:var(--advance);background:color-mix(in srgb,var(--advance) 10%,var(--card))}
-.settle.owe .mid,.settle.owed .mid{color:var(--c)}
-.clear{align-self:flex-start;margin-top:8px;border:0;background:var(--card);color:var(--c);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:500;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,transparent)}
-.clear.armed{background:var(--c);color:var(--card);box-shadow:none}
-.toast{font-size:13px;color:var(--accent);min-height:1.2em;margin-top:-4px}
+.t-salary{background:var(--gh-turquoise);color:#000}
+.t-quota{background:var(--gh-gold);color:#000}
+.t-personal{background:var(--gh-red);color:#fff}
+.t-personal:hover{background:var(--gh-vermilion)}
+.t-advance,.t-trans{background:transparent;border-color:var(--line-strong);color:var(--fg)}
+.t-advance:hover,.t-trans:hover{background:var(--invert-bg);border-color:var(--invert-bg);color:var(--invert-fg)}
+.settle-grid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.settle{background:var(--bg-card);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;color:var(--fg-3)}
+.settle .label{font-family:var(--font-han-sans);font-size:13px;letter-spacing:.06em}
+.settle .mid{font-size:28px;color:var(--fg-3);margin-top:6px}
+.settle .sub{font-size:11.5px;color:inherit;opacity:.85}
+.settle.owe{background:var(--gh-gold);color:#000}
+.settle.owed{background:var(--gh-turquoise);color:#000}
+.settle.owe .mid,.settle.owed .mid{color:#000}
+.clear{align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid #000;border-radius:0;background:transparent;color:#000;font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.clear:hover,.clear.armed{background:#000;color:#fff}
+.toast{font-size:13px;min-height:1.2em;letter-spacing:.02em}
 
-/* 摘要 */
-.summary{display:flex;flex-direction:column;gap:14px}
-.box{padding:18px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.box.hero{background:var(--hero-bg);color:var(--hero-ink);border-color:transparent!important;box-shadow:0 8px 24px rgba(19,48,42,.18)}
-.box.hero .label,.box.hero .sub,.box.hero .reserve{color:var(--hero-muted)}
-.box.hero .neg{color:var(--hero-neg)}
-.box.hero .sub .num{color:var(--hero-ink)}
-.pair{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
-.pair>div{display:flex;flex-direction:column;gap:3px;min-width:0}
-.pair-side{border-left:1px solid var(--hero-line);padding-left:18px;justify-content:flex-end}
-.pair-side .mid{font-size:22px}
-@media (max-width:440px){.pair{grid-template-columns:1fr;gap:12px}.pair-side{border-left:0;padding-left:0;border-top:1px solid var(--hero-line);padding-top:12px}}
-.meter{height:6px;background:var(--hero-line);border-radius:3px;overflow:hidden;margin-top:14px}
-.meter i{display:block;height:100%;background:var(--hero-bar);border-radius:3px;transition:width .3s}
-.meter.over i{background:var(--hero-neg)}
-.reserve{font-size:12.5px;margin-top:8px}
-.until{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
-.until input{border:0;background:var(--tile);border-radius:var(--r-sm);padding:7px 10px;font-family:var(--num);font-variant-numeric:tabular-nums}
-.work-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.edit-btn{border:0;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 14px;font-size:12.5px;font-weight:600}
-.fx-list{display:flex;flex-direction:column;margin-top:6px}
-.fx-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;min-width:0;padding:8px 0;border-bottom:1px solid var(--line)}
-.fx-row:last-child{border-bottom:0}
-.fx-row .fx-name{min-width:0;overflow-wrap:anywhere;font-weight:500}
-.fx-row .fx-name small{color:var(--muted);font-size:12px;margin-left:8px;font-weight:400}
-.fx-row .fx-amt{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
-.flow-wrap{overflow-x:auto;margin-top:10px}
-.flow-t{width:100%;border-collapse:collapse;font-size:13px}
-.flow-t th{font-weight:400;font-size:11.5px;color:var(--muted);text-align:right;padding:6px 6px 8px;white-space:nowrap;border-bottom:1px solid var(--line)}
+/* ===== 固定支出、工作帳 ===== */
+.fx-list{display:flex;flex-direction:column}
+.fx-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.fx-row::before{content:"";width:10px;height:10px;background:var(--gh-gold)}
+.fx-row .fx-name{min-width:0;overflow-wrap:anywhere;font-family:var(--font-han-sans);letter-spacing:.04em}
+.fx-row .fx-name small{display:block;margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;color:var(--fg-3)}
+.fx-row .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap}
+#fixedNext{margin-top:12px}
+.flow-wrap{overflow-x:auto;margin-top:16px}
+.flow-t{width:100%;border-collapse:collapse}
+.flow-t th{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-3);text-align:right;padding:0 8px 10px;white-space:nowrap;border-bottom:1px solid var(--line)}
 .flow-t th:first-child,.flow-t td:first-child{text-align:left;padding-left:0}
-.flow-t td{padding:8px 6px 2px;text-align:right;font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:600}
-.flow-t td:first-child{font-family:var(--sans);font-weight:500;white-space:nowrap}
+.flow-t td{padding:12px 8px;text-align:right;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px;border-bottom:1px solid var(--line)}
+.flow-t td:first-child{font-family:var(--font-han-sans);font-size:14px;letter-spacing:.04em;white-space:nowrap}
 
-/* 明細 */
-.list{overflow:hidden}
-.list-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 10px;gap:8px}
-.list-head h2{font-size:16px;margin:0;font-weight:700}
-.filters{display:flex;gap:2px;background:var(--tile);border-radius:999px;padding:3px}
-.filters button{border:0;background:transparent;color:var(--muted);border-radius:999px;padding:4px 13px;font-size:13px}
-.filters button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-ul{list-style:none;margin:0;padding:0 8px 6px}
-li{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;padding:10px 10px;border-radius:var(--r-md)}
-li:not(.day-sep):hover{background:var(--tile)}
-.dot{--c:var(--muted);width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,var(--c) 13%,transparent);position:relative;flex:none}
-.dot::after{content:"";position:absolute;inset:0;margin:auto;width:9px;height:9px;border-radius:50%;background:var(--c)}
+/* ===== 明細 ===== */
+.filters{display:flex;gap:30px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.filters button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:0 0 12px;font-family:var(--font-han-sans);font-size:14px;letter-spacing:.12em;color:var(--fg-3);transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.filters button:hover{color:var(--fg)}
+.filters button.on{color:var(--fg);border-bottom-color:var(--gh-turquoise)}
+ul{list-style:none;margin:0;padding:0}
+li{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8px;border-bottom:1px solid var(--line-2);font-family:var(--font-display);font-size:11px;letter-spacing:.14em;color:var(--fg-3)}
+.dot{width:10px;height:10px;background:var(--c,var(--fg-3))}
 .info{min-width:0}
-.info .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
-.info .d{font-size:12px;color:var(--muted)}
-.amt{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
-.del{border:0;background:transparent;color:var(--muted);font-size:12px;padding:5px 8px;border-radius:8px}
-.del:hover{background:var(--card)}
-.del.armed{background:var(--warn-soft);color:var(--warn);font-weight:600}
-.day-sep{display:flex;justify-content:space-between;padding:14px 10px 4px;font-size:12px;color:var(--muted);border-radius:0}
-.day-sep .num{font-weight:600}
-li.virtual .amt{color:var(--muted)!important}
-.auto-tag{font-size:11px;color:var(--muted);background:var(--tile);border-radius:6px;padding:3px 8px}
-.empty{padding:24px 18px 28px;color:var(--muted);font-size:14px}
-.more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:var(--accent);padding:14px;font-weight:600}
+.info .n{font-size:15px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color var(--dur-fast) var(--ease)}
+li:hover .info .n{color:var(--gh-red)}
+.info .d{margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3)}
+.amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;text-align:right;white-space:nowrap}
+.del{border:1px solid transparent;background:transparent;color:var(--fg-3);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:6px 8px;transition:color var(--dur-fast) var(--ease)}
+.del:hover{color:var(--gh-red)}
+.del.armed{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
+li.virtual .amt{color:var(--fg-3)!important}
+.auto-tag{display:inline-block;padding:5px 9px;border:1px solid var(--gh-gold);color:var(--gold-text);font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.18em;line-height:1.3}
+.empty{padding:24px 0;color:var(--fg-3);font-size:14px;border-bottom:1px solid var(--line)}
+.more{margin-top:20px}
 
-/* 設定 */
-details.settings{font-size:13px;color:var(--muted);padding:0 18px}
-details.settings summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 0;color:var(--ink);font-weight:600;font-size:14px}
+/* ===== 設定 ===== */
+details.settings summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-top:16px;border-top:2px solid var(--fg)}
 details.settings summary::-webkit-details-marker{display:none}
-details.settings summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-3px);transition:transform .2s;flex:none}
-details.settings[open] summary::after{transform:rotate(225deg) translateY(-1px)}
-.set-block{padding:16px 0;border-top:1px solid var(--line)}
-.set-block:last-child{padding-bottom:20px}
-.set-block h3{font-size:14.5px;color:var(--ink);margin:0 0 4px;font-weight:700}
-.set-block p{margin:0 0 10px;line-height:1.6}
-.fixed-rows{display:flex;flex-direction:column;gap:8px}
-.frow{display:grid;grid-template-columns:1fr 110px auto auto;gap:6px;align-items:center}
-.frow input,.set-row input,.set-col input{border:0;background:var(--tile);color:var(--ink);border-radius:var(--r-sm);padding:9px 11px;min-width:0}
-.frow .amtIn,.set-row input,.frow .day input{font-family:var(--num);font-variant-numeric:tabular-nums}
-.frow .day{display:flex;align-items:center;gap:4px;white-space:nowrap}
-.frow .day input{width:48px;text-align:center}
-.frow button{border:0;background:transparent;color:var(--muted);font-size:12px;padding:6px}
-.frow button:hover{color:var(--warn)}
-@media (max-width:440px){.frow{grid-template-columns:1fr 96px}.frow .day{grid-column:1}}
-.set-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
-.set-row input{width:150px}
-.set-row button{border:0;background:var(--tile);color:var(--ink);border-radius:var(--r-sm);padding:8px 14px;font-weight:500}
-.set-row button.primary{background:var(--accent);color:var(--on-accent);font-weight:600}
-.set-row button.armed{background:var(--warn-soft);color:var(--warn);font-weight:600}
-.set-row button:disabled{opacity:.5;cursor:wait}
-.set-col{display:flex;flex-direction:column;gap:10px}
-.set-col input{width:100%;font-family:var(--num);font-size:13px}
-.set-col label{display:flex;flex-direction:column;gap:4px;font-size:12px}
-.set-note{margin-top:10px;font-size:12.5px}
-.set-note.bad{color:var(--warn)}
-.confirm{margin-top:12px;padding:14px;border-radius:var(--r-md);background:var(--accent-soft);color:var(--ink)}
-.confirm p{margin:0 0 4px}
-@media (max-width:440px){.big{font-size:38px}#amount{font-size:38px}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.sum-left{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;min-width:0}
+.sum-desc{font-size:12.5px;color:var(--fg-3);letter-spacing:.04em}
+.sum-right{display:flex;align-items:center;gap:12px}
+.sum-right::after{content:"";width:7px;height:7px;border-right:1.5px solid var(--fg-3);border-bottom:1.5px solid var(--fg-3);transform:translateY(-3px) rotate(45deg);transition:transform var(--dur-base) var(--ease-wipe)}
+details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg)}
+.set-block{padding:28px 0;border-bottom:1px solid var(--line)}
+.set-block:first-of-type{margin-top:12px}
+.set-block h3{font-family:var(--font-han-serif);font-weight:700;font-size:20px;line-height:1.3;margin-bottom:8px}
+.set-block p{font-size:13.5px;line-height:1.8;letter-spacing:.04em;color:var(--fg-2);margin-bottom:10px}
+.fixed-rows{display:flex;flex-direction:column;gap:6px}
+.frow{display:grid;grid-template-columns:minmax(0,1fr) 110px auto auto;gap:14px;align-items:end}
+.frow input{width:100%;min-width:0;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 0;font-size:15px;outline:none;transition:border-color var(--dur-fast) var(--ease)}
+.frow input:focus{border-bottom-color:var(--focus)}
+.frow .amtIn,.frow .dayIn{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
+.frow .day{display:flex;align-items:baseline;gap:6px;white-space:nowrap;font-size:13px;color:var(--fg-2)}
+.frow .day input{width:40px;text-align:center}
+.frow .rm{border:0;background:transparent;color:var(--fg-3);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:10px 0 10px 4px}
+.frow .rm:hover{color:var(--gh-red)}
+@media (max-width:480px){.frow{grid-template-columns:minmax(0,1fr) 96px}.frow .day{grid-column:1}}
+.set-row{display:flex;gap:10px;align-items:flex-end;margin-top:18px;flex-wrap:wrap}
+.set-row .b-input{width:180px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
+.set-col{display:flex;flex-direction:column;gap:18px;margin-top:6px}
+.set-col .b-input{font-family:var(--font-display);font-size:14px;letter-spacing:.02em}
+.set-note{margin-top:12px;font-size:12.5px;color:var(--fg-3)}
+.set-note:empty{display:none}
+.set-note.bad{color:var(--expense)}
+.confirm{margin-top:16px;padding:16px;background:var(--bg-raised);border:1px solid var(--line);border-left:4px solid var(--gh-amber);font-size:14px;line-height:1.6}
+.confirm .set-row{margin-top:14px}
+
+@keyframes b-wipe{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes b-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (max-width:480px){.mid{font-size:34px}.balance .mid{font-size:40px}#amount{font-size:44px}.sec-han{font-size:22px}.panel{min-height:0}.brand .b-label{display:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}}
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" fill="#0f6b58"/><path d="M252 170 C220 150 176 146 132 156 L132 356 C176 346 220 350 252 370 Z" fill="#e2f0eb"/><path d="M260 170 C292 150 336 146 380 156 L380 356 C336 346 292 350 260 370 Z" fill="#fff"/></svg>
-      <h1>KYX記帳</h1>
-    </div>
+<header class="topbar">
+  <div class="brand"><h1>KYX記帳</h1><span class="b-label">Ledger</span></div>
+  <div class="top-right">
     <span class="sync" id="sync">連線中…</span>
-  </header>
+    <button id="themeBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">淺色 Light</button>
+  </div>
+</header>
+
+<main class="page">
   <div class="alert" id="alert" role="alert" hidden></div>
 
-  <section class="entry" aria-label="新增一筆">
-    <label class="amount-row">
-      <span>NT$</span>
-      <input id="amount" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="金額">
-    </label>
-    <div class="meta">
-      <input id="note" placeholder="備註（選填）" maxlength="60" aria-label="備註">
-      <input id="date" type="date" aria-label="日期">
-    </div>
-    <div class="types">
-      <div class="group-label">收入</div>
-      <button class="tbtn t-salary wide" data-type="salary">真實薪水<small>進私人可花</small></button>
-      <button class="tbtn t-quota" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
-      <button class="tbtn t-quota" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
-      <div class="group-label">花費</div>
-      <button class="tbtn t-personal wide" data-type="personal">私人花費<small>從私人可花扣</small></button>
-      <button class="tbtn t-advance" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
-      <button class="tbtn t-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
-      <div id="settleGrid" class="settle-grid"></div>
-    </div>
-    <div class="toast" id="toast" role="status"></div>
-  </section>
+  <div class="col col-main">
+    <section class="hero" aria-label="目前狀況">
+      <div class="panels">
+        <div class="panel panel-today" id="todayPanel">
+          <div class="b-label">今天還可花 / Today</div>
+          <div>
+            <div class="big" id="todayLeft">—</div>
+            <div class="panel-sub" id="todaySub"></div>
+            <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
+          </div>
+        </div>
+        <div class="panel panel-period">
+          <div class="b-label"><span id="periodLabel">撐到日前還可花</span> / Until</div>
+          <div>
+            <div class="mid" id="periodLeft">—</div>
+            <div class="panel-sub" id="periodSub"></div>
+            <div class="panel-sub" id="dailyAvgSub"></div>
+          </div>
+        </div>
+      </div>
+      <p class="reserve" id="reserve" hidden></p>
+    </section>
 
-  <section class="summary" aria-label="目前狀況">
-    <div class="box hero">
-      <div class="pair">
-        <div class="pair-main">
-          <span class="label">今天還可花</span>
-          <span class="big" id="todayLeft">—</span>
-          <span class="sub" id="todaySub"></span>
-        </div>
-        <div class="pair-side">
-          <span class="label" id="periodLabel">撐到日前還可花</span>
-          <span class="mid" id="periodLeft">—</span>
-          <span class="sub" id="periodSub"></span>
-          <span class="sub" id="dailyAvgSub"></span>
-        </div>
-      </div>
-      <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
-      <span class="reserve" id="reserve" hidden></span>
-    </div>
-    <div class="box">
-      <span class="label">目前可花（私人）</span>
-      <span class="mid" id="spendable">—</span>
-      <span class="sub" id="spendableSub"></span>
-      <label class="until">
-        <span>這些錢要撐到</span>
-        <input id="until" type="date">
-        <span id="untilDays" class="num"></span>
+    <section class="balance" aria-label="目前可花">
+      <div class="sec-head"><h2 class="sec-han">目前可花（私人）</h2><span class="b-label">Balance</span></div>
+      <div class="mid" id="spendable">—</div>
+      <p class="sub" id="spendableSub"></p>
+      <label class="b-field until-field">
+        <span class="b-field__label">這些錢要撐到 / Until</span>
+        <span class="until-row"><input id="until" type="date" class="b-input"><span id="untilDays" class="num"></span></span>
       </label>
-    </div>
-    <div class="box" id="fixedBox">
-      <div class="work-top">
-        <span class="label">每月固定支出</span>
-        <button id="editFixed" type="button" class="edit-btn">修改</button>
+    </section>
+
+    <section class="list" aria-label="明細">
+      <div class="sec-head"><h2 class="sec-han">明細</h2><span class="b-label">Recent</span></div>
+      <div class="filters" role="group" aria-label="篩選">
+        <button data-f="all" class="on">全部</button>
+        <button data-f="personal">私人</button>
+        <button data-f="work">工作</button>
       </div>
+      <ul id="list"></ul>
+      <button id="more" class="more b-btn b-btn--secondary b-btn--full" hidden>顯示更早的紀錄</button>
+    </section>
+  </div>
+
+  <div class="col col-side">
+    <section class="entry" aria-label="新增一筆">
+      <div class="sec-head" style="margin-bottom:0"><h2 class="sec-han">新增一筆</h2><span class="b-label">New entry</span></div>
+      <label class="b-field">
+        <span class="b-field__label">金額 / Amount</span>
+        <span class="amount-row"><span class="cur">NT$</span><input id="amount" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="金額"></span>
+      </label>
+      <div class="meta">
+        <label class="b-field"><span class="b-field__label">備註 / Note</span><input id="note" class="b-input" placeholder="選填" maxlength="60" aria-label="備註"></label>
+        <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
+      </div>
+      <div class="types">
+        <div class="group-label">收入 / Income</div>
+        <button class="tbtn t-salary wide" data-type="salary">真實薪水<small>進私人可花</small></button>
+        <button class="tbtn t-quota" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
+        <button class="tbtn t-quota" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
+        <div class="group-label">花費 / Expense</div>
+        <button class="tbtn t-personal wide" data-type="personal">私人花費<small>從私人可花扣</small></button>
+        <button class="tbtn t-advance" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
+        <button class="tbtn t-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
+        <div id="settleGrid" class="settle-grid"></div>
+      </div>
+      <div class="toast" id="toast" role="status"></div>
+    </section>
+
+    <section class="fixed" id="fixedBox" aria-label="每月固定支出">
+      <div class="sec-head"><h2 class="sec-han">每月固定支出</h2><div class="sec-right"><span class="b-label">Fixed</span><button id="editFixed" type="button" class="b-btn b-btn--secondary b-btn--sm">修改</button></div></div>
       <div id="fixedSummary" class="fx-list"></div>
-      <span class="sub" id="fixedNext"></span>
-    </div>
-    <div class="box work">
-      <span class="label">工作帳明細</span>
-      <span class="sub" id="workSub"></span>
+      <p class="sub" id="fixedNext"></p>
+    </section>
+
+    <section class="work" aria-label="工作帳明細">
+      <div class="sec-head"><h2 class="sec-han">工作帳明細</h2><span class="b-label">Work</span></div>
+      <p class="sub" id="workSub"></p>
       <div class="flow-wrap">
         <table class="flow-t">
           <thead><tr><th></th><th>收到 quota</th><th>花費</th><th>已還公司</th><th>公司已還我</th></tr></thead>
           <tbody id="flowBody"></tbody>
         </table>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="list" aria-label="明細">
-    <div class="list-head">
-      <h2>明細</h2>
-      <div class="filters" role="group" aria-label="篩選">
-        <button data-f="all" class="on">全部</button>
-        <button data-f="personal">私人</button>
-        <button data-f="work">工作</button>
-      </div>
-    </div>
-    <ul id="list"></ul>
-    <button id="more" class="more" hidden>顯示更早的紀錄</button>
-  </section>
-
-  <details class="settings" id="settingsBox">
-    <summary>設定：固定支出、起始結餘、試算表、備份</summary>
-    <div class="set-block">
-      <h3 id="fixedHead">每月固定支出</h3>
-      <p>到了繳費日會自動從目前可花扣掉，不用每個月手動記。撐到日之前要繳的，也會先從今日建議消費裡預留。</p>
-      <p>修改金額、日期或移除時，已經扣過的月份不會變，從下一次扣款開始用新的設定。</p>
-      <div id="fixedRows" class="fixed-rows"></div>
-      <div class="set-row">
-        <button id="addFixed" type="button">＋ 新增一項</button>
-        <button id="saveFixed" type="button" class="primary">儲存固定支出</button>
-      </div>
-    </div>
-    <div class="set-block">
-      <h3>起始結餘</h3>
-      <p>開始記帳前手上已有、可以私人花用的錢。不填就從 0 起算。</p>
-      <div class="set-row">
-        <input id="opening" inputmode="decimal" aria-label="起始結餘">
-        <button id="saveOpening">儲存</button>
-      </div>
-    </div>
-    <div class="set-block">
-      <h3>連結 Google 試算表</h3>
-      <p>貼上 Apps Script 網頁應用程式的網址和通行碼，手機和電腦就會同步，資料存在你自己的 Google 試算表。沒有連結也能用，資料只會存在這個瀏覽器。</p>
-      <div class="set-col">
-        <label>網頁應用程式網址<input id="sheetUrl" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
-        <label>通行碼<input id="sheetToken" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="和指令碼屬性 TOKEN 一樣"></label>
-      </div>
-      <div class="set-row">
-        <button id="saveSheet" type="button" class="primary">儲存並同步</button>
-        <button id="unlinkSheet" type="button" hidden>取消連結</button>
-      </div>
-      <p id="sheetNote" class="set-note" role="status"></p>
-    </div>
-    <div class="set-block">
-      <h3>備份</h3>
-      <p>匯出會下載一個包含全部紀錄和設定的 JSON 檔。匯入時，已經有的紀錄會略過、只加入新的；固定支出、起始結餘和撐到日會改成檔案裡的設定。</p>
-      <div class="set-row">
-        <button id="exportBtn" type="button">匯出備份</button>
-        <button id="importBtn" type="button">匯入備份</button>
-        <input id="importFile" type="file" accept="application/json,.json" hidden>
-      </div>
-      <div id="importConfirm" class="confirm" hidden>
-        <p id="importSummary"></p>
+    <details class="settings" id="settingsBox">
+      <summary><span class="sum-left"><span class="sec-han">設定</span><span class="sum-desc">固定支出、起始結餘、試算表、備份</span></span><span class="sum-right"><span class="b-label">Settings</span></span></summary>
+      <div class="set-block">
+        <h3 id="fixedHead">每月固定支出</h3>
+        <p>到了繳費日會自動從目前可花扣掉，不用每個月手動記。撐到日之前要繳的，也會先從今日建議消費裡預留。</p>
+        <p>修改金額、日期或移除時，已經扣過的月份不會變，從下一次扣款開始用新的設定。</p>
+        <div id="fixedRows" class="fixed-rows"></div>
         <div class="set-row">
-          <button id="importYes" type="button" class="primary">確定匯入</button>
-          <button id="importNo" type="button">取消</button>
+          <button id="addFixed" type="button" class="b-btn b-btn--entry b-btn--sm">＋ 新增一項</button>
+          <button id="saveFixed" type="button" class="b-btn b-btn--primary b-btn--sm">儲存固定支出</button>
         </div>
       </div>
-      <p id="importNote" class="set-note" role="status"></p>
-    </div>
-  </details>
-</div>
+      <div class="set-block">
+        <h3>起始結餘</h3>
+        <p>開始記帳前手上已有、可以私人花用的錢。不填就從 0 起算。</p>
+        <div class="set-row">
+          <input id="opening" class="b-input" inputmode="decimal" aria-label="起始結餘" placeholder="0">
+          <button id="saveOpening" class="b-btn b-btn--primary b-btn--sm">儲存</button>
+        </div>
+      </div>
+      <div class="set-block">
+        <h3>連結 Google 試算表</h3>
+        <p>貼上 Apps Script 網頁應用程式的網址和通行碼，手機和電腦就會同步，資料存在你自己的 Google 試算表。沒有連結也能用，資料只會存在這個瀏覽器。</p>
+        <div class="set-col">
+          <label class="b-field"><span class="b-field__label">網頁應用程式網址 / URL</span><input id="sheetUrl" class="b-input" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
+          <label class="b-field"><span class="b-field__label">通行碼 / Token</span><input id="sheetToken" class="b-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="和指令碼屬性 TOKEN 一樣"></label>
+        </div>
+        <div class="set-row">
+          <button id="saveSheet" type="button" class="b-btn b-btn--primary b-btn--sm">儲存並同步</button>
+          <button id="unlinkSheet" type="button" class="b-btn b-btn--secondary b-btn--sm" hidden>取消連結</button>
+        </div>
+        <p id="sheetNote" class="set-note" role="status"></p>
+      </div>
+      <div class="set-block">
+        <h3>備份</h3>
+        <p>匯出會下載一個包含全部紀錄和設定的 JSON 檔。匯入時，已經有的紀錄會略過、只加入新的；固定支出、起始結餘和撐到日會改成檔案裡的設定。</p>
+        <div class="set-row">
+          <button id="exportBtn" type="button" class="b-btn b-btn--gold b-btn--sm">匯出備份</button>
+          <button id="importBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">匯入備份</button>
+          <input id="importFile" type="file" accept="application/json,.json" hidden>
+        </div>
+        <div id="importConfirm" class="confirm" hidden>
+          <p id="importSummary"></p>
+          <div class="set-row">
+            <button id="importYes" type="button" class="b-btn b-btn--primary b-btn--sm">確定匯入</button>
+            <button id="importNo" type="button" class="b-btn b-btn--secondary b-btn--sm">取消</button>
+          </div>
+        </div>
+        <p id="importNote" class="set-note" role="status"></p>
+      </div>
+    </details>
+  </div>
+</main>
 
 <script>
 (function(){
+/* 分類色：每個分類固定一個品牌色（BITO-STYLE 3.4） */
 const TYPES={
-  fixed:{name:"固定支出",color:"var(--muted)",sign:-1,group:"personal"},
-  salary:{name:"真實薪水",color:"var(--salary)",sign:1,group:"personal"},
-  personal:{name:"私人花費",color:"var(--personal)",sign:-1,group:"personal"},
-  q_prod:{name:"製作費 quota",color:"var(--quota)",sign:1,group:"work",cat:"prod",kind:"q"},
-  q_trans:{name:"交通費 quota",color:"var(--quota)",sign:1,group:"work",cat:"trans",kind:"q"},
-  prod:{name:"製作費",color:"var(--advance)",sign:-1,group:"work",cat:"prod",kind:"spend"},
-  trans:{name:"交通費",color:"var(--trans)",sign:-1,group:"work",cat:"trans",kind:"spend"},
-  ret_prod:{name:"還公司・製作費",color:"var(--quota)",sign:-1,group:"work",cat:"prod",kind:"ret"},
-  ret_trans:{name:"還公司・交通費",color:"var(--quota)",sign:-1,group:"work",cat:"trans",kind:"ret"},
-  rb_prod:{name:"公司還我・製作費",color:"var(--advance)",sign:1,group:"work",cat:"prod",kind:"rb"},
-  rb_trans:{name:"公司還我・交通費",color:"var(--trans)",sign:1,group:"work",cat:"trans",kind:"rb"},
+  fixed:{name:"固定支出",en:"Fixed",color:"var(--gh-gold)",sign:-1,group:"personal"},
+  salary:{name:"真實薪水",en:"Income",color:"var(--gh-turquoise)",sign:1,group:"personal"},
+  personal:{name:"私人花費",en:"Personal",color:"var(--gh-ember)",sign:-1,group:"personal"},
+  q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
+  q_trans:{name:"交通費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"trans",kind:"q"},
+  prod:{name:"製作費",en:"Production",color:"var(--gh-camel)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  trans:{name:"交通費",en:"Transit",color:"var(--gh-sky)",sign:-1,group:"work",cat:"trans",kind:"spend"},
+  ret_prod:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  ret_trans:{name:"還公司・交通費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"trans",kind:"ret"},
+  rb_prod:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-camel)",sign:1,group:"work",cat:"prod",kind:"rb"},
+  rb_trans:{name:"公司還我・交通費",en:"Reimbursed",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"rb"},
   /* 舊版類型，一律算在製作費 */
-  quota:{name:"製作費 quota",color:"var(--quota)",sign:1,group:"work",cat:"prod",kind:"q"},
-  advance:{name:"製作費",color:"var(--advance)",sign:-1,group:"work",cat:"prod",kind:"spend"},
-  return:{name:"還公司・製作費",color:"var(--quota)",sign:-1,group:"work",cat:"prod",kind:"ret"},
-  reimb:{name:"公司還我・製作費",color:"var(--advance)",sign:1,group:"work",cat:"prod",kind:"rb"}
+  quota:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
+  advance:{name:"製作費",en:"Production",color:"var(--gh-camel)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  return:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  reimb:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-camel)",sign:1,group:"work",cat:"prod",kind:"rb"}
 };
 const $=id=>document.getElementById(id);
 const fmt=n=>Math.round(n).toLocaleString("zh-TW");
@@ -783,6 +852,7 @@ function render(){
   const saved=Math.max(0,startOfDay-todayMax*daysLeft-Math.max(0,todaySpent-todayMax));
   const todayRemain=todayMax-todaySpent;
   todayRemainNow=todayRemain;
+  $("todayPanel").classList.toggle("over",todayRemain<-0.5);
 
   $("spendable").textContent="NT$"+fmt(spendable);
   $("spendable").classList.toggle("neg",spendable<0);
@@ -866,9 +936,9 @@ function render(){
     const dot=document.createElement("span");dot.className="dot";dot.style.setProperty("--c",T.color);
     const info=document.createElement("div");info.className="info";
     const n=document.createElement("div");n.className="n";n.textContent=e.note||T.name;
-    const dd=document.createElement("div");dd.className="d";dd.textContent=T.name;
+    const dd=document.createElement("div");dd.className="d";dd.textContent=T.name+" · "+T.en;
     info.append(n,dd);
-    const amt=document.createElement("span");amt.className="amt";amt.style.color=T.sign>0?"var(--salary)":"var(--ink)";
+    const amt=document.createElement("span");amt.className="amt";amt.style.color=T.sign>0?"var(--income)":"var(--fg)";
     amt.textContent=(T.sign>0?"+":"−")+fmt(e.amount);
     if(e.virtual){
       li.className="virtual";
@@ -987,6 +1057,25 @@ $("importYes").onclick=()=>{
   $("opening").value=opening||"";drawFixedRows();render();
   importNote("已匯入 "+fresh.length+" 筆新紀錄，設定也已更新。");
 };
+
+/* ---------- 深淺色 ---------- */
+function effectiveTheme(){
+  const t=document.documentElement.getAttribute("data-theme");
+  if(t==="light"||t==="dark")return t;
+  return window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+}
+function drawThemeBtn(){
+  const cur=effectiveTheme();
+  $("themeBtn").textContent=cur==="dark"?"淺色 Light":"深色 Dark";
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=cur==="dark"?"#000000":"#eeeeee";
+}
+$("themeBtn").onclick=()=>{
+  const next=effectiveTheme()==="dark"?"light":"dark";
+  document.documentElement.setAttribute("data-theme",next);
+  try{localStorage.setItem("kyx-theme",next)}catch(e){}
+  drawThemeBtn();
+};
+drawThemeBtn();
 
 /* ---------- 啟動 ---------- */
 lsLoad();
