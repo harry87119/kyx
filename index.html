@@ -162,11 +162,11 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .reserve{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
 
 /* ===== 剩餘資產・下次發薪日：兩塊還可花下面的一條，點箭頭才展開 ===== */
-.balance{background:var(--bg-card);margin-top:-10px;padding:0 24px}
-.balance summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px 0;font-family:var(--font-han-sans);font-size:14px;letter-spacing:.08em;color:var(--fg-2)}
+.balance{background:var(--bg-raised);border:1px solid var(--line-2);margin-top:-10px;padding:0 24px}
+.balance summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px 0;font-family:var(--font-han-sans);font-size:14px;font-weight:500;letter-spacing:.08em;color:var(--fg)}
 .balance summary .b-label{margin-left:auto}
 .balance summary::-webkit-details-marker{display:none}
-.balance summary:hover{color:var(--fg)}
+.balance summary:hover .bal-title{color:var(--gh-red)}
 .chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform var(--dur-base) var(--ease-wipe)}
 .balance[open] .chev{transform:translateY(2px) rotate(225deg)}
 .balance-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;padding:4px 0 22px;border-top:1px solid var(--line)}
@@ -193,8 +193,9 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .amount-row .cur{font-family:var(--font-display);font-size:13px;letter-spacing:.16em;color:var(--fg-3)}
 #amount{flex:1;min-width:0;border:0;background:transparent;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:48px;font-weight:400;line-height:1.1;padding:6px 0;outline:none}
 #amount::placeholder{color:var(--fg-3)}
-.meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px}
-.meta #date{font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end}
+.meta .b-input{height:44px;padding-top:0;padding-bottom:0;line-height:44px}
+.meta #date{font-family:var(--font-display);font-variant-numeric:tabular-nums;-webkit-appearance:none;appearance:none;min-width:0}
 .types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
 .group-label{grid-column:1/-1;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-3);margin:14px 0 6px}
 .group-label:first-child{margin-top:0}
@@ -215,10 +216,12 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .cat-prod{--cat:var(--gh-gold);--on-cat:#000}
 .cat-trans{--cat:var(--gh-sky);--on-cat:#fff}
 .t-in{background:var(--cat);border-color:var(--cat);color:var(--on-cat)}
-.t-in::before{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform var(--dur-base) var(--ease-wipe);pointer-events:none}
-.t-in:hover::before,.t-in:focus-visible::before{transform:scaleX(1)}
 .t-out{background:transparent;border:2px solid var(--cat);color:var(--fg)}
-.t-out:hover{background:var(--cat);color:var(--on-cat)}
+/* 滑過時只動外框：收入的框由下往上畫出（錢進來），支出的框由上往下畫出（錢出去） */
+.tbtn::before{content:"";position:absolute;inset:0;border:3px solid currentColor;pointer-events:none;transition:clip-path var(--dur-base) var(--ease-wipe)}
+.t-in::before{clip-path:inset(100% 0 0 0)}
+.t-out::before{inset:-2px;clip-path:inset(0 0 100% 0)}
+.tbtn:hover::before,.tbtn:focus-visible::before{clip-path:inset(0 0 0 0)}
 .settle-grid{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px}
 .types-rule{grid-column:1/-1;height:0;border-top:1px solid var(--line-2);margin-top:20px}
 .settle-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
@@ -246,6 +249,7 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .fx-row .fx-name small{display:block;margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;color:var(--fg-3)}
 .fx-row .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap}
 #fixedNext{margin-top:12px}
+.fx-hint{margin-top:4px}
 .flow-wrap{overflow-x:auto;margin-top:16px}
 .flow-t{width:100%;border-collapse:collapse}
 .flow-t th{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-3);text-align:right;padding:0 8px 10px;white-space:nowrap;border-bottom:1px solid var(--line)}
@@ -268,11 +272,11 @@ li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8p
 li:hover .info .n{color:var(--gh-red)}
 .info .d{margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3)}
 .amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;text-align:right;white-space:nowrap}
-.del{border:1px solid transparent;background:transparent;color:var(--fg-3);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:6px 8px;transition:color var(--dur-fast) var(--ease)}
-.del:hover{color:var(--gh-red)}
+.del{border:1px solid var(--line-strong);background:transparent;color:var(--fg-2);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:6px 10px;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.del:hover{color:var(--gh-red);border-color:var(--gh-red)}
 .del.armed{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
 li.virtual .amt{color:var(--fg-3)!important}
-.auto-tag{display:inline-block;padding:5px 9px;border:1px solid var(--gh-gold);color:var(--gold-text);font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.18em;line-height:1.3}
+.auto-tag{display:inline-block;padding:6px 10px;color:var(--fg-3);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;line-height:1.3}
 .empty{padding:24px 0;color:var(--fg-3);font-size:14px;border-bottom:1px solid var(--line)}
 .more{margin-top:20px}
 
@@ -347,7 +351,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
           </div>
         </div>
         <div class="panel tone-ok" id="periodPanel">
-          <div class="panel-top"><span class="b-label"><span id="periodLabel">撐到日前還可花</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
+          <div class="panel-top"><span class="b-label"><span id="periodLabel">下次發薪日前還可花</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
           <div>
             <div class="mid" id="periodLeft">—</div>
             <div class="panel-sub" id="periodSub"></div>
@@ -416,9 +420,10 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
     </section>
 
     <section class="fixed" id="fixedBox" aria-label="每月固定支出">
-      <div class="sec-head"><h2 class="sec-han">每月固定支出</h2><div class="sec-right"><span class="b-label">Fixed</span><button id="editFixed" type="button" class="b-btn b-btn--secondary b-btn--sm">修改</button></div></div>
+      <div class="sec-head"><h2 class="sec-han">每月固定支出</h2><span class="b-label">Fixed</span></div>
       <div id="fixedSummary" class="fx-list"></div>
       <p class="sub" id="fixedNext"></p>
+      <p class="sub fx-hint">要新增或修改，請到最下面的「設定」。</p>
     </section>
 
     <section class="work" id="sec-work" aria-label="工作帳明細">
@@ -798,7 +803,7 @@ function drawFixedSummary(today){
   const box=$("fixedSummary");box.textContent="";
   const act=activeFixed();
   if(!act.length){
-    const p=document.createElement("span");p.className="sub";p.textContent="還沒有固定支出。按「修改」新增。";
+    const p=document.createElement("span");p.className="sub";p.textContent="還沒有固定支出。";
     box.appendChild(p);$("fixedNext").textContent="";return;
   }
   for(const f of act){
@@ -815,12 +820,6 @@ function drawFixedSummary(today){
     $("fixedNext").textContent="下次扣款："+(x.getMonth()+1)+"/"+x.getDate()+" "+first.map(e=>e.note+" NT$"+fmt(e.amount)).join("、");
   }else $("fixedNext").textContent="";
 }
-$("editFixed").onclick=()=>{
-  $("settingsBox").open=true;
-  $("fixedHead").scrollIntoView({behavior:"smooth",block:"start"});
-  const inp=$("fixedRows").querySelector(".amtIn");
-  if(inp)inp.focus({preventScroll:true});else $("addFixed").click();
-};
 
 /* ---------- 篩選 ---------- */
 document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
@@ -943,9 +942,9 @@ function render(){
   $("periodLeft").textContent=(periodLeft<0?"−":"")+"NT$"+fmt(Math.abs(periodLeft));
   $("periodLeft").classList.toggle("neg",periodLeft<0);
   const td=parseDate(target);
-  $("periodLabel").textContent="撐到 "+(td.getMonth()+1)+"/"+td.getDate()+" 前還可花";
+  $("periodLabel").textContent="下次發薪日 "+(td.getMonth()+1)+"/"+td.getDate()+" 前還可花";
   $("periodSub").textContent=reserveAmt>0?"已先扣掉之前要繳的固定支出":"期間沒有要繳的固定支出";
-  /* 每日平均額度 = 撐到日前還可花 ÷ 剩餘天數 */
+  /* 每日平均額度 = 下次發薪日前還可花 ÷ 剩餘天數 */
   const dailyAvg=periodLeft/daysLeft;
   /* 撐到日：錢不夠＝不夠、每日平均不到起算日額度的八成＝偏緊、其餘＝充裕 */
   const periodTone=periodLeft<-0.5?"over":(base>0&&dailyAvg>=base*0.8?"ok":"low");
@@ -956,7 +955,7 @@ function render(){
   /* 超支提醒：今天花超過額度、或撐到日前的錢已經不夠 */
   const warn=[];
   if(todayRemain<-0.5)warn.push("今天已經超支 NT$"+fmt(-todayRemain)+"，之後每天的額度會變少。");
-  if(periodLeft<-0.5)warn.push("撐到 "+(td.getMonth()+1)+"/"+td.getDate()+" 前的錢不夠，還差 NT$"+fmt(-periodLeft)+"。");
+  if(periodLeft<-0.5)warn.push("下次發薪日 "+(td.getMonth()+1)+"/"+td.getDate()+" 前的錢不夠，還差 NT$"+fmt(-periodLeft)+"。");
   const al=$("alert");al.textContent="";
   for(const w of warn){const d=document.createElement("span");d.textContent=w;al.appendChild(d)}
   al.hidden=!warn.length;
