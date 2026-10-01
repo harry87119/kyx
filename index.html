@@ -680,7 +680,9 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   flashBtn(b,"已記下 NT$"+fmt(e.amount));
   if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow),true);
   else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
-  $("amount").focus();
+  /* 送出後收起鍵盤，等按鈕動畫跑完再捲到還可花 */
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  setTimeout(()=>$("sec-hero").scrollIntoView({behavior:reduceMotion()?"auto":"smooth",block:"start"}),reduceMotion()?0:500);
 }));
 
 /* 按下記帳按鈕後：色帶掃過，小字短暫改成「已記下 NT$X」 */
