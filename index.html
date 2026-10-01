@@ -925,16 +925,15 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   render();
   if(fxMode){$("isFixed").checked=false;drawFxPick()}
   flashBtn(b,"已記下 NT$"+fmt(e.amount));
-  if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow),true);
+  if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow)+(freshTotal>fresh0?"，最上面有新的提示。":""),true);
   else if(smallPay)toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。這是小筆收入（不到常規薪水一半），會算進剩餘資產，但不算進每日基準。");
   else if(e.type==="salary")toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。錢怎麼分配，請看最上面。");
   else if(fxMode)toast("已記下 "+fxName(e.fx)+" 實際金額 NT$"+fmt(e.amount)+(est>0?"，取代預估 NT$"+fmt(est)+(Math.abs(e.amount-est)<0.5?"，剛好一樣。":e.amount>est?"，多付 NT$"+fmt(e.amount-est)+"。":"，少付的 NT$"+fmt(est-e.amount)+" 回到剩餘資產。"):"。"),e.amount>est+0.5&&est>0);
-  else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+(isWork&&freshTotal>fresh0?"。最上面有新的提示。":""));
+  else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+(freshTotal>fresh0?"。最上面有新的提示。":""));
   holdNoticeScroll=false;
   /* 送出後收起鍵盤；記工作帳捲到誰欠誰；其他的有新提示就捲到最上面看提示（render 會處理），沒有就捲到還可花 */
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
-  const go=isWork?$("settleLabel"):(!noticeScrollPending?$("sec-hero"):null);
-  if(go)setTimeout(()=>go.scrollIntoView({behavior:reduceMotion()?"auto":"smooth",block:"start"}),reduceMotion()?0:500);
+  /* 記完留在原位，不自動捲動 */
 }));
 
 /* 手機點備註：從備註到六個記帳按鈕這一塊，放在鍵盤上方「看得到的範圍」中間偏下，打字時看得到、打完直接點按鈕。
@@ -1180,7 +1179,11 @@ $("saveFixed").onclick=()=>{
     const last=lastChargedMonth(old);
     if(last)next.push(Object.assign({},old,{end:last}));  // 移除：之後不再扣，過去扣過的保留
   }
+  /* 存完讓按鈕留在畫面上同一個位置，才看得到「儲存成功」（上面的內容變高變矮也一樣） */
+  const keep=()=>window.scrollBy(0,$("saveFixed").getBoundingClientRect().top-top0);
+  const top0=$("saveFixed").getBoundingClientRect().top;
   fixed=next;persistSettings();drawFixedRows();render();
+  keep();requestAnimationFrame(keep);
   savedTag($("fixedSaved"),"儲存成功");
 };
 
@@ -1443,11 +1446,7 @@ function drawNotices(ns){
   $("noticeDots").innerHTML=ns.map(n=>'<i data-kind="'+n.kind+'"></i>').join("");
   if(noticeReady&&fresh.length){
     for(const el of fresh){el.classList.remove("fresh");void el.offsetWidth;el.classList.add("fresh")}
-    freshTotal+=fresh.length;
-    if(!holdNoticeScroll){
-      noticeScrollPending=true;
-      setTimeout(()=>{window.scrollTo({top:0,behavior:reduceMotion()?"auto":"smooth"});noticeScrollPending=false},reduceMotion()?0:450);
-    }
+    freshTotal+=fresh.length;   // 新提示只跑動畫，不自動捲動
   }
   shownNotices=new Set(keys);
 }
