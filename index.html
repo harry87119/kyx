@@ -18,7 +18,7 @@
 <script>try{var kt=localStorage.getItem("kyx-theme");if(kt==="light"||kt==="dark")document.documentElement.setAttribute("data-theme",kt)}catch(e){}</script>
 <style>
 /* ===== Bito UI 規格（BITO-STYLE.md）：黑色是舞臺，顏色以整塊平塗色面出現；直角、1px 細線、無陰影、無漸層 ===== */
-/* 版面：手機單欄；寬螢幕左 7 右 5 兩欄（左：總覽色塊、目前可花、明細；右：新增一筆、固定支出、工作帳、設定） */
+/* 版面：手機單欄；寬螢幕左 7 右 5 兩欄（左：還可花色塊、剩餘資產、明細；右：新增一筆、固定支出、工作帳、設定） */
 :root{
 /* 品牌色（深淺模式共用） */
 --gh-red:#f92c16;--gh-vermilion:#ee5522;--gh-gold:#a89379;--gh-turquoise:#03c2b8;--gh-navy:#071729;--gh-blue:#041bca;--gh-blue-hover:#0a22e0;--gh-camel:#b0967a;--gh-ember:#df6a33;--gh-amber:#ffbb22;--gh-lime:#9bba05;--gh-acid:#a8da40;--gh-sky:#1178cb;
@@ -100,14 +100,16 @@ button{cursor:pointer}
 .brand h1{font-family:var(--font-han-serif);font-weight:900;font-size:22px;line-height:1.12;letter-spacing:.02em;white-space:nowrap}
 .top-right{display:flex;align-items:center;gap:10px;min-width:0}
 .top-right .sync{margin-right:6px}
-@media (max-width:560px){.top-right{display:contents}.top-right .sync{order:3;width:100%;margin:0;justify-content:flex-start}.brand{flex:1}}
-.toc{position:absolute;top:100%;right:var(--page-margin);width:min(320px,calc(100% - 2 * var(--page-margin)));background:var(--bg-raised);border:1px solid var(--line);display:flex;flex-direction:column;animation:b-rise var(--dur-base) var(--ease-settle) both}
-.toc a{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 18px;color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line);font-family:var(--font-han-sans);font-size:15px;letter-spacing:.06em;transition:color var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease)}
-.toc a:last-child{border-bottom:0}
-.toc a:hover{color:var(--gh-red);background:var(--bg-card-hover)}
-#tocBtn[aria-expanded="true"]{background:var(--invert-bg);border-color:var(--invert-bg);color:var(--invert-fg)}
-section,details.settings{scroll-margin-top:96px}
-@media (max-width:560px){section,details.settings{scroll-margin-top:120px}}
+@media (max-width:560px){.top-right .sync{max-width:118px;font-size:10px;line-height:1.35}}
+/* 目錄：一直展開，橫向一排；手機上可以左右滑 */
+.toc{order:10;width:100%;display:flex;gap:28px;overflow-x:auto;scrollbar-width:none;margin:2px 0 -10px;padding-top:4px}
+.toc::-webkit-scrollbar{display:none}
+.toc a{flex:none;display:inline-flex;align-items:baseline;gap:8px;padding:6px 0 10px;border-bottom:2px solid transparent;color:var(--fg-3);text-decoration:none;font-family:var(--font-han-sans);font-size:13.5px;letter-spacing:.1em;white-space:nowrap;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.toc a .b-label{font-size:9px}
+.toc a:hover,.toc a.on{color:var(--fg);border-bottom-color:var(--gh-red)}
+@media (max-width:560px){.toc{gap:20px}.toc a .b-label{display:none}}
+section,details.settings,#sec-hero{scroll-margin-top:124px}
+@media (max-width:560px){section,details.settings{scroll-margin-top:136px}}
 .sync{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.06em;color:var(--fg-3);text-align:right;min-width:0}
 .sync::before{content:"";width:6px;height:6px;flex:none;background:var(--fg-3)}
 .sync[data-state="ok"]::before{background:var(--gh-turquoise)}
@@ -159,24 +161,26 @@ section,details.settings{scroll-margin-top:96px}
 .meter i{display:block;height:100%;background:var(--fg);transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-base) var(--ease-wipe)}
 .reserve{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
 
-/* ===== 目前可花 ===== */
-/* 目前可花（私人）：收在撐到日色塊裡，點了才展開 */
-.balance{margin-top:18px;border-top:1px solid var(--line)}
-.balance summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0 0;font-family:var(--font-han-sans);font-size:12.5px;letter-spacing:.08em;color:var(--fg-2)}
+/* ===== 剩餘資產・下次發薪日：兩塊還可花下面的一條，點箭頭才展開 ===== */
+.balance{background:var(--bg-card);margin-top:-10px;padding:0 24px}
+.balance summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px 0;font-family:var(--font-han-sans);font-size:14px;letter-spacing:.08em;color:var(--fg-2)}
+.balance summary .b-label{margin-left:auto}
 .balance summary::-webkit-details-marker{display:none}
 .balance summary:hover{color:var(--fg)}
 .chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform var(--dur-base) var(--ease-wipe)}
 .balance[open] .chev{transform:translateY(2px) rotate(225deg)}
-.balance-body{padding-top:12px}
-.bal-num{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:24px;line-height:1.1}
-.balance-body .panel-sub{margin-top:6px}
+.balance-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;padding:4px 0 22px;border-top:1px solid var(--line)}
+.balance-body>div{padding-top:16px}
+.bal-num{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:28px;line-height:1.1;margin-top:4px}
+.balance-body .sub{margin-top:8px}
+@media (max-width:560px){.balance{padding:0 16px}.balance-body{grid-template-columns:1fr;gap:4px}.balance summary .b-label{display:none}.balance summary .chev{margin-left:auto}}
 .b-field{display:block;min-width:0}
 .b-field__label{display:block;margin-bottom:4px;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3);transition:color var(--dur-fast) var(--ease)}
 .b-field:focus-within .b-field__label{color:var(--focus)}
 .b-input{width:100%;display:block;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 0;color:var(--fg);font-family:var(--font-text);font-size:15px;line-height:1.4;outline:none;transition:border-color var(--dur-fast) var(--ease)}
 .b-input::placeholder{color:var(--fg-3)}
 .b-input:focus{border-bottom-color:var(--focus)}
-.until-field{margin-top:14px}
+.until-field{padding-top:16px}
 .until-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 .until-row .b-input{width:auto;min-width:140px;color:var(--fg);font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 #untilDays{font-size:13px;letter-spacing:.06em;color:var(--fg-2)}
@@ -211,9 +215,12 @@ section,details.settings{scroll-margin-top:96px}
 .cat-prod{--cat:var(--gh-gold);--on-cat:#000}
 .cat-trans{--cat:var(--gh-sky);--on-cat:#fff}
 .t-in{background:var(--cat);border-color:var(--cat);color:var(--on-cat)}
+.t-in::before{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform var(--dur-base) var(--ease-wipe);pointer-events:none}
+.t-in:hover::before,.t-in:focus-visible::before{transform:scaleX(1)}
 .t-out{background:transparent;border:2px solid var(--cat);color:var(--fg)}
 .t-out:hover{background:var(--cat);color:var(--on-cat)}
 .settle-grid{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px}
+.types-rule{grid-column:1/-1;height:0;border-top:1px solid var(--line-2);margin-top:20px}
 .settle-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .settle-hint{font-family:var(--font-han-sans);font-size:11.5px;letter-spacing:.08em;text-transform:none;color:var(--fg-2)}
 .settle-col{min-width:0;display:flex;flex-direction:column}
@@ -313,10 +320,9 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   <div class="brand"><h1>KYX記帳</h1><span class="b-label">Ledger</span></div>
   <div class="top-right">
     <span class="sync" id="sync">連線中…</span>
-    <button id="tocBtn" type="button" class="b-btn b-btn--secondary b-btn--sm" aria-expanded="false" aria-controls="toc">目錄</button>
     <button id="themeBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">淺色 Light</button>
   </div>
-  <nav class="toc" id="toc" aria-label="目錄" hidden>
+  <nav class="toc" id="toc" aria-label="目錄">
     <a href="#sec-entry" data-go="sec-entry"><span>新增一筆</span><span class="b-label">New entry</span></a>
     <a href="#sec-hero" data-go="sec-hero"><span>還可花</span><span class="b-label">Today</span></a>
     <a href="#fixedBox" data-go="fixedBox"><span>每月固定支出</span><span class="b-label">Fixed</span></a>
@@ -346,20 +352,23 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
             <div class="mid" id="periodLeft">—</div>
             <div class="panel-sub" id="periodSub"></div>
             <div class="panel-sub" id="dailyAvgSub"></div>
-            <details class="balance" id="balanceBox">
-              <summary><span>目前可花（私人）・撐到日</span><span class="chev" aria-hidden="true"></span></summary>
-              <div class="balance-body">
-                <div class="bal-num" id="spendable">—</div>
-                <p class="panel-sub" id="spendableSub"></p>
-                <label class="b-field until-field">
-                  <span class="b-field__label">這些錢要撐到 / Until</span>
-                  <span class="until-row"><input id="until" type="date" class="b-input"><span id="untilDays" class="num"></span></span>
-                </label>
-              </div>
-            </details>
           </div>
         </div>
       </div>
+      <details class="balance" id="balanceBox">
+        <summary><span class="bal-title">剩餘資產・下次發薪日</span><span class="b-label">Assets · Next payday</span><span class="chev" aria-hidden="true"></span></summary>
+        <div class="balance-body">
+          <div>
+            <span class="b-field__label">剩餘資產（私人） / Assets</span>
+            <div class="bal-num" id="spendable">—</div>
+            <p class="sub" id="spendableSub"></p>
+          </div>
+          <label class="b-field until-field">
+            <span class="b-field__label">下次發薪日 / Next payday</span>
+            <span class="until-row"><input id="until" type="date" class="b-input"><span id="untilDays" class="num"></span></span>
+          </label>
+        </div>
+      </details>
       <p class="reserve" id="reserve" hidden></p>
     </section>
 
@@ -396,6 +405,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <button class="tbtn t-out cat-own" data-type="personal">私人花費<small>從私人可花扣</small></button>
         <button class="tbtn t-out cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
         <button class="tbtn t-out cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
+        <div class="types-rule" aria-hidden="true"></div>
         <div class="group-label settle-head" id="settleLabel" hidden><span>誰欠誰 / Settle</span><span class="settle-hint">會隨記帳改變方向</span></div>
         <div class="settle-grid" id="settleRow" hidden>
           <div class="settle-col cat-prod" id="settle_prod"></div>
@@ -426,7 +436,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       <summary><span class="sum-left"><span class="sec-han">設定</span><span class="sum-desc">固定支出、起始結餘、試算表、備份</span></span><span class="sum-right"><span class="b-label">Settings</span></span></summary>
       <div class="set-block">
         <h3 id="fixedHead">每月固定支出</h3>
-        <p>到了繳費日會自動從目前可花扣掉，不用每個月手動記。撐到日之前要繳的，也會先從今日建議消費裡預留。</p>
+        <p>到了繳費日會自動從剩餘資產扣掉，不用每個月手動記。下次發薪日之前要繳的，也會先從今日建議消費裡預留。</p>
         <p>修改金額、日期或移除時，已經扣過的月份不會變，從下一次扣款開始用新的設定。</p>
         <div id="fixedRows" class="fixed-rows"></div>
         <div class="set-row">
@@ -457,7 +467,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="set-block">
         <h3>備份</h3>
-        <p>匯出會下載一個包含全部紀錄和設定的 JSON 檔。匯入時，已經有的紀錄會略過、只加入新的；固定支出、起始結餘和撐到日會改成檔案裡的設定。</p>
+        <p>匯出會下載一個包含全部紀錄和設定的 JSON 檔。匯入時，已經有的紀錄會略過、只加入新的；固定支出、起始結餘和下次發薪日會改成檔案裡的設定。</p>
         <div class="set-row">
           <button id="exportBtn" type="button" class="b-btn b-btn--gold b-btn--sm">匯出備份</button>
           <button id="importBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">匯入備份</button>
@@ -823,7 +833,7 @@ $("more").onclick=()=>{shown+=60;render()};
 /* ---------- 撐到哪天 ---------- */
 $("until").addEventListener("change",()=>{
   until=$("until").value||"";persistSettings();render();
-  toast(until?"已設定撐到 "+until.slice(5).replace("-","/"):"已改回自動推算");
+  toast(until?"已設定下次發薪日 "+until.slice(5).replace("-","/"):"已改回自動推算");
 });
 
 $("saveOpening").onclick=()=>{
@@ -904,7 +914,7 @@ function render(){
   const startOfDay=spendable+todaySpent-reserveAmt;
   if(reserveAmt>0){
     const byDate={};for(const e of upcoming)(byDate[e.date]=byDate[e.date]||[]).push(e.note);
-    $("reserve").textContent="已先預留撐到日前要繳的 NT$"+fmt(reserveAmt)+"（"+Object.keys(byDate).sort().map(d=>{const x=parseDate(d);return (x.getMonth()+1)+"/"+x.getDate()+" "+byDate[d].join("、")}).join("；")+"）";
+    $("reserve").textContent="已先預留下次發薪日前要繳的 NT$"+fmt(reserveAmt)+"（"+Object.keys(byDate).sort().map(d=>{const x=parseDate(d);return (x.getMonth()+1)+"/"+x.getDate()+" "+byDate[d].join("、")}).join("；")+"）";
     $("reserve").hidden=false;
   }else $("reserve").hidden=true;
   /* 今日額度：照目前剩下的錢平均，但不超過起算日（最近一次發薪那天）算出的每日額度；
@@ -1118,7 +1128,7 @@ $("importFile").onchange=async()=>{
   $("importSummary").textContent="這個備份檔有 "+p.entries.length+" 筆紀錄，其中 "+fresh.length+" 筆是新的"
     +(p.skipped?"（另有 "+p.skipped+" 筆格式不對，會略過）":"")
     +"；固定支出 "+p.settings.fixed.filter(f=>!f.end).length+" 項，起始結餘 NT$"+fmt(p.settings.opening)
-    +"。匯入後，新的紀錄會加進來，固定支出、起始結餘和撐到日會改成備份檔裡的設定。";
+    +"。匯入後，新的紀錄會加進來，固定支出、起始結餘和下次發薪日會改成備份檔裡的設定。";
   $("importConfirm").hidden=false;importNote("");
 };
 $("importNo").onclick=()=>{pendingImport=null;$("importConfirm").hidden=true;importNote("已取消匯入。")};
@@ -1134,17 +1144,13 @@ $("importYes").onclick=()=>{
 };
 
 /* ---------- 目錄 ---------- */
-function setToc(open){$("toc").hidden=!open;$("tocBtn").setAttribute("aria-expanded",open?"true":"false")}
-$("tocBtn").onclick=e=>{e.stopPropagation();setToc($("toc").hidden)};
 $("toc").addEventListener("click",e=>{
   const a=e.target.closest("a[data-go]");if(!a)return;
-  e.preventDefault();setToc(false);
+  e.preventDefault();
   const t=$(a.dataset.go);
   if(t.tagName==="DETAILS")t.open=true;
   t.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
 });
-document.addEventListener("click",e=>{if(!$("toc").hidden&&!e.target.closest("#toc"))setToc(false)});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")setToc(false)});
 
 /* ---------- 深淺色 ---------- */
 function effectiveTheme(){
