@@ -103,6 +103,7 @@ button{cursor:pointer}
 .top-right .sync{margin-right:6px}
 @media (max-width:560px){.top-right .sync{max-width:118px;font-size:10px;line-height:1.35}}
 /* 目錄：一直展開，橫向一排；手機上可以左右滑 */
+body.typing .topbar{position:relative}
 .toc{order:10;width:100%;display:flex;gap:28px;overflow-x:auto;scrollbar-width:none;margin:2px 0 -10px;padding-top:4px}
 .toc::-webkit-scrollbar{display:none}
 .toc a{flex:none;display:inline-flex;align-items:baseline;gap:8px;padding:6px 0 10px;border-bottom:2px solid transparent;color:var(--fg-3);text-decoration:none;font-family:var(--font-han-sans);font-size:13.5px;letter-spacing:.1em;white-space:nowrap;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
@@ -185,6 +186,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .big{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1;font-size:clamp(40px,17cqi,88px);white-space:nowrap}
 .mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
 .panel .mid{font-size:clamp(28px,12cqi,48px);white-space:nowrap}
+.panel .big.is-short{font-size:clamp(28px,12cqi,48px)}
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
 .panel .panel-sub{color:var(--fg-2)}
 .panel .panel-sub .num{color:var(--fg)}
@@ -448,7 +450,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <div class="panel tone-ok" id="periodPanel">
           <div class="panel-top"><span class="b-label"><span id="periodLabel">剩餘的錢可以撐到</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
           <div>
-            <div class="mid" id="periodDaily">—</div>
+            <div class="big" id="periodDaily">—</div>
           </div>
         </div>
       </div>
@@ -816,6 +818,19 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   if(go)setTimeout(()=>go.scrollIntoView({behavior:reduceMotion()?"auto":"smooth",block:"start"}),reduceMotion()?0:500);
 }));
 
+/* 手機點備註：頂部列先讓開，備註那一行捲到畫面最上面，鍵盤上方就是六個記帳按鈕 */
+{
+  const small=()=>window.matchMedia&&matchMedia("(max-width:720px)").matches;
+  const pin=()=>{if(document.activeElement!==$("note"))return;window.scrollTo({top:Math.max(0,$("note").closest(".meta").getBoundingClientRect().top+window.scrollY-8),behavior:"auto"})};
+  $("note").addEventListener("focus",()=>{
+    if(!small())return;
+    document.body.classList.add("typing");
+    pin();setTimeout(pin,350);           // 鍵盤升起之後再對一次
+    if(window.visualViewport)visualViewport.addEventListener("resize",pin,{once:true});
+  });
+  $("note").addEventListener("blur",()=>document.body.classList.remove("typing"));
+}
+
 /* 按下記帳按鈕後：色帶掃過，小字短暫改成「已記下 NT$X」 */
 function flashBtn(b,msg){
   const sm=b.querySelector("small");
@@ -1094,9 +1109,26 @@ function autoUntil(){
 const money=v=>(v<0?"−":"")+"NT$"+fmt(Math.abs(v));
 const moneyText=el=>v=>el._fmt?el._fmt(v):(el._prefix||"")+money(v);
 const reduceMotion=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-function setMoney(el,v,prefix,fmtFn){
-  el._target=v;el._prefix=prefix||"";el._fmt=fmtFn||null;
-  if(!el._anim)el.textContent=moneyText(el)(v);
+function setMoney(el,v,prefix,fmtFn,mode){
+  if(quietNotices)return;                      // 試算用的暫時重算，不動畫面
+  mode=mode||"money"+(prefix||"");
+  const prev=el._target, same=el._mode===mode;
+  el._target=v;el._prefix=prefix||"";el._fmt=fmtFn||null;el._mode=mode;
+  if(el._anim)return;
+  /* 記帳、改設定讓數字（或日期）改變時：從舊的跑到新的 */
+  if(same&&prev!=null&&Math.round(prev)!==Math.round(v)&&noticeReady&&!reduceMotion())tweenTo(el,prev,mode);
+  else el.textContent=moneyText(el)(v);
+}
+function tweenTo(el,from,mode){
+  const start=performance.now(),dur=700;
+  el._anim=true;
+  const step=now=>{
+    const t=Math.min(1,(now-start)/dur),e=1-Math.pow(1-t,3);
+    if(el._mode!==mode||t>=1){el._anim=false;el.textContent=moneyText(el)(el._target);return}
+    el.textContent=moneyText(el)(Math.round(from+(el._target-from)*e));
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 function countUp(el){
   if(reduceMotion()||el._target==null)return;
@@ -1305,6 +1337,7 @@ function render(){
   const md=d=>(d.getMonth()+1)+"/"+d.getDate();
   let runout, periodTone;
   if(periodLeft<-0.5){
+    $("periodDaily").classList.add("is-short");
     setMoney($("periodDaily"),-periodLeft,"還差 ");
     runout="到下次發薪日 "+tgs+" 前，錢已經不夠用。";periodTone="over";endNow=null;
   }else{
@@ -1312,7 +1345,8 @@ function render(){
     const lastDays=plan>=0.5?Math.max(0,Math.floor(rem/plan+1e-9)):0;
     const endD=dayAt(lastDays), end=ymd(endD);
     endNow=end;
-    setMoney($("periodDaily"),lastDays,"",n=>md(dayAt(n)));
+    $("periodDaily").classList.remove("is-short");
+    setMoney($("periodDaily"),lastDays,"",n=>md(dayAt(n)),"date");
     const diff=dayDiff(target,end), pr="照每天 NT$"+fmt(plan)+" 花，";
     if(diff===0){runout=pr+"剛好撐到下次發薪日 "+tgs+"。";periodTone="ok"}
     else if(diff>0){runout=pr+"比下次發薪日 "+tgs+" 多撐 "+diff+" 天。";periodTone="ok"}
