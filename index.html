@@ -144,7 +144,13 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 /* 提示區標題列：按一下收起或展開；收起後有新的提示會自己再展開 */
 .n-head{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;background:var(--bg-raised);border:1px solid var(--line-2);color:var(--fg);font-family:var(--font-han-sans);font-size:13.5px;font-weight:500;letter-spacing:.08em;text-align:left;cursor:pointer}
 .n-head .b-label{margin-left:auto}
-.n-head .n-act{color:var(--gold-text);font-size:12.5px;font-weight:700;letter-spacing:.12em}
+.n-head .n-act,.sum-act{color:var(--gold-text);font-family:var(--font-han-sans);font-size:12.5px;font-weight:700;letter-spacing:.12em}
+.sum-act{white-space:nowrap}
+@media (max-width:560px){.sum-right .b-label{display:none}}
+.sum-act::before{content:"展開"}
+details[open]>summary .sum-act::before{content:"收起"}
+.balance summary .chev{color:var(--gold-text)}
+.balance summary:hover .sum-act,details.settings summary:hover .sum-act{color:var(--gh-gold)}
 .n-head:hover .n-act{color:var(--gh-gold)}
 .n-head .chev{color:var(--gold-text);transform:translateY(2px) rotate(225deg)}
 .alert.folded .n-head .chev{transform:translateY(-2px) rotate(45deg)}
@@ -190,6 +196,8 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
 .panel .mid{font-size:clamp(28px,12cqi,48px);white-space:nowrap}
 .panel .big.is-short{font-size:clamp(28px,12cqi,48px)}
+.dg{display:inline-block;height:1em;overflow:hidden;vertical-align:top;line-height:1}
+.dg-strip{display:block;white-space:pre;line-height:1}
 .date-line{display:flex;align-items:baseline;gap:12px;min-width:0}
 .date-line .wk{font-family:var(--font-han-sans);font-size:clamp(14px,5cqi,22px);font-weight:500;letter-spacing:.14em;white-space:nowrap}
 .date-line .wk:empty{display:none}
@@ -230,7 +238,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .wf-hint{display:block;font-size:11.5px;color:var(--fg-3);letter-spacing:.02em;margin-top:2px}
 
 .balance-body .sub+.sub{margin-top:2px}
-@media (max-width:560px){.balance{padding:0 16px}.balance summary .b-label{display:none}.balance summary .chev{margin-left:auto}}
+@media (max-width:560px){.balance{padding:0 16px}.balance summary .b-label{display:none}.balance summary .sum-act{margin-left:auto}}
 .b-field{display:block;min-width:0}
 .b-field__label{display:block;margin-bottom:4px;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3);transition:color var(--dur-fast) var(--ease)}
 .b-field:focus-within .b-field__label{color:var(--focus)}
@@ -391,7 +399,7 @@ details.settings summary::-webkit-details-marker{display:none}
 .sum-left{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;min-width:0}
 .sum-desc{font-size:12.5px;color:var(--fg-3);letter-spacing:.04em}
 .sum-right{display:flex;align-items:center;gap:12px}
-.sum-right::after{content:"";width:7px;height:7px;border-right:1.5px solid var(--fg-3);border-bottom:1.5px solid var(--fg-3);transform:translateY(-3px) rotate(45deg);transition:transform var(--dur-base) var(--ease-wipe)}
+.sum-right::after{content:"";width:7px;height:7px;border-right:1.5px solid var(--gold-text);border-bottom:1.5px solid var(--gold-text);transform:translateY(-3px) rotate(45deg);transition:transform var(--dur-base) var(--ease-wipe)}
 details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg)}
 .set-block{padding:28px 0;border-bottom:1px solid var(--line)}
 .set-block:first-of-type{margin-top:12px}
@@ -493,7 +501,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         </div>
       </div>
       <details class="balance" id="balanceBox">
-        <summary><span class="bal-title">剩餘資產</span><span class="b-label">Assets</span><span class="chev" aria-hidden="true"></span></summary>
+        <summary><span class="bal-title">剩餘資產</span><span class="b-label">Assets</span><span class="sum-act" aria-hidden="true"></span><span class="chev" aria-hidden="true"></span></summary>
         <div class="balance-body">
           <div>
             <span class="b-field__label">剩餘資產：錢去哪了 / Where it goes</span>
@@ -583,7 +591,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
     </section>
 
     <details class="settings" id="settingsBox">
-      <summary><span class="sum-left"><span class="sec-han">設定</span><span class="sum-desc">固定支出、每日基準、試算表、備份</span></span><span class="sum-right"><span class="b-label">Settings</span></span></summary>
+      <summary><span class="sum-left"><span class="sec-han">設定</span><span class="sum-desc">固定支出、每日基準、試算表、備份</span></span><span class="sum-right"><span class="b-label">Settings</span><span class="sum-act" aria-hidden="true"></span></span></summary>
       <div class="set-block">
         <h3 id="fixedHead">每月固定支出</h3>
         <p>到了繳費日會自動從剩餘資產扣掉，不用每個月手動記。下次發薪日之前要繳的，也會先預留起來，不算進每天的額度。</p>
@@ -1117,7 +1125,7 @@ function drawFixedSummary(today){
     for(const f of list){
       const row=document.createElement("div");row.className="fx-row"+(vary?" vary":"");
       const n=document.createElement("span");n.className="fx-name";n.textContent=f.name||"固定支出";
-      const d=document.createElement("small");d.textContent="每月 "+(f.day||1)+" 號"+(vary?" · 預估":"");n.appendChild(d);
+      if(vary){const d=document.createElement("small");d.textContent="預估";n.appendChild(d)}
       if(vary){
         const lp=entries.filter(e=>e.type==="fixpay"&&e.fx===sidOf(f)).sort((a,b)=>b.date.localeCompare(a.date))[0];
         if(lp){const x=document.createElement("small");x.textContent="上次實際 NT$"+fmt(lp.amount)+"（"+mdOf(lp.date)+"）";n.appendChild(x)}
@@ -1247,8 +1255,41 @@ function setMoney(el,v,prefix,fmtFn,mode){
   el._target=v;el._prefix=prefix||"";el._fmt=fmtFn||null;el._mode=mode;
   if(el._anim)return;
   /* 記帳、改設定讓數字（或日期）改變時：從舊的跑到新的 */
-  if(same&&prev!=null&&Math.round(prev)!==Math.round(v)&&noticeReady&&!reduceMotion())tweenTo(el,prev,mode);
+  if(same&&prev!=null&&Math.round(prev)!==Math.round(v)&&noticeReady&&!reduceMotion()){
+    if(el._roll)rollTo(el,moneyText(el)(prev),v>prev);else tweenTo(el,prev,mode);
+  }
   else el.textContent=moneyText(el)(v);
+}
+/* 撐到的日期：每個數字像里程表一樣上下滾到新的數字（日期往後往上滾、往前往下滾）；
+   速度跟著顏色：青綠快、琥珀慢一點、朱紅最慢 */
+function rollTo(el,fromText,up){
+  el._anim=true;
+  requestAnimationFrame(()=>{                   // 等這次 render 把顏色換好再看速度
+    const tone=el.closest(".panel");
+    const dur=tone&&tone.classList.contains("tone-over")?2200:tone&&tone.classList.contains("tone-low")?1500:900;
+    const to=moneyText(el)(el._target);
+    const n=Math.max(fromText.length,to.length);
+    const a=fromText.padStart(n," "), b=to.padStart(n," ");
+    el.setAttribute("aria-label",to);
+    el.textContent="";
+    const strips=[];
+    for(let i=0;i<n;i++){
+      const c=b[i], o=a[i];
+      if(!/\d/.test(c)){if(c!==" ")el.append(c);continue}
+      const f=/\d/.test(o)?+o:0, t=+c;
+      const steps=f===t&&/\d/.test(o)?0:((up?t-f:f-t)+10)%10+10;
+      const seq=[];for(let k=0;k<=steps;k++)seq.push(((up?f+k:f-k)%10+10)%10);
+      if(!up)seq.reverse();
+      const box=document.createElement("span");box.className="dg";
+      const st=document.createElement("span");st.className="dg-strip";st.textContent=seq.join("\n");
+      st.style.transform="translateY("+(up?0:-steps)+"em)";
+      box.append(st);el.append(box);strips.push([st,up?-steps:0]);
+    }
+    void el.offsetWidth;
+    for(const [st,y] of strips){st.style.transition="transform "+dur+"ms cubic-bezier(.16,1,.3,1)";st.style.transform="translateY("+y+"em)"}
+    clearTimeout(el._rollT);
+    el._rollT=setTimeout(()=>{el._anim=false;el.textContent=moneyText(el)(el._target);el.removeAttribute("aria-label")},dur+60);
+  });
 }
 function tweenTo(el,from,mode){
   const start=performance.now(),dur=700;
@@ -1263,6 +1304,7 @@ function tweenTo(el,from,mode){
 }
 function countUp(el){
   if(reduceMotion()||el._target==null)return;
+  if(el._roll){rollTo(el,moneyText(el)(0),el._target>0);return}
   const start=performance.now(),dur=900;
   el._anim=true;
   const step=now=>{
@@ -1273,6 +1315,7 @@ function countUp(el){
   el.textContent=moneyText(el)(0);
   requestAnimationFrame(step);
 }
+$("periodDaily")._roll=true;
 if("IntersectionObserver" in window){
   let seen=false;
   new IntersectionObserver(es=>{
@@ -1488,7 +1531,8 @@ function render(){
     const endD=dayAt(lastDays), end=ymd(endD);
     endNow=end;
     $("periodDaily").classList.remove("is-short");
-    setMoney($("periodDaily"),lastDays,"",n=>{const d=dayAt(n);$("periodWk").textContent="週"+"日一二三四五六"[d.getDay()];return md(d)},"date");
+    setMoney($("periodDaily"),lastDays,"",n=>md(dayAt(n)),"date");
+    if(!quietNotices)$("periodWk").textContent="週"+"日一二三四五六"[dayAt(lastDays).getDay()];
     $("periodSub").innerHTML="還能撐 <span class='num'>"+lastDays+"</span> 天 · 下次發薪日 <span class='num'>"+tgs+"</span>";
     const toPay=Math.max(0,dayDiff(today,target)), span=Math.max(1,toPay,lastDays);
     spanBar(lastDays/span,toPay/span);
