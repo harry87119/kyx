@@ -149,6 +149,9 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 @media (max-width:560px){.sum-right .b-label{display:none}}
 .sum-act::before{content:"展開"}
 details[open]>summary .sum-act::before{content:"收起"}
+details.closing>summary .sum-act::before{content:"展開"}
+.balance.closing .chev{transform:translateY(-2px) rotate(45deg)}
+details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45deg)}
 .balance summary .chev{color:var(--gold-text)}
 .balance summary:hover .sum-act,details.settings summary:hover .sum-act{color:var(--gh-gold)}
 .n-head:hover .n-act{color:var(--gh-gold)}
@@ -372,7 +375,32 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .flow-t td:first-child::before{content:"";display:inline-block;width:10px;height:10px;margin-right:10px;background:var(--cat)}
 
 /* ===== 明細 ===== */
-.filters{display:flex;gap:30px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.list-bar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.filters{display:flex;gap:30px}
+.views{display:flex;gap:18px}
+.views button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:0 2px 12px;font-family:var(--font-han-sans);font-size:14px;letter-spacing:.12em;color:var(--fg-3);cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.views button:hover{color:var(--fg)}
+.views button.on{color:var(--gold-text);border-bottom-color:var(--gh-gold)}
+@media (max-width:420px){.filters{gap:20px}.views{gap:14px}}
+/* 上一個／下一個：金色外框的方塊 */
+.list-nav{display:grid;grid-template-columns:40px minmax(0,1fr) 40px;align-items:center;gap:12px;padding:18px 0 10px}
+.ln-btn{width:40px;height:40px;display:grid;place-items:center;background:transparent;border:1px solid var(--gh-gold);color:var(--gold-text);cursor:pointer;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.ln-btn:hover:not(:disabled){background:var(--gh-gold);color:#000}
+.ln-btn:disabled{border-color:var(--line);color:var(--fg-3);opacity:.5;cursor:default}
+.ln-arr{width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor}
+.ln-arr.prev{transform:translateX(2px) rotate(135deg)}
+.ln-arr.next{transform:translateX(-2px) rotate(-45deg)}
+.ln-mid{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.ln-title{font-family:var(--font-han-sans);font-size:17px;font-weight:700;letter-spacing:.1em;white-space:nowrap}
+.ln-title .num{font-family:var(--font-display);font-weight:500;letter-spacing:.02em}
+.ln-now{background:none;border:0;padding:0;font-family:var(--font-han-sans);font-size:12px;letter-spacing:.12em;color:var(--gold-text);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.ln-now:hover{color:var(--gh-gold)}
+/* 這個月／這一天的小計 */
+.list-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin-bottom:6px}
+.ls-item{background:var(--bg-card);padding:12px 14px;min-width:0}
+.ls-l{display:block;font-size:11.5px;letter-spacing:.1em;color:var(--fg-3)}
+.ls-v{display:block;margin-top:4px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){.ls-item{padding:10px}.ls-v{font-size:16px}}
 .filters button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:0 0 12px;font-family:var(--font-han-sans);font-size:14px;letter-spacing:.12em;color:var(--fg-3);transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .filters button:hover{color:var(--fg)}
 .filters button.on{color:var(--fg);border-bottom-color:var(--gh-turquoise)}
@@ -416,6 +444,9 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .frow .rm:hover{background:var(--gh-red);color:#fff}
 @media (max-width:480px){.frow{grid-template-columns:minmax(0,1fr) 96px}.frow .day{grid-column:1}}
 .set-row{display:flex;gap:10px;align-items:flex-end;margin-top:18px;flex-wrap:wrap}
+.saved-tag{align-self:center;display:inline-flex;align-items:center;gap:7px;font-size:13px;letter-spacing:.1em;color:var(--fg-3);opacity:0;transform:translateX(-10px);transition:opacity var(--dur-base) var(--ease),transform var(--dur-base) var(--ease-settle);pointer-events:none}
+.saved-tag::before{content:"";width:4px;height:8px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg)}
+.saved-tag.show{opacity:1;transform:none}
 .set-row .b-input{width:180px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 .set-col{display:flex;flex-direction:column;gap:18px;margin-top:6px}
 .suggest{border-left:4px solid var(--gh-gold);background:var(--bg-card);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
@@ -527,11 +558,23 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 
     <section class="list" id="sec-list" aria-label="明細">
       <div class="sec-head"><h2 class="sec-han">明細</h2><span class="b-label">Recent</span></div>
-      <div class="filters" role="group" aria-label="篩選">
-        <button data-f="all" class="on">全部</button>
-        <button data-f="personal">私人</button>
-        <button data-f="work">工作</button>
+      <div class="list-bar">
+        <div class="filters" role="group" aria-label="篩選">
+          <button data-f="all" class="on">全部</button>
+          <button data-f="personal">私人</button>
+          <button data-f="work">工作</button>
+        </div>
+        <div class="views" role="group" aria-label="檢視方式">
+          <button data-v="day">日</button>
+          <button data-v="month" class="on">月</button>
+        </div>
       </div>
+      <div class="list-nav">
+        <button type="button" class="ln-btn" id="navPrev" aria-label="上一個"><span class="ln-arr prev" aria-hidden="true"></span></button>
+        <div class="ln-mid"><span class="ln-title" id="navTitle"></span><button type="button" class="ln-now" id="navNow" hidden></button></div>
+        <button type="button" class="ln-btn" id="navNext" aria-label="下一個"><span class="ln-arr next" aria-hidden="true"></span></button>
+      </div>
+      <div class="list-sum" id="listSum"></div>
       <ul id="list"></ul>
       <button id="more" class="more b-btn b-btn--secondary b-btn--full" hidden>顯示更早的紀錄</button>
     </section>
@@ -600,6 +643,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <p class="fixed-total" id="fixedEditTotal"><span>每月合計（照上面填的）</span><span class="num">—</span></p>
         <div class="set-row">
           <button id="saveFixed" type="button" class="b-btn b-btn--secondary b-btn--sm">儲存固定支出</button>
+          <span class="saved-tag" id="fixedSaved" role="status"></span>
         </div>
       </div>
       <div class="set-block">
@@ -685,6 +729,9 @@ let entries=[];
 let opening=0, until="", fixed=[], pay=0, payday=10, pct=35;
 let cfg=null, queue=[], loaded=false;
 let filter="all", shown=60, todayRemainNow=0;
+/* 明細的檢視方式（月／日）記在這個瀏覽器；看哪個月、哪一天每次打開都回到現在 */
+let listView="month", listMonth="", listDay="", navPrevKey=null, navNextKey=null;
+try{if(localStorage.getItem("kyx-list-view")==="day")listView="day"}catch(e){}
 /* 提示區用：目前撐到的日期（錢不夠時是 null）、目前的每日基準、提示的狀態（只存在這個瀏覽器） */
 let holdNoticeScroll=false, freshTotal=0;
 let endNow=null, planNow=0, noticeReady=false, noticeScrollPending=false, shownNotices=new Set(), quietNotices=false;
@@ -839,6 +886,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   holdNoticeScroll=isWork;   // 記工作帳：捲到誰欠誰，不捲到最上面
   entries.push(e);
   commit({action:"add",entries:[e]});
+  listMonth=e.date.slice(0,7);listDay=e.date;
   $("amount").value="";$("note").value="";
   const smallPay=e.type==="salary"&&!mainSalaries().some(x=>x.id===e.id);
   const goPayday=e.type==="salary"&&!smallPay;
@@ -1107,7 +1155,8 @@ $("saveFixed").onclick=()=>{
     const last=lastChargedMonth(old);
     if(last)next.push(Object.assign({},old,{end:last}));  // 移除：之後不再扣，過去扣過的保留
   }
-  fixed=next;persistSettings();drawFixedRows();render();toast("固定支出已儲存");
+  fixed=next;persistSettings();drawFixedRows();render();
+  savedTag($("fixedSaved"),"儲存成功");
 };
 
 /* 主畫面的固定支出摘要 */
@@ -1145,6 +1194,11 @@ function drawFixedSummary(today){
   }else $("fixedNext").textContent="";
 }
 
+/* 按鈕右邊的灰色小字（例如「儲存成功」）：滑進來，過一下子淡出 */
+function savedTag(el,msg){
+  el.textContent=msg;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2600);
+}
 /* ---------- 篩選 ---------- */
 document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
   filter=b.dataset.f;shown=60;armed=null;
@@ -1152,6 +1206,15 @@ document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("clic
   render();
 }));
 $("more").onclick=()=>{shown+=60;render()};
+document.querySelectorAll(".views button").forEach(b=>b.addEventListener("click",()=>{
+  listView=b.dataset.v;shown=60;armed=null;
+  try{localStorage.setItem("kyx-list-view",listView)}catch(e){}
+  render();
+}));
+$("navPrev").onclick=()=>{if(!navPrevKey)return;if(listView==="month")listMonth=navPrevKey;else listDay=navPrevKey;shown=60;armed=null;render()};
+$("navNext").onclick=()=>{if(!navNextKey)return;if(listView==="month")listMonth=navNextKey;else listDay=navNextKey;shown=60;armed=null;render()};
+$("navNow").onclick=()=>{listMonth=todayStr().slice(0,7);listDay=todayStr();shown=60;armed=null;render()};
+const shiftMonth=(ym,k)=>{let [y,m]=ym.split("-").map(Number);m+=k;while(m>12){m-=12;y++}while(m<1){m+=12;y--}return y+"-"+pad(m)};
 
 /* ---------- 撐到哪天 ---------- */
 $("payBase").addEventListener("change",()=>{
@@ -1361,6 +1424,24 @@ function setFold(f){
   $("noticeAct").textContent=f?"展開":"收起";
   $("noticeWrap").inert=f;
 }
+/* 剩餘資產、設定：展開、收起時高度慢慢變（和提示區一樣） */
+function smoothDetails(d){
+  d.querySelector("summary").addEventListener("click",ev=>{
+    if(reduceMotion())return;
+    ev.preventDefault();
+    if(d._an)d._an.cancel();
+    const start=d.offsetHeight, opening=!d.open;
+    d.open=!d.open;const end=d.offsetHeight;
+    if(!opening){d.open=true;d.classList.add("closing")}
+    d.style.overflow="hidden";
+    const an=d.animate({height:[start+"px",end+"px"]},{duration:Math.min(480,220+Math.abs(end-start)*0.12),easing:"cubic-bezier(.76,0,.24,1)"});
+    d._an=an;
+    const done=()=>{d.style.overflow="";d.classList.remove("closing");d._an=null};
+    an.onfinish=()=>{if(!opening)d.open=false;done()};
+    an.oncancel=done;
+  });
+}
+smoothDetails($("balanceBox"));smoothDetails($("settingsBox"));
 $("noticeHead").addEventListener("click",()=>{
   const f=!$("alert").classList.contains("folded");
   notes.fold=f?[...$("noticeList").children].map(x=>x.dataset.key):null;
@@ -1611,22 +1692,56 @@ function render(){
   $("settleEmpty").hidden=anyDebt;
   $("workSub").textContent=workNotes.length?workNotes.join("，")+"。兩筆 quota 各算各的，不會互相抵。":"製作費和交通費目前都打平。";
 
-  /* 明細：一條時間軸，不分月 */
-  const full=all.concat(paidFixed).filter(e=>filter==="all"||(TYPES[e.type]||TYPES.personal).group===filter)
-    .sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+  /* 明細：月檢視一次一個月、日檢視一次一天，用上一個／下一個切換，用久了也不會變成很長一串 */
+  const pool=all.concat(paidFixed).filter(e=>filter==="all"||(TYPES[e.type]||TYPES.personal).group===filter);
+  const curMonth=today.slice(0,7);
+  if(!listMonth)listMonth=curMonth;
+  if(!listDay)listDay=today;
+  document.querySelectorAll(".views button").forEach(x=>x.classList.toggle("on",x.dataset.v===listView));
+  const wk="日一二三四五六";
+  let full;
+  if(listView==="month"){
+    const months=[...new Set(pool.map(e=>e.date.slice(0,7)).concat(curMonth))].sort();
+    const lo=months[0], hi=months[months.length-1];
+    if(listMonth<lo)listMonth=lo;
+    if(listMonth>hi)listMonth=hi;
+    full=pool.filter(e=>e.date.slice(0,7)===listMonth);
+    navPrevKey=listMonth>lo?shiftMonth(listMonth,-1):null;
+    navNextKey=listMonth<hi?shiftMonth(listMonth,1):null;
+    $("navTitle").innerHTML="<span class='num'>"+(+listMonth.slice(0,4))+"</span> 年 <span class='num'>"+(+listMonth.slice(5))+"</span> 月";
+    $("navNow").hidden=listMonth===curMonth;$("navNow").textContent="回到本月";
+  }else{
+    const days=[...new Set(pool.map(e=>e.date).concat(today))].sort();
+    full=pool.filter(e=>e.date===listDay);
+    const before=days.filter(d=>d<listDay), after=days.filter(d=>d>listDay);
+    navPrevKey=before.length?before[before.length-1]:null;
+    navNextKey=after.length?after[0]:null;
+    const d=parseDate(listDay);
+    $("navTitle").innerHTML=(listDay.slice(0,4)!==today.slice(0,4)?"<span class='num'>"+d.getFullYear()+"/</span>":"")+"<span class='num'>"+(d.getMonth()+1)+"/"+d.getDate()+"</span>（"+wk[d.getDay()]+"）"+(listDay===today?" 今天":"");
+    $("navNow").hidden=listDay===today;$("navNow").textContent="回到今天";
+  }
+  $("navPrev").disabled=!navPrevKey;$("navNext").disabled=!navNextKey;
+  $("navPrev").setAttribute("aria-label",listView==="month"?"上個月":"前一天有紀錄的日子");
+  $("navNext").setAttribute("aria-label",listView==="month"?"下個月":"後一天有紀錄的日子");
+  /* 小計：私人和全部看收入、私人花費、固定支出；工作看 quota、工作花費、結清 */
+  const tot=f=>full.filter(f).reduce((a,e)=>a+e.amount,0);
+  const items=filter==="work"
+    ?[["收到 quota","+",tot(e=>(TYPES[e.type]||{}).kind==="q"),"var(--income)"],["工作花費","−",tot(e=>(TYPES[e.type]||{}).kind==="spend"),"var(--expense)"],["結清","",tot(e=>["ret","rb"].includes((TYPES[e.type]||{}).kind)),"var(--fg)"]]
+    :[["收入","+",tot(e=>e.type==="salary"),"var(--income)"],["私人花費","−",tot(e=>e.type==="personal"),"var(--expense)"],["固定支出","−",tot(e=>e.type==="fixed"||e.type==="fixpay"),"var(--expense)"]];
+  $("listSum").innerHTML=items.map(([l,sg,v,c])=>'<div class="ls-item"><span class="ls-l">'+l+'</span><span class="ls-v" style="color:'+(v>0?c:"var(--fg-3)")+'">'+(v>0?sg:"")+fmt(v)+'</span></div>').join("");
+  full.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
   const list=full.slice(0,shown);
   $("more").hidden=full.length<=shown;
 
   const ul=$("list");ul.textContent="";
   if(!list.length){
     const li=document.createElement("div");li.className="empty";
-    li.textContent=cfg&&!loaded?"讀取中…":(all.length?"這個分類還沒有紀錄。":"還沒有紀錄。在最上面輸入金額，再點一個類型就記好了。");
+    li.textContent=cfg&&!loaded?"讀取中…":(!all.length?"還沒有紀錄。在最上面輸入金額，再點一個類型就記好了。":listView==="month"?"這個月還沒有紀錄。":"這天沒有紀錄。");
     ul.appendChild(li);return;
   }
   let lastDate=null, lastYear=today.slice(0,4);
-  const wk="日一二三四五六";
   for(const e of list){
-    if(e.date!==lastDate){
+    if(listView==="month"&&e.date!==lastDate){
       lastDate=e.date;
       const d=parseDate(e.date);
       const daySpent=all.filter(x=>x.date===e.date&&x.type==="personal").reduce((s,x)=>s+x.amount,0);
