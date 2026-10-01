@@ -95,10 +95,19 @@ button{cursor:pointer}
 .b-btn.armed,.b-btn.armed:hover{background:var(--gh-red)!important;border-color:var(--gh-red)!important;color:#fff!important}
 
 /* ===== 頂部列（唯一固定元素） ===== */
-.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;padding:calc(env(safe-area-inset-top,0px) + 10px) var(--page-margin) 10px;background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
+.topbar{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;min-height:64px;padding:calc(env(safe-area-inset-top,0px) + 10px) var(--page-margin) 10px;background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:baseline;gap:12px;min-width:0}
 .brand h1{font-family:var(--font-han-serif);font-weight:900;font-size:22px;line-height:1.12;letter-spacing:.02em;white-space:nowrap}
-.top-right{display:flex;align-items:center;gap:14px;min-width:0}
+.top-right{display:flex;align-items:center;gap:10px;min-width:0}
+.top-right .sync{margin-right:6px}
+@media (max-width:560px){.top-right{display:contents}.top-right .sync{order:3;width:100%;margin:0;justify-content:flex-start}.brand{flex:1}}
+.toc{position:absolute;top:100%;right:var(--page-margin);width:min(320px,calc(100% - 2 * var(--page-margin)));background:var(--bg-raised);border:1px solid var(--line);display:flex;flex-direction:column;animation:b-rise var(--dur-base) var(--ease-settle) both}
+.toc a{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 18px;color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line);font-family:var(--font-han-sans);font-size:15px;letter-spacing:.06em;transition:color var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease)}
+.toc a:last-child{border-bottom:0}
+.toc a:hover{color:var(--gh-red);background:var(--bg-card-hover)}
+#tocBtn[aria-expanded="true"]{background:var(--invert-bg);border-color:var(--invert-bg);color:var(--invert-fg)}
+section,details.settings{scroll-margin-top:96px}
+@media (max-width:560px){section,details.settings{scroll-margin-top:120px}}
 .sync{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.06em;color:var(--fg-3);text-align:right;min-width:0}
 .sync::before{content:"";width:6px;height:6px;flex:none;background:var(--fg-3)}
 .sync[data-state="ok"]::before{background:var(--gh-turquoise)}
@@ -113,7 +122,7 @@ button{cursor:pointer}
 @media (max-width:959px){
   .page{display:flex;flex-direction:column;align-items:stretch;gap:48px}
   .col{display:contents}
-  .alert{order:0}.entry{order:1}.hero{order:2}.balance{order:3}#fixedBox{order:4}.work{order:5}.list{order:6}.settings{order:7}
+  .alert{order:0}.entry{order:1}.hero{order:2}#fixedBox{order:4}.work{order:5}.list{order:6}.settings{order:7}
 }
 @media (max-width:720px){:root{--page-margin:20px}.page{padding-top:24px}}
 
@@ -131,34 +140,45 @@ button{cursor:pointer}
 @media (max-width:560px){.panels{grid-template-columns:1fr}}
 .panel{display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
 .panel .b-label{color:inherit}
-.panel-today{background:var(--gh-navy);color:#fff;transition:background var(--dur-base) var(--ease-wipe)}
-.panel-today.over{background:var(--gh-red)}
-.panel-today .neg{color:inherit}
-.panel-period{background:var(--bg-card)}
+/* 還可花的三種顏色：充裕＝青綠、偏緊＝琥珀、超支／不夠＝朱紅；色塊內的文字、細線跟著換色 */
+.panel{transition:background var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
+.tone-ok{background:var(--gh-turquoise);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
+.tone-low{background:var(--gh-amber);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
+.tone-over{background:var(--gh-red);--fg:#fff;--fg-2:rgba(255,255,255,.85);--fg-3:rgba(255,255,255,.72);--line:rgba(255,255,255,.32);--focus:#fff;--expense:#fff;color:#fff}
+.panel .neg{color:inherit}
+.panel-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tone-tag{flex:none;padding:4px 8px;border:1px solid currentColor;font-family:var(--font-han-sans);font-size:11px;font-weight:500;letter-spacing:.12em;line-height:1.3}
 .big{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1;font-size:clamp(40px,17cqi,88px);white-space:nowrap}
 .mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
 .panel .mid{font-size:clamp(28px,12cqi,48px);white-space:nowrap}
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
-.panel-today .panel-sub{color:rgba(255,255,255,.78)}
-.panel-today .panel-sub .num{color:#fff}
-.panel-period .panel-sub{color:var(--fg-3)}
-.panel-period .panel-sub+.panel-sub{margin-top:2px}
-.meter{height:4px;background:rgba(255,255,255,.24);margin-top:18px;overflow:hidden}
-.meter i{display:block;height:100%;background:#fff;transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-base) var(--ease-wipe)}
+.panel .panel-sub{color:var(--fg-2)}
+.panel .panel-sub .num{color:var(--fg)}
+#dailyAvgSub{margin-top:2px}
+.meter{height:4px;background:var(--line);margin-top:18px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--fg);transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-base) var(--ease-wipe)}
 .reserve{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
 
 /* ===== 目前可花 ===== */
-.balance .mid{font-size:48px}
-.balance .sub{margin-top:10px}
+/* 目前可花（私人）：收在撐到日色塊裡，點了才展開 */
+.balance{margin-top:18px;border-top:1px solid var(--line)}
+.balance summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0 0;font-family:var(--font-han-sans);font-size:12.5px;letter-spacing:.08em;color:var(--fg-2)}
+.balance summary::-webkit-details-marker{display:none}
+.balance summary:hover{color:var(--fg)}
+.chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform var(--dur-base) var(--ease-wipe)}
+.balance[open] .chev{transform:translateY(2px) rotate(225deg)}
+.balance-body{padding-top:12px}
+.bal-num{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:24px;line-height:1.1}
+.balance-body .panel-sub{margin-top:6px}
 .b-field{display:block;min-width:0}
 .b-field__label{display:block;margin-bottom:4px;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3);transition:color var(--dur-fast) var(--ease)}
 .b-field:focus-within .b-field__label{color:var(--focus)}
 .b-input{width:100%;display:block;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 0;color:var(--fg);font-family:var(--font-text);font-size:15px;line-height:1.4;outline:none;transition:border-color var(--dur-fast) var(--ease)}
 .b-input::placeholder{color:var(--fg-3)}
 .b-input:focus{border-bottom-color:var(--focus)}
-.until-field{margin-top:24px}
+.until-field{margin-top:14px}
 .until-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-.until-row .b-input{width:auto;min-width:150px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
+.until-row .b-input{width:auto;min-width:140px;color:var(--fg);font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 #untilDays{font-size:13px;letter-spacing:.06em;color:var(--fg-2)}
 #untilDays.neg{color:var(--expense)}
 
@@ -193,9 +213,9 @@ button{cursor:pointer}
 .t-in{background:var(--cat);border-color:var(--cat);color:var(--on-cat)}
 .t-out{background:transparent;border:2px solid var(--cat);color:var(--fg)}
 .t-out:hover{background:var(--cat);color:var(--on-cat)}
-.settle-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
-.settle-note{display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding:14px 14px 14px 0;font-family:var(--font-han-serif);font-weight:700;font-size:16px;line-height:1.35;color:var(--fg-2)}
-.settle-note .b-label{font-weight:500}
+.settle-grid{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px}
+.settle-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.settle-hint{font-family:var(--font-han-sans);font-size:11.5px;letter-spacing:.08em;text-transform:none;color:var(--fg-2)}
 .settle-col{min-width:0;display:flex;flex-direction:column}
 /* 誰欠誰：顏色跟著方向走，方向一翻轉顏色就換；出現時從下方升起 */
 .settle{--dir:var(--gh-turquoise);background:var(--dir);color:#000;padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1;--on-cat:#000}
@@ -204,7 +224,7 @@ button{cursor:pointer}
 .settle:not([hidden]){animation:b-rise var(--dur-base) var(--ease-settle) both}
 .settle .cap{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;overflow-wrap:anywhere}
 .settle{border-top:4px solid #000}
-.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:clamp(22px,22cqi,40px);line-height:1.1;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
+.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:clamp(24px,14cqi,40px);line-height:1.1;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
 .settle .mid{font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:#000;margin-top:4px}
 .settle .sub{font-size:11.5px;color:inherit;opacity:.8}
 .clear{align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid var(--on-cat);border-radius:0;background:transparent;color:var(--on-cat);font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
@@ -283,7 +303,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 
 @keyframes b-wipe{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes b-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@media (max-width:480px){.mid{font-size:34px}.balance .mid{font-size:40px}#amount{font-size:44px}.sec-han{font-size:22px}.panel{min-height:0}.brand .b-label{display:none}}
+@media (max-width:480px){.mid{font-size:34px}#amount{font-size:44px}.sec-han{font-size:22px}.panel{min-height:0}.brand .b-label{display:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}}
 </style>
 </head>
@@ -293,47 +313,58 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   <div class="brand"><h1>KYX記帳</h1><span class="b-label">Ledger</span></div>
   <div class="top-right">
     <span class="sync" id="sync">連線中…</span>
+    <button id="tocBtn" type="button" class="b-btn b-btn--secondary b-btn--sm" aria-expanded="false" aria-controls="toc">目錄</button>
     <button id="themeBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">淺色 Light</button>
   </div>
+  <nav class="toc" id="toc" aria-label="目錄" hidden>
+    <a href="#sec-entry" data-go="sec-entry"><span>新增一筆</span><span class="b-label">New entry</span></a>
+    <a href="#sec-hero" data-go="sec-hero"><span>還可花</span><span class="b-label">Today</span></a>
+    <a href="#fixedBox" data-go="fixedBox"><span>每月固定支出</span><span class="b-label">Fixed</span></a>
+    <a href="#sec-work" data-go="sec-work"><span>工作帳明細</span><span class="b-label">Work</span></a>
+    <a href="#sec-list" data-go="sec-list"><span>明細</span><span class="b-label">Recent</span></a>
+    <a href="#settingsBox" data-go="settingsBox"><span>設定</span><span class="b-label">Settings</span></a>
+  </nav>
 </header>
 
 <main class="page">
   <div class="alert" id="alert" role="alert" hidden></div>
 
   <div class="col col-main">
-    <section class="hero" aria-label="目前狀況">
+    <section class="hero" id="sec-hero" aria-label="目前狀況">
       <div class="panels">
-        <div class="panel panel-today" id="todayPanel">
-          <div class="b-label">今天還可花 / Today</div>
+        <div class="panel tone-ok" id="todayPanel">
+          <div class="panel-top"><span class="b-label">今天還可花 / Today</span><span class="tone-tag" id="todayTag"></span></div>
           <div>
             <div class="big" id="todayLeft">—</div>
             <div class="panel-sub" id="todaySub"></div>
             <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
           </div>
         </div>
-        <div class="panel panel-period">
-          <div class="b-label"><span id="periodLabel">撐到日前還可花</span> / Until</div>
+        <div class="panel tone-ok" id="periodPanel">
+          <div class="panel-top"><span class="b-label"><span id="periodLabel">撐到日前還可花</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
           <div>
             <div class="mid" id="periodLeft">—</div>
             <div class="panel-sub" id="periodSub"></div>
             <div class="panel-sub" id="dailyAvgSub"></div>
+            <details class="balance" id="balanceBox">
+              <summary><span>目前可花（私人）・撐到日</span><span class="chev" aria-hidden="true"></span></summary>
+              <div class="balance-body">
+                <div class="bal-num" id="spendable">—</div>
+                <p class="panel-sub" id="spendableSub"></p>
+                <label class="b-field until-field">
+                  <span class="b-field__label">這些錢要撐到 / Until</span>
+                  <span class="until-row"><input id="until" type="date" class="b-input"><span id="untilDays" class="num"></span></span>
+                </label>
+              </div>
+            </details>
           </div>
         </div>
       </div>
       <p class="reserve" id="reserve" hidden></p>
     </section>
 
-    <section class="balance" aria-label="目前可花">
-      <div class="sec-head"><h2 class="sec-han">目前可花（私人）</h2><span class="b-label">Balance</span></div>
-      <div class="mid" id="spendable">—</div>
-      <p class="sub" id="spendableSub"></p>
-      <label class="b-field until-field">
-        <span class="b-field__label">這些錢要撐到 / Until</span>
-        <span class="until-row"><input id="until" type="date" class="b-input"><span id="untilDays" class="num"></span></span>
-      </label>
-    </section>
 
-    <section class="list" aria-label="明細">
+    <section class="list" id="sec-list" aria-label="明細">
       <div class="sec-head"><h2 class="sec-han">明細</h2><span class="b-label">Recent</span></div>
       <div class="filters" role="group" aria-label="篩選">
         <button data-f="all" class="on">全部</button>
@@ -346,7 +377,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   </div>
 
   <div class="col col-side">
-    <section class="entry" aria-label="新增一筆">
+    <section class="entry" id="sec-entry" aria-label="新增一筆">
       <div class="sec-head" style="margin-bottom:0"><h2 class="sec-han">新增一筆</h2><span class="b-label">New entry</span></div>
       <label class="b-field">
         <span class="b-field__label">金額 / Amount</span>
@@ -365,9 +396,8 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <button class="tbtn t-out cat-own" data-type="personal">私人花費<small>從私人可花扣</small></button>
         <button class="tbtn t-out cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
         <button class="tbtn t-out cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
-        <div class="group-label" id="settleLabel" hidden>誰欠誰 / Settle</div>
+        <div class="group-label settle-head" id="settleLabel" hidden><span>誰欠誰 / Settle</span><span class="settle-hint">會隨記帳改變方向</span></div>
         <div class="settle-grid" id="settleRow" hidden>
-          <div class="settle-note">會隨記帳<br>改變方向<span class="b-label">Now</span></div>
           <div class="settle-col cat-prod" id="settle_prod"></div>
           <div class="settle-col cat-trans" id="settle_trans"></div>
         </div>
@@ -381,7 +411,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       <p class="sub" id="fixedNext"></p>
     </section>
 
-    <section class="work" aria-label="工作帳明細">
+    <section class="work" id="sec-work" aria-label="工作帳明細">
       <div class="sec-head"><h2 class="sec-han">工作帳明細</h2><span class="b-label">Work</span></div>
       <p class="sub" id="workSub"></p>
       <div class="flow-wrap">
@@ -816,6 +846,11 @@ function autoUntil(all){
 }
 
 /* ---------- 計算與畫面 ---------- */
+function setTone(panelId,tagId,tone,words){
+  const el=$(panelId);
+  el.classList.remove("tone-ok","tone-low","tone-over");el.classList.add("tone-"+tone);
+  $(tagId).textContent=words[tone];
+}
 /* 某一天「一開始」的每日額度：只算那天以前（含那天）的紀錄，不扣那天的私人花費 */
 function quotaAt(day,target){
   const es=entries.filter(e=>e.date<=day);
@@ -882,7 +917,9 @@ function render(){
   const saved=Math.max(0,startOfDay-todayMax*daysLeft-Math.max(0,todaySpent-todayMax));
   const todayRemain=todayMax-todaySpent;
   todayRemainNow=todayRemain;
-  $("todayPanel").classList.toggle("over",todayRemain<-0.5);
+  /* 今天：剩下額度一半以上＝充裕、有剩但不到一半＝偏緊、超過額度＝超支 */
+  const todayTone=todayRemain<-0.5?"over":(todayMax>0&&todayRemain>=todayMax*0.5?"ok":"low");
+  setTone("todayPanel","todayTag",todayTone,{ok:"充裕",low:"偏緊",over:"超支"});
 
   $("spendable").textContent=(spendable<0?"−":"")+"NT$"+fmt(Math.abs(spendable));
   $("spendable").classList.toggle("neg",spendable<0);
@@ -900,6 +937,9 @@ function render(){
   $("periodSub").textContent=reserveAmt>0?"已先扣掉之前要繳的固定支出":"期間沒有要繳的固定支出";
   /* 每日平均額度 = 撐到日前還可花 ÷ 剩餘天數 */
   const dailyAvg=periodLeft/daysLeft;
+  /* 撐到日：錢不夠＝不夠、每日平均不到起算日額度的八成＝偏緊、其餘＝充裕 */
+  const periodTone=periodLeft<-0.5?"over":(base>0&&dailyAvg>=base*0.8?"ok":"low");
+  setTone("periodPanel","periodTag",periodTone,{ok:"充裕",low:"偏緊",over:"不夠"});
   $("dailyAvgSub").textContent="每日平均 "+(dailyAvg<0?"−":"")+"NT$"+fmt(Math.abs(dailyAvg))+"（還可花 ÷ 剩下 "+daysLeft+" 天）";
   $("dailyAvgSub").classList.toggle("neg",dailyAvg<0);
   drawFixedSummary(today);
@@ -926,6 +966,7 @@ function render(){
       box.querySelector(".mid").textContent="NT$"+fmt(v);
       box.classList.toggle(k,v>=0.005);
       box.hidden=v<0.005;
+      box.parentNode.hidden=!box.parentNode.querySelector(".settle.owe,.settle.owed");
       btn.hidden=v<0.005;
       if(v>=0.005)anyDebt=true;
       btn.classList.toggle("armed",clearArmed===key);
@@ -1091,6 +1132,19 @@ $("importYes").onclick=()=>{
   $("opening").value=opening||"";drawFixedRows();render();
   importNote("已匯入 "+fresh.length+" 筆新紀錄，設定也已更新。");
 };
+
+/* ---------- 目錄 ---------- */
+function setToc(open){$("toc").hidden=!open;$("tocBtn").setAttribute("aria-expanded",open?"true":"false")}
+$("tocBtn").onclick=e=>{e.stopPropagation();setToc($("toc").hidden)};
+$("toc").addEventListener("click",e=>{
+  const a=e.target.closest("a[data-go]");if(!a)return;
+  e.preventDefault();setToc(false);
+  const t=$(a.dataset.go);
+  if(t.tagName==="DETAILS")t.open=true;
+  t.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+});
+document.addEventListener("click",e=>{if(!$("toc").hidden&&!e.target.closest("#toc"))setToc(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")setToc(false)});
 
 /* ---------- 深淺色 ---------- */
 function effectiveTheme(){
