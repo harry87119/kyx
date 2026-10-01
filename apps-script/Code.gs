@@ -86,7 +86,8 @@ function readAll_() {
     opening: toNumber_(s.opening),
     until: s.until ? toDateStr_(s.until) : '',
     fixed: Array.isArray(fixed) ? fixed : [],
-    pay: toNumber_(s.pay)
+    pay: toNumber_(s.pay),
+    payday: toNumber_(s.payday)
   };
 }
 
@@ -134,12 +135,15 @@ function saveSettings_(s) {
   var until = typeof s.until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.until) ? s.until : '';
   var fixed = Array.isArray(s.fixed) ? s.fixed : [];
   var pay = toNumber_(s.pay) > 0 ? toNumber_(s.pay) : 0;
+  var payday = Math.round(toNumber_(s.payday));
+  if (!(payday >= 1 && payday <= 31)) payday = 10;
   var sh = settingsSheet_();
-  sh.getRange(2, 1, 4, 2).setValues([
+  sh.getRange(2, 1, 5, 2).setValues([
     ['opening', opening],
     ['until', until],
     ['fixed', JSON.stringify(fixed)],
-    ['pay', pay]
+    ['pay', pay],
+    ['payday', payday]
   ]);
   return { saved: true };
 }
@@ -172,12 +176,13 @@ function settingsSheet_() {
   if (!sh) {
     sh = ss.insertSheet(SHEET_SETTINGS);
     sh.getRange('A:B').setNumberFormat('@');
-    sh.getRange(1, 1, 5, 2).setValues([
+    sh.getRange(1, 1, 6, 2).setValues([
       ['name', 'value'],
       ['opening', '0'],
       ['until', ''],
       ['fixed', '[]'],
-      ['pay', '0']
+      ['pay', '0'],
+      ['payday', '10']
     ]);
     sh.setFrozenRows(1);
   }
