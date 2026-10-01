@@ -179,28 +179,32 @@ button{cursor:pointer}
 .tbtn:active{transform:translateY(1px)}
 .tbtn:disabled{opacity:.32;cursor:not-allowed}
 .wide{grid-column:1/-1}
+/* 分類色：製作費一律金色、交通費一律天藍，兩組不混用 */
+.cat-prod{--cat:var(--gh-gold);--on-cat:#000}
+.cat-trans{--cat:var(--gh-sky);--on-cat:#fff}
+.cat-label{display:flex;align-items:center;gap:10px;margin-top:22px}
+.cat-label::before{content:"";width:10px;height:10px;background:var(--cat)}
 .t-salary{background:var(--gh-turquoise);color:#000}
-.t-quota{background:var(--gh-gold);color:#000}
 .t-personal{background:var(--gh-red);color:#fff}
 .t-personal:hover{background:var(--gh-vermilion)}
-.t-advance,.t-trans{background:transparent;border-color:var(--line-strong);color:var(--fg)}
-.t-advance:hover,.t-trans:hover{background:var(--invert-bg);border-color:var(--invert-bg);color:var(--invert-fg)}
+.t-quota{background:var(--cat);color:var(--on-cat)}
+.t-spend{background:transparent;border-color:var(--cat);color:var(--fg)}
+.t-spend:hover{background:var(--cat);color:var(--on-cat)}
 .settle-grid{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:2px}
-.settle{background:var(--bg-card);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;color:var(--fg-3)}
+.settle{background:var(--bg-card);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;color:var(--fg-3);container-type:inline-size}
 .settle .label{font-family:var(--font-han-sans);font-size:13px;letter-spacing:.06em}
-.settle .mid{font-size:28px;color:var(--fg-3);margin-top:6px}
+.settle .mid{font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:var(--fg-3);margin-top:6px}
 .settle .sub{font-size:11.5px;color:inherit;opacity:.85}
-.settle.owe{background:var(--gh-gold);color:#000}
-.settle.owed{background:var(--gh-turquoise);color:#000}
-.settle.owe .mid,.settle.owed .mid{color:#000}
-.clear{align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid #000;border-radius:0;background:transparent;color:#000;font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
-.clear:hover,.clear.armed{background:#000;color:#fff}
+.settle.owe,.settle.owed{background:var(--cat);color:var(--on-cat)}
+.settle.owe .mid,.settle.owed .mid{color:var(--on-cat)}
+.clear{align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid var(--on-cat);border-radius:0;background:transparent;color:var(--on-cat);font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.clear:hover,.clear.armed{background:var(--on-cat);color:var(--cat)}
 .toast{font-size:13px;min-height:1.2em;letter-spacing:.02em}
 
 /* ===== 固定支出、工作帳 ===== */
 .fx-list{display:flex;flex-direction:column}
 .fx-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
-.fx-row::before{content:"";width:10px;height:10px;background:var(--gh-gold)}
+.fx-row::before{content:"";width:10px;height:10px;background:var(--gh-acid)}
 .fx-row .fx-name{min-width:0;overflow-wrap:anywhere;font-family:var(--font-han-sans);letter-spacing:.04em}
 .fx-row .fx-name small{display:block;margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;color:var(--fg-3)}
 .fx-row .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap}
@@ -211,6 +215,7 @@ button{cursor:pointer}
 .flow-t th:first-child,.flow-t td:first-child{text-align:left;padding-left:0}
 .flow-t td{padding:12px 8px;text-align:right;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px;border-bottom:1px solid var(--line)}
 .flow-t td:first-child{font-family:var(--font-han-sans);font-size:14px;letter-spacing:.04em;white-space:nowrap}
+.flow-t td:first-child::before{content:"";display:inline-block;width:10px;height:10px;margin-right:10px;background:var(--cat)}
 
 /* ===== 明細 ===== */
 .filters{display:flex;gap:30px;border-bottom:1px solid var(--line);margin-bottom:4px}
@@ -342,15 +347,17 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
       </div>
       <div class="types">
-        <div class="group-label">收入 / Income</div>
+        <div class="group-label">私人 / Private</div>
         <button class="tbtn t-salary wide" data-type="salary">真實薪水<small>進私人可花</small></button>
-        <button class="tbtn t-quota" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
-        <button class="tbtn t-quota" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
-        <div class="group-label">花費 / Expense</div>
         <button class="tbtn t-personal wide" data-type="personal">私人花費<small>從私人可花扣</small></button>
-        <button class="tbtn t-advance" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
-        <button class="tbtn t-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
-        <div id="settleGrid" class="settle-grid"></div>
+        <div class="group-label cat-label cat-prod">製作費 / Production</div>
+        <button class="tbtn t-quota cat-prod" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
+        <button class="tbtn t-spend cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
+        <div class="settle-grid cat-prod" id="settle_prod"></div>
+        <div class="group-label cat-label cat-trans">交通費 / Transit</div>
+        <button class="tbtn t-quota cat-trans" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
+        <button class="tbtn t-spend cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
+        <div class="settle-grid cat-trans" id="settle_trans"></div>
       </div>
       <div class="toast" id="toast" role="status"></div>
     </section>
@@ -430,22 +437,22 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 (function(){
 /* 分類色：每個分類固定一個品牌色（BITO-STYLE 3.4） */
 const TYPES={
-  fixed:{name:"固定支出",en:"Fixed",color:"var(--gh-gold)",sign:-1,group:"personal"},
+  fixed:{name:"固定支出",en:"Fixed",color:"var(--gh-acid)",sign:-1,group:"personal"},
   salary:{name:"真實薪水",en:"Income",color:"var(--gh-turquoise)",sign:1,group:"personal"},
   personal:{name:"私人花費",en:"Personal",color:"var(--gh-ember)",sign:-1,group:"personal"},
-  q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
-  q_trans:{name:"交通費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"trans",kind:"q"},
-  prod:{name:"製作費",en:"Production",color:"var(--gh-camel)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"q"},
+  q_trans:{name:"交通費 quota",en:"Quota",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"q"},
+  prod:{name:"製作費",en:"Production",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"spend"},
   trans:{name:"交通費",en:"Transit",color:"var(--gh-sky)",sign:-1,group:"work",cat:"trans",kind:"spend"},
-  ret_prod:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
-  ret_trans:{name:"還公司・交通費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"trans",kind:"ret"},
-  rb_prod:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-camel)",sign:1,group:"work",cat:"prod",kind:"rb"},
+  ret_prod:{name:"還公司・製作費",en:"Returned",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  ret_trans:{name:"還公司・交通費",en:"Returned",color:"var(--gh-sky)",sign:-1,group:"work",cat:"trans",kind:"ret"},
+  rb_prod:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"rb"},
   rb_trans:{name:"公司還我・交通費",en:"Reimbursed",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"rb"},
   /* 舊版類型，一律算在製作費 */
-  quota:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
-  advance:{name:"製作費",en:"Production",color:"var(--gh-camel)",sign:-1,group:"work",cat:"prod",kind:"spend"},
-  return:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
-  reimb:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-camel)",sign:1,group:"work",cat:"prod",kind:"rb"}
+  quota:{name:"製作費 quota",en:"Quota",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"q"},
+  advance:{name:"製作費",en:"Production",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  return:{name:"還公司・製作費",en:"Returned",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  reimb:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"rb"}
 };
 const $=id=>document.getElementById(id);
 const fmt=n=>Math.round(n).toLocaleString("zh-TW");
@@ -612,10 +619,8 @@ $("list").addEventListener("click",ev=>{
 const CATS=[{id:"prod",name:"製作費"},{id:"trans",name:"交通費"}];
 let settleState={}, clearArmed=null;
 (function buildSettle(){
-  const g=$("settleGrid");
   for(const c of CATS){
-    const lab=document.createElement("div");lab.className="group-label";lab.textContent="工作結清・"+c.name;
-    g.appendChild(lab);
+    const g=$("settle_"+c.id);
     for(const k of ["owe","owed"]){
       const box=document.createElement("div");box.className="settle";box.id="s_"+c.id+"_"+k;
       box.innerHTML='<span class="label"></span><span class="mid">NT$0</span><span class="sub"></span><button class="clear" hidden></button>';
@@ -854,7 +859,7 @@ function render(){
   todayRemainNow=todayRemain;
   $("todayPanel").classList.toggle("over",todayRemain<-0.5);
 
-  $("spendable").textContent="NT$"+fmt(spendable);
+  $("spendable").textContent=(spendable<0?"−":"")+"NT$"+fmt(Math.abs(spendable));
   $("spendable").classList.toggle("neg",spendable<0);
   $("spendableSub").textContent=(spendable<0?"已經透支。":"")+"累計薪水減掉私人花費"+(fixedPaid>0?"、已到期的固定支出":"")+(overflow>0?"，也扣掉了公司還欠你的 NT$"+fmt(overflow):"")+"。";
 
@@ -900,7 +905,7 @@ function render(){
     }
     if(owe>=0.005)notes.push("我還欠公司"+c.name+" NT$"+fmt(owe));
     if(owed>=0.005)notes.push("公司還欠我"+c.name+" NT$"+fmt(owed));
-    const tr=document.createElement("tr");
+    const tr=document.createElement("tr");tr.className="cat-"+c.id;
     for(const v of [c.name,fmt(w.q),fmt(w.spend),fmt(w.ret),fmt(w.rb)]){const td=document.createElement("td");td.textContent=v;tr.appendChild(td)}
     fb.appendChild(tr);
   }
