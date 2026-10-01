@@ -139,7 +139,7 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 
 /* ===== 總覽色塊 ===== */
 .hero{display:flex;flex-direction:column;gap:12px}
-.panels{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:2px}
+.panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
 @media (max-width:560px){.panels{grid-template-columns:1fr}}
 .panel{display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
 .panel .b-label{color:inherit}
@@ -175,6 +175,7 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .balance-body>div{padding-top:16px}
 .bal-num{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:28px;line-height:1.1;margin-top:4px}
 .balance-body .sub{margin-top:8px}
+.balance-body .sub+.sub{margin-top:2px}
 @media (max-width:560px){.balance{padding:0 16px}.balance-body{grid-template-columns:1fr;gap:4px}.balance summary .b-label{display:none}.balance summary .chev{margin-left:auto}}
 .b-field{display:block;min-width:0}
 .b-field__label{display:block;margin-bottom:4px;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-3);transition:color var(--dur-fast) var(--ease)}
@@ -277,8 +278,7 @@ li{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:16px;alig
 li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8px;border-bottom:1px solid var(--line-2);font-family:var(--font-display);font-size:11px;letter-spacing:.14em;color:var(--fg-3)}
 .dot{width:10px;height:10px;background:var(--c,var(--fg-3))}
 .info{min-width:0}
-.info .n{font-size:15px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color var(--dur-fast) var(--ease)}
-li:hover .info .n{color:var(--gh-red)}
+.info .n{font-size:15px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .info .d{margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3)}
 .amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;text-align:right;white-space:nowrap}
 .del{border:1px solid var(--gh-red);background:transparent;color:var(--expense);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:6px 10px;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
@@ -375,7 +375,8 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <div class="balance-body">
           <div>
             <span class="b-field__label">剩餘資產（私人） / Assets</span>
-            <div class="bal-num" id="spendable">—</div>
+            <div class="bal-num" id="assets">—</div>
+            <p class="sub">預扣前 <span class="num" id="spendable">—</span><span id="assetsReserve"></span></p>
             <p class="sub" id="spendableSub"></p>
           </div>
           <label class="b-field until-field">
@@ -866,6 +867,34 @@ function autoUntil(all){
 }
 
 /* ---------- 計算與畫面 ---------- */
+/* 還可花的數字：捲進畫面時從 0 跑到實際金額；動畫中有新數字就直接跑向新數字 */
+const money=v=>(v<0?"−":"")+"NT$"+fmt(Math.abs(v));
+const reduceMotion=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+function setMoney(el,v){
+  el._target=v;
+  if(!el._anim)el.textContent=money(v);
+}
+function countUp(el){
+  if(reduceMotion()||el._target==null)return;
+  const start=performance.now(),dur=900;
+  el._anim=true;
+  const step=now=>{
+    const t=Math.min(1,(now-start)/dur),e=1-Math.pow(1-t,3);
+    el.textContent=money(Math.round(el._target*e));
+    if(t<1)requestAnimationFrame(step);else{el._anim=false;el.textContent=money(el._target)}
+  };
+  el.textContent=money(0);
+  requestAnimationFrame(step);
+}
+if("IntersectionObserver" in window){
+  let seen=false;
+  new IntersectionObserver(es=>{
+    for(const en of es){
+      if(en.isIntersecting&&!seen){seen=true;countUp($("todayLeft"));countUp($("periodLeft"))}
+      else if(!en.isIntersecting)seen=false;
+    }
+  },{threshold:.35}).observe($("sec-hero").querySelector(".panels"));
+}
 function setTone(panelId,tagId,tone,words){
   const el=$(panelId);
   el.classList.remove("tone-ok","tone-low","tone-over");el.classList.add("tone-"+tone);
@@ -942,15 +971,20 @@ function render(){
   setTone("todayPanel","todayTag",todayTone,{ok:"充裕",low:"偏緊",over:"超支"});
 
   $("spendable").textContent=(spendable<0?"−":"")+"NT$"+fmt(Math.abs(spendable));
+  /* 剩餘資產：先預扣下次發薪日前要繳的固定支出 */
+  const assets=spendable-reserveAmt;
+  $("assets").textContent=(assets<0?"−":"")+"NT$"+fmt(Math.abs(assets));
+  $("assets").classList.toggle("neg",assets<0);
+  $("assetsReserve").textContent=reserveAmt>0?"，已預扣下次發薪日前要繳的 NT$"+fmt(reserveAmt):"，下次發薪日前沒有要繳的固定支出";
   $("spendable").classList.toggle("neg",spendable<0);
   $("spendableSub").textContent=(spendable<0?"已經透支。":"")+"累計薪水減掉私人花費"+(fixedPaid>0?"、已到期的固定支出":"")+(overflow>0?"，也扣掉了公司還欠你的 NT$"+fmt(overflow):"")+"。";
 
-  $("todayLeft").textContent=(todayRemain<0?"−":"")+"NT$"+fmt(Math.abs(todayRemain));
+  setMoney($("todayLeft"),todayRemain);
   $("todayLeft").classList.toggle("neg",todayRemain<0);
   $("todaySub").innerHTML="今日額度 <span class='num'>NT$"+fmt(todayMax)+"</span>，已花 <span class='num'>NT$"+fmt(todaySpent)+"</span>"
     +(saved>=1?"<br>已省下 <span class='num'>NT$"+fmt(saved)+"</span>，不會加進之後每天的額度，可以拿去多還卡費":"");
   const periodLeft=spendable-reserveAmt;
-  $("periodLeft").textContent=(periodLeft<0?"−":"")+"NT$"+fmt(Math.abs(periodLeft));
+  setMoney($("periodLeft"),periodLeft);
   $("periodLeft").classList.toggle("neg",periodLeft<0);
   const td=parseDate(target);
   $("periodLabel").textContent="下次發薪日 "+(td.getMonth()+1)+"/"+td.getDate()+" 前還可花";
