@@ -211,9 +211,9 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .tbtn:disabled{opacity:.32;cursor:not-allowed}
 .wide{grid-column:1/-1}
 /* 分類色：製作費一律金色、交通費一律天藍，兩組不混用 */
-/* 記帳按鈕：上排收入＝實心、下排支出＝外框；顏色代表是哪一筆錢（私人＝酸綠、製作費＝金、交通費＝天藍） */
-.cat-own{--cat:var(--gh-acid);--on-cat:#000}
-.cat-prod{--cat:var(--gh-gold);--on-cat:#000}
+/* 記帳按鈕：上排收入＝實心、下排支出＝外框；顏色代表是哪一筆錢（私人＝金、製作費＝酸綠、交通費＝天藍） */
+.cat-own{--cat:var(--gh-gold);--on-cat:#000}
+.cat-prod{--cat:var(--gh-acid);--on-cat:#000}
 .cat-trans{--cat:var(--gh-sky);--on-cat:#fff}
 .t-in{background:var(--cat);border-color:var(--cat);color:var(--on-cat)}
 .t-out{background:transparent;border:2px solid var(--cat);color:var(--fg)}
@@ -246,8 +246,16 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:clamp(24px,14cqi,40px);line-height:1.1;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
 .settle .mid{font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:#000;margin-top:4px}
 .settle .sub{font-size:11.5px;color:inherit;opacity:.8}
-.clear{align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid var(--on-cat);border-radius:0;background:transparent;color:var(--on-cat);font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
-.clear:hover,.clear.armed{background:var(--on-cat);color:var(--cat)}
+/* 已收到＝錢回到我這邊，黑色由下往上升；已還清＝錢還給公司，黑色由上往下降（滑過、按下都會跑） */
+.clear{position:relative;isolation:isolate;overflow:hidden;align-self:flex-start;margin-top:10px;padding:7px 14px;border:1px solid #000;border-radius:0;background:transparent;color:#000;font-family:var(--font-display);font-size:11px;font-weight:500;letter-spacing:.16em;transition:color var(--dur-base) var(--ease-wipe)}
+.clear::before{content:"";position:absolute;inset:0;z-index:-1;background:#000;transform:scaleY(0);transition:transform var(--dur-base) var(--ease-wipe);pointer-events:none}
+.settle.owe .clear::before{transform-origin:top}
+.settle.owed .clear::before{transform-origin:bottom}
+.clear:hover::before,.clear:focus-visible::before,.clear.armed::before{transform:scaleY(1)}
+.clear:hover,.clear:focus-visible,.clear.armed{color:var(--dir)}
+.clear.sent::before{animation:b-fill 640ms var(--ease-wipe) both}
+.clear.sent{animation:b-fill-clear 640ms var(--ease-wipe) both}
+@keyframes b-fill-clear{0%,20%{color:#000}60%,100%{color:var(--dir)}}
 .toast{font-size:13px;min-height:1.2em;letter-spacing:.02em}
 
 /* ===== 固定支出、工作帳 ===== */
@@ -283,7 +291,8 @@ li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8p
 .del{border:1px solid var(--gh-red);background:transparent;color:var(--expense);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:6px 10px;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .del:hover{background:var(--gh-red);color:#fff}
 .del.armed{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
-li.virtual .amt{color:var(--fg-3)!important}
+li.virtual .amt{opacity:.75}
+li.day-sep .num{color:var(--expense)}
 .auto-tag{display:inline-block;padding:6px 10px;color:var(--fg-3);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;line-height:1.3}
 .empty{padding:24px 0;color:var(--fg-3);font-size:14px;border-bottom:1px solid var(--line)}
 .more{margin-top:20px}
@@ -507,21 +516,21 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 /* 分類色：每個分類固定一個品牌色（BITO-STYLE 3.4） */
 const TYPES={
   fixed:{name:"固定支出",en:"Fixed",color:"var(--fg-3)",sign:-1,group:"personal"},
-  salary:{name:"真實薪水",en:"Income",color:"var(--gh-acid)",sign:1,group:"personal"},
-  personal:{name:"私人花費",en:"Personal",color:"var(--gh-acid)",sign:-1,group:"personal"},
-  q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"q"},
+  salary:{name:"真實薪水",en:"Income",color:"var(--gh-gold)",sign:1,group:"personal"},
+  personal:{name:"私人花費",en:"Personal",color:"var(--gh-gold)",sign:-1,group:"personal"},
+  q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
   q_trans:{name:"交通費 quota",en:"Quota",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"q"},
-  prod:{name:"製作費",en:"Production",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  prod:{name:"製作費",en:"Production",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"spend"},
   trans:{name:"交通費",en:"Transit",color:"var(--gh-sky)",sign:-1,group:"work",cat:"trans",kind:"spend"},
-  ret_prod:{name:"還公司・製作費",en:"Returned",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  ret_prod:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
   ret_trans:{name:"還公司・交通費",en:"Returned",color:"var(--gh-sky)",sign:-1,group:"work",cat:"trans",kind:"ret"},
-  rb_prod:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"rb"},
+  rb_prod:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"rb"},
   rb_trans:{name:"公司還我・交通費",en:"Reimbursed",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"rb"},
   /* 舊版類型，一律算在製作費 */
-  quota:{name:"製作費 quota",en:"Quota",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"q"},
-  advance:{name:"製作費",en:"Production",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"spend"},
-  return:{name:"還公司・製作費",en:"Returned",color:"var(--gh-gold)",sign:-1,group:"work",cat:"prod",kind:"ret"},
-  reimb:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-gold)",sign:1,group:"work",cat:"prod",kind:"rb"}
+  quota:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
+  advance:{name:"製作費",en:"Production",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"spend"},
+  return:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
+  reimb:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"rb"}
 };
 const $=id=>document.getElementById(id);
 const fmt=n=>Math.round(n).toLocaleString("zh-TW");
@@ -712,18 +721,25 @@ let settleState={}, clearArmed=null;
     }
   }
 })();
+function replayFill(el){el.classList.remove("sent");void el.offsetWidth;el.classList.add("sent");clearTimeout(el._ft);el._ft=setTimeout(()=>el.classList.remove("sent"),700)}
 function settle(cat,k){
-  const key=cat+"_"+k;
+  const key=cat+"_"+k, btn=$("s_"+key).querySelector(".clear");
+  replayFill(btn);
   if(clearArmed!==key){clearArmed=key;render();return}
   const amt=Math.round((settleState[key]||0)*100)/100;
   clearArmed=null;
   if(!(amt>0)){render();return}
-  const date=todayStr();
-  const type=(k==="owe"?"ret_":"rb_")+cat;
-  const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type,amount:amt,note:"結清",date,ts:Date.now()};
-  entries.push(e);commit({action:"add",entries:[e]});
-  toast("已記下"+TYPES[type].name+" NT$"+fmt(amt));
-  render();
+  /* 等動畫跑完再記帳、收起這一格 */
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.disabled=false;
+    const date=todayStr();
+    const type=(k==="owe"?"ret_":"rb_")+cat;
+    const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type,amount:amt,note:"結清",date,ts:Date.now()};
+    entries.push(e);commit({action:"add",entries:[e]});
+    toast("已記下"+TYPES[type].name+" NT$"+fmt(amt));
+    render();
+  },520);
 }
 
 /* ---------- 固定支出 ---------- */
@@ -1066,7 +1082,7 @@ function render(){
     const n=document.createElement("div");n.className="n";n.textContent=e.note||T.name;
     const dd=document.createElement("div");dd.className="d";dd.textContent=T.name+" · "+T.en;
     info.append(n,dd);
-    const amt=document.createElement("span");amt.className="amt";amt.style.color=T.sign>0?"var(--income)":"var(--fg)";
+    const amt=document.createElement("span");amt.className="amt";amt.style.color=T.sign>0?"var(--income)":"var(--expense)";
     amt.textContent=(T.sign>0?"+":"−")+fmt(e.amount);
     if(e.virtual){
       li.className="virtual";
