@@ -158,7 +158,8 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
 .panel .panel-sub{color:var(--fg-2)}
 .panel .panel-sub .num{color:var(--fg)}
-#dailyAvgSub{margin-top:2px}
+#periodTotal{margin-top:2px;font-size:11.5px}
+.runout{font-family:var(--font-han-sans);font-size:13px;letter-spacing:.04em;line-height:1.6;color:var(--fg)!important}
 .meter{height:4px;background:var(--line);margin-top:18px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--fg);transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-base) var(--ease-wipe)}
 .reserve{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
@@ -175,6 +176,16 @@ section,details.settings,#sec-hero{scroll-margin-top:124px}
 .balance-body>div{padding-top:16px}
 .bal-num{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:28px;line-height:1.1;margin-top:4px}
 .balance-body .sub{margin-top:8px}
+.wf{margin-top:8px;display:flex;flex-direction:column}
+.wf-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;font-size:13.5px;letter-spacing:.04em;color:var(--fg-2)}
+.wf-row .num{font-size:16px;color:var(--fg);white-space:nowrap}
+.wf-sub{border-top:1px solid var(--line)}
+.wf-total{border-top:2px solid var(--fg);color:var(--fg);font-weight:700;margin-top:4px}
+.wf-total .num{font-size:22px}
+.wf-note{font-size:11.5px;color:var(--fg-3);margin:-4px 0 4px;letter-spacing:.02em}
+.wf-note:empty{display:none}
+.debt{margin-top:14px;padding:12px 14px;border-left:4px solid var(--gh-gold);background:var(--bg-card);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.debt p{font-size:13px;letter-spacing:.04em}
 .balance-body .sub+.sub{margin-top:2px}
 @media (max-width:560px){.balance{padding:0 16px}.balance-body{grid-template-columns:1fr;gap:4px}.balance summary .b-label{display:none}.balance summary .chev{margin-left:auto}}
 .b-field{display:block;min-width:0}
@@ -372,9 +383,9 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <div class="panel tone-ok" id="periodPanel">
           <div class="panel-top"><span class="b-label"><span id="periodLabel">下次發薪日前還可花</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
           <div>
-            <div class="mid" id="periodLeft">—</div>
-            <div class="panel-sub" id="periodSub"></div>
-            <div class="panel-sub" id="dailyAvgSub"></div>
+            <div class="mid" id="periodDaily">—</div>
+            <div class="panel-sub runout" id="runout"></div>
+            <div class="panel-sub" id="periodTotal">總額 <span class="num" id="periodLeft">—</span><span id="periodSub"></span></div>
           </div>
         </div>
       </div>
@@ -382,10 +393,21 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <summary><span class="bal-title">剩餘資產・下次發薪日</span><span class="b-label">Assets · Next payday</span><span class="chev" aria-hidden="true"></span></summary>
         <div class="balance-body">
           <div>
-            <span class="b-field__label">剩餘資產（私人） / Assets</span>
-            <div class="bal-num" id="assets">—</div>
-            <p class="sub">預扣前 <span class="num" id="spendable">—</span><span id="assetsReserve"></span></p>
+            <span class="b-field__label">剩餘資產：錢去哪了 / Where it goes</span>
+            <div class="wf">
+              <div class="wf-row"><span>帳上的錢（照記帳算）</span><span class="num" id="wfCash">—</span></div>
+              <div class="wf-row" id="wfOweRow"><span>− 我還欠公司（quota 沒用完，不是你的錢）</span><span class="num" id="wfOwe">—</span></div>
+              <div class="wf-row wf-sub"><span>＝ 你自己的錢</span><span class="num" id="spendable">—</span></div>
+              <div class="wf-row"><span>− 下次發薪日前要繳的固定支出</span><span class="num" id="wfReserve">—</span></div>
+              <div class="wf-note" id="wfReserveList"></div>
+              <div class="wf-row wf-total"><span>＝ 這段期間真正能花的</span><span class="num" id="assets">—</span></div>
+            </div>
+            <p class="sub" id="wfOwed" hidden></p>
             <p class="sub" id="spendableSub"></p>
+            <div class="debt" id="debtBox" hidden>
+              <p>這期已省下 <span class="num" id="savedAmt"></span>，建議轉去多還卡費。</p>
+              <button id="payDebt" type="button" class="b-btn b-btn--secondary b-btn--sm">記一筆多還卡費</button>
+            </div>
           </div>
           <label class="b-field until-field">
             <span class="b-field__label">下次發薪日 / Next payday</span>
@@ -518,6 +540,8 @@ const TYPES={
   fixed:{name:"固定支出",en:"Fixed",color:"var(--fg-3)",sign:-1,group:"personal"},
   salary:{name:"真實薪水",en:"Income",color:"var(--gh-gold)",sign:1,group:"personal"},
   personal:{name:"私人花費",en:"Personal",color:"var(--gh-gold)",sign:-1,group:"personal"},
+  /* 多還卡費：從剩餘資產扣掉，但不算今天的花費 */
+  debt:{name:"多還卡費",en:"Debt",color:"var(--gh-gold)",sign:-1,group:"personal"},
   q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
   q_trans:{name:"交通費 quota",en:"Quota",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"q"},
   prod:{name:"製作費",en:"Production",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"spend"},
@@ -543,7 +567,7 @@ const dayDiff=(a,b)=>Math.round((parseDate(b)-parseDate(a))/86400000);
 let entries=[];
 let opening=0, until="", fixed=[];
 let cfg=null, queue=[], loaded=false;
-let filter="all", shown=60, todayRemainNow=0;
+let filter="all", shown=60, todayRemainNow=0, savedNow=0, debtArmed=false;
 
 $("date").value=todayStr();
 
@@ -694,6 +718,17 @@ function flashBtn(b,msg){
   clearTimeout(b._t);
   b._t=setTimeout(()=>{b.classList.remove("sent");sm.textContent=sm.dataset.orig},1400);
 }
+
+/* ---------- 多還卡費：把省下的錢記成一筆，從剩餘資產扣掉，不算今天的花費 ---------- */
+$("payDebt").onclick=()=>{
+  if(!(savedNow>0))return;
+  if(!debtArmed){debtArmed=true;render();return}
+  debtArmed=false;
+  const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:"debt",amount:savedNow,note:"多還卡費",date:todayStr(),ts:Date.now()};
+  entries.push(e);commit({action:"add",entries:[e]});
+  toast("已記下 多還卡費 NT$"+fmt(e.amount));
+  render();
+};
 
 /* ---------- 刪除 ---------- */
 let armed=null;
@@ -886,10 +921,11 @@ function autoUntil(all){
 /* ---------- 計算與畫面 ---------- */
 /* 還可花的數字：捲進畫面時從 0 跑到實際金額；動畫中有新數字就直接跑向新數字 */
 const money=v=>(v<0?"−":"")+"NT$"+fmt(Math.abs(v));
+const moneyText=el=>v=>(el._prefix||"")+money(v);
 const reduceMotion=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-function setMoney(el,v){
-  el._target=v;
-  if(!el._anim)el.textContent=money(v);
+function setMoney(el,v,prefix){
+  el._target=v;el._prefix=prefix||"";
+  if(!el._anim)el.textContent=moneyText(el)(v);
 }
 function countUp(el){
   if(reduceMotion()||el._target==null)return;
@@ -897,17 +933,17 @@ function countUp(el){
   el._anim=true;
   const step=now=>{
     const t=Math.min(1,(now-start)/dur),e=1-Math.pow(1-t,3);
-    el.textContent=money(Math.round(el._target*e));
-    if(t<1)requestAnimationFrame(step);else{el._anim=false;el.textContent=money(el._target)}
+    el.textContent=moneyText(el)(Math.round(el._target*e));
+    if(t<1)requestAnimationFrame(step);else{el._anim=false;el.textContent=moneyText(el)(el._target)}
   };
-  el.textContent=money(0);
+  el.textContent=moneyText(el)(0);
   requestAnimationFrame(step);
 }
 if("IntersectionObserver" in window){
   let seen=false;
   new IntersectionObserver(es=>{
     for(const en of es){
-      if(en.isIntersecting&&!seen){seen=true;countUp($("todayLeft"));countUp($("periodLeft"))}
+      if(en.isIntersecting&&!seen){seen=true;countUp($("todayLeft"));countUp($("periodDaily"))}
       else if(!en.isIntersecting)seen=false;
     }
   },{threshold:.35}).observe($("sec-hero").querySelector(".panels"));
@@ -925,6 +961,7 @@ function quotaAt(day,target){
   for(const e of es){
     if(e.type==="salary")sal+=e.amount;
     else if(e.type==="personal"&&e.date<day)per+=e.amount;
+    else if(e.type==="debt")per+=e.amount;
     const T=TYPES[e.type];if(T&&T.cat)work[T.cat]+=(T.kind==="q"||T.kind==="rb"?1:-1)*e.amount;
   }
   const over=CATS.reduce((s,c)=>s+Math.max(0,-work[c.id]),0);
@@ -945,7 +982,7 @@ function render(){
   const all=entries;
   const today=todayStr();
   const sum=(t,f)=>all.filter(e=>e.type===t&&(!f||f(e))).reduce((s,e)=>s+e.amount,0);
-  const salary=sum("salary"),personal=sum("personal");
+  const salary=sum("salary"),personal=sum("personal")+sum("debt");
   const work={};
   for(const c of CATS)work[c.id]={q:0,spend:0,ret:0,rb:0};
   for(const e of all){const T=TYPES[e.type];if(T&&T.cat)work[T.cat][T.kind]+=e.amount}
@@ -987,12 +1024,26 @@ function render(){
   const todayTone=todayRemain<-0.5?"over":(todayMax>0&&todayRemain>=todayMax*0.5?"ok":"low");
   setTone("todayPanel","todayTag",todayTone,{ok:"充裕",low:"偏緊",over:"超支"});
 
-  $("spendable").textContent=(spendable<0?"−":"")+"NT$"+fmt(Math.abs(spendable));
-  /* 剩餘資產：先預扣下次發薪日前要繳的固定支出 */
+  $("spendable").textContent=money(spendable);
+  /* 剩餘資產：錢去哪了。帳上的錢 − 我還欠公司 ＝ 你自己的錢；− 下次發薪日前的固定支出 ＝ 真正能花的 */
+  const oweTotal=CATS.reduce((s,c)=>s+Math.max(0,work[c.id].left),0);
   const assets=spendable-reserveAmt;
-  $("assets").textContent=(assets<0?"−":"")+"NT$"+fmt(Math.abs(assets));
+  $("wfCash").textContent=money(spendable+oweTotal);
+  $("wfOwe").textContent=money(oweTotal);
+  $("wfOweRow").hidden=oweTotal<0.005;
+  $("wfReserve").textContent=money(reserveAmt);
+  {const byDate={};for(const e of upcoming)(byDate[e.date]=byDate[e.date]||[]).push(e.note);
+   $("wfReserveList").textContent=Object.keys(byDate).sort().map(d=>{const x=parseDate(d);return (x.getMonth()+1)+"/"+x.getDate()+" "+byDate[d].join("、")}).join("；");}
+  $("assets").textContent=money(assets);
   $("assets").classList.toggle("neg",assets<0);
-  $("assetsReserve").textContent=reserveAmt>0?"，已預扣下次發薪日前要繳的 NT$"+fmt(reserveAmt):"，下次發薪日前沒有要繳的固定支出";
+  $("wfOwed").hidden=overflow<0.005;
+  $("wfOwed").textContent="另外公司還欠你 NT$"+fmt(overflow)+"（你先墊的），還回來之前不算你的錢。";
+  /* 已省下的錢：建議轉去多還卡費 */
+  $("debtBox").hidden=saved<1;
+  $("savedAmt").textContent="NT$"+fmt(saved);
+  savedNow=Math.round(saved);
+  $("payDebt").textContent=debtArmed?"確定記一筆 NT$"+fmt(savedNow)+" 多還卡費？":"記一筆多還卡費";
+  $("payDebt").classList.toggle("armed",debtArmed);
   $("spendable").classList.toggle("neg",spendable<0);
   $("spendableSub").textContent=(spendable<0?"已經透支。":"")+"累計薪水減掉私人花費"+(fixedPaid>0?"、已到期的固定支出":"")+(overflow>0?"，也扣掉了公司還欠你的 NT$"+fmt(overflow):"")+"。";
 
@@ -1001,18 +1052,37 @@ function render(){
   $("todaySub").innerHTML="今日額度 <span class='num'>NT$"+fmt(todayMax)+"</span>，已花 <span class='num'>NT$"+fmt(todaySpent)+"</span>"
     +(saved>=1?"<br>已省下 <span class='num'>NT$"+fmt(saved)+"</span>，不會加進之後每天的額度，可以拿去多還卡費":"");
   const periodLeft=spendable-reserveAmt;
-  setMoney($("periodLeft"),periodLeft);
-  $("periodLeft").classList.toggle("neg",periodLeft<0);
+  $("periodLeft").textContent=money(periodLeft);
   const td=parseDate(target);
   $("periodLabel").textContent="下次發薪日 "+(td.getMonth()+1)+"/"+td.getDate()+" 前還可花";
-  $("periodSub").textContent=reserveAmt>0?"已先扣掉之前要繳的固定支出":"期間沒有要繳的固定支出";
-  /* 每日平均額度 = 下次發薪日前還可花 ÷ 剩餘天數 */
+  $("periodSub").textContent="，剩 "+daysLeft+" 天"+(reserveAmt>0?"，已先扣掉之前要繳的固定支出":"");
+  /* 主數字改成「每天能花多少」：下次發薪日前還可花 ÷ 剩餘天數；錢不夠時改成「還差多少」 */
   const dailyAvg=periodLeft/daysLeft;
-  /* 撐到日：錢不夠＝不夠、每日平均不到起算日額度的八成＝偏緊、其餘＝充裕 */
-  const periodTone=periodLeft<-0.5?"over":(base>0&&dailyAvg>=base*0.8?"ok":"low");
-  setTone("periodPanel","periodTag",periodTone,{ok:"充裕",low:"偏緊",over:"不夠"});
-  $("dailyAvgSub").textContent="每日平均 "+(dailyAvg<0?"−":"")+"NT$"+fmt(Math.abs(dailyAvg))+"（還可花 ÷ 剩下 "+daysLeft+" 天）";
-  $("dailyAvgSub").classList.toggle("neg",dailyAvg<0);
+  if(periodLeft>=-0.5)setMoney($("periodDaily"),Math.max(0,dailyAvg),"每天 ");
+  else setMoney($("periodDaily"),-periodLeft,"還差 ");
+  /* 照最近 7 天（記帳不滿 7 天就用實際天數）的私人花費速度，推算錢會在哪天用完 */
+  const firstDay=all.map(e=>e.date).filter(d=>d<=today).sort()[0]||today;
+  const span=Math.max(1,Math.min(7,dayDiff(firstDay,today)+1));
+  const t0=parseDate(today), from=ymd(new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()-(span-1)));
+  const pace=sum("personal",e=>e.date>=from&&e.date<=today)/span;
+  const spanWord=span===7?"最近 7 天":"記帳這 "+span+" 天";
+  let runout, periodTone;
+  if(periodLeft<-0.5){runout="錢已經不夠撐到發薪日。";periodTone="over"}
+  else if(pace<1){runout=spanWord+"沒有私人花費，照這樣可以撐到發薪日。";periodTone="ok"}
+  else{
+    const lastDays=Math.floor(periodLeft/pace);
+    const endD=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+lastDays), end=ymd(endD);
+    const head="照"+spanWord+"的花法（每天約 NT$"+fmt(pace)+"），";
+    if(end>=target){runout=head+"可以撐到發薪日。";periodTone="ok"}
+    else{
+      const early=dayDiff(end,target);
+      runout=head+"錢會在 "+(endD.getMonth()+1)+"/"+endD.getDate()+" 用完，比發薪日早 "+early+" 天。";
+      periodTone=early<=7?"low":"over";
+    }
+  }
+  $("runout").textContent=runout;
+  /* 顏色：撐得到發薪日＝青綠、提早一週內用完＝琥珀、提早超過一週或已經不夠＝朱紅 */
+  setTone("periodPanel","periodTag",periodTone,{ok:"撐得到",low:"偏緊",over:"不夠"});
   drawFixedSummary(today);
   /* 超支提醒：今天花超過額度、或撐到日前的錢已經不夠 */
   const warn=[];

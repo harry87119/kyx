@@ -11,7 +11,7 @@
 var SHEET_RECORDS = '紀錄';
 var SHEET_SETTINGS = '設定';
 var HEADERS = ['id', 'date', 'type', 'amount', 'note', 'ts'];
-var TYPES = ['salary', 'personal', 'q_prod', 'q_trans', 'prod', 'trans',
+var TYPES = ['salary', 'personal', 'debt', 'q_prod', 'q_trans', 'prod', 'trans',
   'ret_prod', 'ret_trans', 'rb_prod', 'rb_trans',
   'quota', 'advance', 'return', 'reimb'];
 
