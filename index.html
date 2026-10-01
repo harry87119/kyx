@@ -157,7 +157,6 @@ details.settings summary{cursor:pointer}
 .pair{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
 .pair>div{display:flex;flex-direction:column;gap:4px;min-width:0}
 .pair-side{border-left:1px solid var(--line);padding-left:14px}
-.avg-label{margin-top:10px}
 @media (max-width:420px){.pair{grid-template-columns:1fr}.pair-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:10px}}
 .reserve{font-size:12.5px;color:var(--muted);margin-top:4px}
 li.virtual .amt{opacity:.75}
@@ -176,6 +175,8 @@ li.virtual .amt{opacity:.75}
 .confirm{margin-top:10px;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-soft);color:var(--ink)}
 .confirm p{margin:0 0 4px}
 .sync.bad{color:var(--warn)}
+.alert[hidden]{display:none}
+.alert{background:var(--personal-bg);color:var(--personal);border:1px solid color-mix(in srgb,var(--personal) 45%,transparent);border-radius:12px;padding:10px 14px;font-weight:500;display:flex;flex-direction:column;gap:2px}
 .edit-btn{border:1px solid var(--line);background:var(--card);color:var(--accent);border-radius:999px;padding:3px 12px;font:inherit;font-size:12.5px;cursor:pointer}
 .edit-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .fx-list{display:flex;flex-direction:column;gap:2px;margin-top:4px}
@@ -193,6 +194,7 @@ li.virtual .amt{opacity:.75}
     <h1>KYX記帳</h1>
     <span class="sync" id="sync">連線中…</span>
   </header>
+  <div class="alert" id="alert" role="alert" hidden></div>
 
   <section class="entry" aria-label="新增一筆">
     <label class="amount-row">
@@ -220,7 +222,7 @@ li.virtual .amt{opacity:.75}
   <section class="summary" aria-label="目前狀況">
     <div class="box hero">
       <span class="label">目前可花（私人）</span>
-      <span class="big" id="spendable">—</span>
+      <span class="mid" id="spendable">—</span>
       <span class="sub" id="spendableSub"></span>
       <label class="until">
         <span>這些錢要撐到</span>
@@ -239,8 +241,6 @@ li.virtual .amt{opacity:.75}
           <span class="label" id="periodLabel">撐到日前還可花</span>
           <span class="mid" id="periodLeft">—</span>
           <span class="sub" id="periodSub"></span>
-          <span class="label avg-label">每日平均額度</span>
-          <span class="mid" id="dailyAvg">—</span>
           <span class="sub" id="dailyAvgSub"></span>
         </div>
       </div>
@@ -364,7 +364,7 @@ const dayDiff=(a,b)=>Math.round((parseDate(b)-parseDate(a))/86400000);
 let entries=[];
 let opening=0, until="", fixed=[];
 let cfg=null, queue=[], loaded=false;
-let filter="all", shown=60;
+let filter="all", shown=60, todayRemainNow=0;
 
 $("date").value=todayStr();
 
@@ -378,7 +378,10 @@ function lsLoad(){
   if(!o){const old=lsGet(LS_OLD);if(old)o={entries:Object.values(old.months||{}).flat(),opening:old.opening,until:old.until,fixed:old.fixed}}
   if(!o){
     /* 第一次使用：先帶入一項每月固定支出，之後可以隨時修改 */
-    o={fixed:[{id:"fx-default",name:"每月固定支出",amount:18000,day:1,since:firstSince(1)}]};
+    o={fixed:[
+      {id:"fx-default",name:"每月固定支出",amount:18000,day:1,since:firstSince(1)},
+      {id:"fx-card",name:"卡費",amount:5000,day:1,since:firstSince(1)}
+    ]};
     setData(o);lsSave();
   }
   setData(o);
@@ -493,8 +496,9 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   entries.push(e);
   commit({action:"add",entries:[e]});
   $("amount").value="";$("note").value="";
-  toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
   render();
+  if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow),true);
+  else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount));
   $("amount").focus();
 }));
 
@@ -687,6 +691,30 @@ function autoUntil(all){
 }
 
 /* ---------- 計算與畫面 ---------- */
+/* 某一天「一開始」的每日額度：只算那天以前（含那天）的紀錄，不扣那天的私人花費 */
+function quotaAt(day,target){
+  const es=entries.filter(e=>e.date<=day);
+  let sal=0,per=0;
+  const work={};for(const c of CATS)work[c.id]=0;
+  for(const e of es){
+    if(e.type==="salary")sal+=e.amount;
+    else if(e.type==="personal"&&e.date<day)per+=e.amount;
+    const T=TYPES[e.type];if(T&&T.cat)work[T.cat]+=(T.kind==="q"||T.kind==="rb"?1:-1)*e.amount;
+  }
+  const over=CATS.reduce((s,c)=>s+Math.max(0,-work[c.id]),0);
+  const paid=occurrences(day).reduce((s,e)=>s+e.amount,0);
+  const reserve=occurrences(target).filter(e=>e.date>day).reduce((s,e)=>s+e.amount,0);
+  const days=Math.max(1,dayDiff(day,target)+1);
+  return Math.max(0,(opening+sal-per-over-paid-reserve)/days);
+}
+/* 起算日：最近一次（今天以前）發薪的那天；還沒有薪水紀錄就用第一筆紀錄的日期 */
+function baseDay(today){
+  const sal=entries.filter(e=>e.type==="salary"&&e.date<=today).map(e=>e.date).sort();
+  if(sal.length)return sal[sal.length-1];
+  const first=entries.map(e=>e.date).filter(d=>d<=today).sort()[0];
+  return first||today;
+}
+
 function render(){
   const all=entries;
   const today=todayStr();
@@ -719,8 +747,16 @@ function render(){
     $("reserve").textContent="已先預留撐到日前要繳的 NT$"+fmt(reserveAmt)+"（"+Object.keys(byDate).sort().map(d=>{const x=parseDate(d);return (x.getMonth()+1)+"/"+x.getDate()+" "+byDate[d].join("、")}).join("；")+"）";
     $("reserve").hidden=false;
   }else $("reserve").hidden=true;
-  const todayMax=Math.max(0,startOfDay/daysLeft);
+  /* 今日額度：照目前剩下的錢平均，但不超過起算日（最近一次發薪那天）算出的每日額度；
+     少花省下來的不會讓之後每天變多，多花的會讓之後每天變少 */
+  const rolling=Math.max(0,startOfDay/daysLeft);
+  const bd=baseDay(today);
+  const base=bd<today&&!expired?quotaAt(bd,target):rolling;
+  const todayMax=Math.min(rolling,base);
+  /* 已省下：比起照起算日額度花，多留下來的錢；今天花超過的部分要先扣掉 */
+  const saved=Math.max(0,startOfDay-todayMax*daysLeft-Math.max(0,todaySpent-todayMax));
   const todayRemain=todayMax-todaySpent;
+  todayRemainNow=todayRemain;
 
   $("spendable").textContent="NT$"+fmt(spendable);
   $("spendable").classList.toggle("neg",spendable<0);
@@ -728,7 +764,8 @@ function render(){
 
   $("todayLeft").textContent=(todayRemain<0?"−":"")+"NT$"+fmt(Math.abs(todayRemain));
   $("todayLeft").classList.toggle("neg",todayRemain<0);
-  $("todaySub").innerHTML="今日額度 <span class='num'>NT$"+fmt(todayMax)+"</span>，已花 <span class='num'>NT$"+fmt(todaySpent)+"</span>";
+  $("todaySub").innerHTML="今日額度 <span class='num'>NT$"+fmt(todayMax)+"</span>，已花 <span class='num'>NT$"+fmt(todaySpent)+"</span>"
+    +(saved>=1?"<br>已省下 <span class='num'>NT$"+fmt(saved)+"</span>，不會加進之後每天的額度，可以拿去多還卡費":"");
   const periodLeft=spendable-reserveAmt;
   $("periodLeft").textContent=(periodLeft<0?"−":"")+"NT$"+fmt(Math.abs(periodLeft));
   $("periodLeft").classList.toggle("neg",periodLeft<0);
@@ -737,10 +774,16 @@ function render(){
   $("periodSub").textContent=reserveAmt>0?"已先扣掉之前要繳的固定支出":"期間沒有要繳的固定支出";
   /* 每日平均額度 = 撐到日前還可花 ÷ 剩餘天數 */
   const dailyAvg=periodLeft/daysLeft;
-  $("dailyAvg").textContent=(dailyAvg<0?"−":"")+"NT$"+fmt(Math.abs(dailyAvg));
-  $("dailyAvg").classList.toggle("neg",dailyAvg<0);
-  $("dailyAvgSub").textContent="還可花 ÷ 剩下 "+daysLeft+" 天";
+  $("dailyAvgSub").textContent="每日平均 "+(dailyAvg<0?"−":"")+"NT$"+fmt(Math.abs(dailyAvg))+"（還可花 ÷ 剩下 "+daysLeft+" 天）";
+  $("dailyAvgSub").classList.toggle("neg",dailyAvg<0);
   drawFixedSummary(today);
+  /* 超支提醒：今天花超過額度、或撐到日前的錢已經不夠 */
+  const warn=[];
+  if(todayRemain<-0.5)warn.push("今天已經超支 NT$"+fmt(-todayRemain)+"，之後每天的額度會變少。");
+  if(periodLeft<-0.5)warn.push("撐到 "+(td.getMonth()+1)+"/"+td.getDate()+" 前的錢不夠，還差 NT$"+fmt(-periodLeft)+"。");
+  const al=$("alert");al.textContent="";
+  for(const w of warn){const d=document.createElement("span");d.textContent=w;al.appendChild(d)}
+  al.hidden=!warn.length;
   const pct=todayMax>0?Math.min(100,todaySpent/todayMax*100):(todaySpent>0?100:0);
   $("todayMeter").querySelector("i").style.width=pct+"%";
   $("todayMeter").classList.toggle("over",todayRemain<0);
