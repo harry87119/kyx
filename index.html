@@ -128,13 +128,13 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .page{max-width:1280px;margin:0 auto;padding:32px var(--page-margin) calc(96px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:48px;row-gap:32px;align-items:start}
 .col{display:flex;flex-direction:column;gap:64px;min-width:0}
 .pane{display:flex;flex-direction:column;gap:64px;min-width:0}
-/* 電腦：左邊依序 記帳 → 明細 → 設定；右邊固定是 還可花 + 通知，不跟著捲（太長時右邊自己捲） */
+/* 電腦：左邊依序 記帳 → 每月固定支出 → 明細 → 設定；右邊固定是 還可花 + 通知，不跟著捲（太長時右邊自己捲） */
 .col-right{position:sticky;top:calc(var(--top-h,120px) + 24px);max-height:calc(100vh - var(--top-h,120px) - 128px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:4px;gap:40px}
 .col-right .pane{gap:40px}
 /* 電腦右欄的順序：還可花 → 通知 → 每月固定支出（通知緊接在兩個大數字下面，一定看得到） */
 @media (min-width:960px){
   .col-right .pane[data-pane="money"]{display:contents}
-  .col-right #sec-hero{order:1}.col-right .pane[data-pane="notice"]{order:2}.col-right #fixedBox{order:3}
+  .col-right #sec-hero{order:1}.col-right .pane[data-pane="notice"]{order:2}
 }
 .mini-sum,.tabbar{display:none}
 .work{display:none}
@@ -143,7 +143,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .notice-empty{margin:0}
 /* 手機（和窄的平板）：分頁，一次只顯示一頁，下面一排分頁列 */
 @media (max-width:959px){
-  .page{display:block;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+  .page{display:block}
   .col{display:contents}
   .col-right{position:static;max-height:none;overflow:visible;padding:0}
   .pane{display:none}
@@ -157,6 +157,8 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
   details.settings .sum-act,details.settings .sum-right::after{display:none}
   #alert .n-head{display:none}
 }
+/* 色塊窄的時候「剩餘的錢可以撐到 / Until」會折成兩行：兩塊的標題列都留兩行高，大數字才會對齊 */
+@container (max-width:340px){.panel-top{min-height:34px}}
 /* 「錢能撐幾天」那塊太窄時（電腦右欄並排）：長條換到下一行，不會被擠扁 */
 @container (max-width:340px){
   .cmp{grid-template-columns:minmax(0,1fr) auto;row-gap:6px}
@@ -168,10 +170,10 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
   .cmp>:nth-child(6){grid-row:3;grid-column:2}
 }
 @keyframes pane-in{from{opacity:0;transform:translateX(var(--pane-dx,0px))}to{opacity:1;transform:none}}
-/* 分頁列：畫面最下面，選到的那一個上方一條金線 */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:44;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 0 env(safe-area-inset-bottom,0px);background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-top:1px solid var(--line);transition:transform 280ms var(--ease-wipe)}
-.tabbar button{position:relative;height:56px;background:none;border:0;color:var(--fg-3);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease)}
-.tabbar button::before{content:"";position:absolute;left:22%;right:22%;top:-1px;height:2px;background:var(--gh-gold);transform:scaleX(0);transition:transform 260ms var(--ease-settle)}
+/* 分頁列：在頂部列裡（原本目錄的位置），選到的那一個下面一條金線 */
+.tabbar{order:10;width:calc(100% + 16px);margin:0 -8px -10px;grid-template-columns:repeat(5,minmax(0,1fr))}
+.tabbar button{position:relative;height:44px;background:none;border:0;color:var(--fg-3);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease)}
+.tabbar button::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;background:var(--gh-gold);transform:scaleX(0);transition:transform 260ms var(--ease-settle)}
 .tabbar button.on{color:var(--fg)}
 .tabbar button.on::before{transform:scaleX(1)}
 .tb-i{position:relative;display:inline-block}
@@ -180,7 +182,6 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .tb-dot.tone-low{background:var(--gh-amber)}
 .tb-dot.tone-over{background:var(--gh-red)}
 .tb-dot.new{background:var(--gh-gold);animation:pop-in 260ms var(--ease-settle) both}
-body.typing .tabbar{transform:translateY(100%)}
 /* 記帳頁最上面的小摘要：今天還可花・撐到幾號，顏色跟著狀態；點了去「還可花」 */
 .mini-sum{align-items:center;gap:18px;width:100%;margin:0 0 -24px;padding:12px 16px;border:0;text-align:left;cursor:pointer;transition:background var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
 .mini-sum .ms-i{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -253,8 +254,7 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .tt-arr{width:9px;height:9px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:translateY(2px) rotate(45deg);transition:transform var(--dur-fast) var(--ease)}
 .tt-l{font-family:var(--font-display);font-size:9px;font-weight:500;letter-spacing:.2em;line-height:1;margin-right:-.2em}
 body.typing .to-top{display:none}
-@media (max-width:959px){.to-top{bottom:calc(72px + env(safe-area-inset-bottom,0px))}}
-@media (max-width:560px){.to-top{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));width:44px;height:44px}}
+@media (max-width:560px){.to-top{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px}}
 
 /* ===== 總覽色塊 ===== */
 .hero{display:flex;flex-direction:column;gap:12px}
@@ -591,8 +591,16 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   </div>
   <nav class="toc" id="toc" aria-label="目錄">
     <a href="#sec-entry" data-go="sec-entry"><span>記帳</span><span class="b-label">Entry</span></a>
+    <a href="#fixedBox" data-go="fixedBox"><span>固定支出</span><span class="b-label">Fixed</span></a>
     <a href="#sec-list" data-go="sec-list"><span>明細</span><span class="b-label">Recent</span></a>
     <a href="#settingsBox" data-go="settingsBox"><span>設定</span><span class="b-label">Settings</span></a>
+  </nav>
+  <nav class="tabbar" id="tabbar" aria-label="分頁">
+    <button type="button" data-tab="notice"><span class="tb-i">通知<i class="tb-badge" id="tbNotice" hidden></i></span></button>
+    <button type="button" data-tab="entry"><span class="tb-i">記帳</span></button>
+    <button type="button" data-tab="money"><span class="tb-i">還可花<i class="tb-dot" id="tbMoney"></i></span></button>
+    <button type="button" data-tab="list"><span class="tb-i">明細<i class="tb-dot new" id="tbList" hidden></i></span></button>
+    <button type="button" data-tab="settings"><span class="tb-i">設定</span></button>
   </nav>
 </header>
 
@@ -801,13 +809,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   </aside>
 </main>
 <div id="endSpace" aria-hidden="true"></div>
-<nav class="tabbar" id="tabbar" aria-label="分頁">
-  <button type="button" data-tab="notice"><span class="tb-i">通知<i class="tb-badge" id="tbNotice" hidden></i></span></button>
-  <button type="button" data-tab="entry"><span class="tb-i">記帳</span></button>
-  <button type="button" data-tab="money"><span class="tb-i">還可花<i class="tb-dot" id="tbMoney"></i></span></button>
-  <button type="button" data-tab="list"><span class="tb-i">明細<i class="tb-dot new" id="tbList" hidden></i></span></button>
-  <button type="button" data-tab="settings"><span class="tb-i">設定</span></button>
-</nav>
+
 <button type="button" class="to-top" id="toTop" aria-label="回到最上面" title="回到最上面"><span class="tt-arr" aria-hidden="true"></span><span class="tt-l">TOP</span></button>
 
 <script>
@@ -1043,7 +1045,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
    下面就是六個記帳按鈕。收鍵盤時頁面不再捲回去，只有頂部列滑回來；
    不縮按鈕、不跟 iOS 搶捲動，畫面才不會跳 */
 {
-  const small=()=>window.matchMedia&&matchMedia("(max-width:720px)").matches;
+  const small=()=>window.matchMedia&&matchMedia("(max-width:720px) and (pointer:coarse)").matches;
   const rowOf={amount:()=>$("amount").closest(".amount-wrap"),note:()=>$("note").closest(".meta")};
   for(const id of ["amount","note"]){
     $(id).addEventListener("focus",()=>{
@@ -2214,6 +2216,14 @@ function setTab(t,how){
 $("tabbar").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(b&&b.dataset.tab!==curTab)setTab(b.dataset.tab,"push")});
 window.addEventListener("popstate",e=>setTab(e.state&&e.state.tab||"entry"));
 $("miniSum").addEventListener("click",()=>setTab("money","push"));
+/* 每月固定支出：電腦放左邊（記帳和明細中間），手機在「還可花」那一頁 */
+function placeFixed(){
+  const fb=$("fixedBox"), home=document.querySelector('.pane[data-pane="money"]');
+  if(mobileTabs()){if(fb.parentNode!==home)home.appendChild(fb)}
+  else{const slot=document.querySelector('.pane[data-pane="entry"]');if(fb.previousElementSibling!==slot)slot.after(fb)}
+}
+if(window.matchMedia)matchMedia("(max-width:959px)").addEventListener("change",placeFixed);
+placeFixed();
 /* 電腦：右邊那欄固定在頂部列下面，要知道頂部列多高；通知在畫面上看得到 3 秒就算看過 */
 function topH(){document.documentElement.style.setProperty("--top-h",document.querySelector(".topbar").offsetHeight+"px")}
 window.addEventListener("resize",()=>{topH();drawBadges()});
