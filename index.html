@@ -357,7 +357,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .b-input:focus{border-bottom-color:var(--focus)}
 .until-field{padding-top:16px}
 .until-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-.until-row .b-input{width:auto;min-width:140px;color:var(--fg);font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
+.until-row .b-input{width:auto;min-width:140px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 #untilDays{font-size:13px;letter-spacing:.06em;color:var(--fg-2)}
 #untilDays.neg{color:var(--expense)}
 
@@ -584,7 +584,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .calc-row small{font-size:11px;color:var(--fg-3);letter-spacing:.02em}
 .calc-row .day-in{display:flex;flex-direction:row;align-items:baseline;gap:8px;flex:none;font-size:14px;color:var(--fg-2)}
 .calc-row .day-in .b-input{width:64px}
-.calc-row .b-input{width:170px;flex:none;text-align:right;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px;color:var(--fg);padding:6px 0}
+.calc-row .b-input{width:170px;flex:none;text-align:right;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px;padding:6px 0}
 .calc-row input[type=date]{text-align:left}
 .sg-total{border-top:1px solid var(--line);padding-top:6px;margin-top:2px;color:var(--fg);font-weight:700}
 .set-col .b-input{font-family:var(--font-display);font-size:14px;letter-spacing:.02em}
@@ -603,6 +603,11 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 /* 你輸入的字＝綠色（跟點輸入欄時底線同一個顏色），一眼分得出哪些是你填的、哪些是標題和說明 */
 .b-input,.frow input,#amount,#note{color:var(--accent-text)}
 .b-input::placeholder,.frow input::placeholder,#amount::placeholder,#note::placeholder{color:var(--fg-3)}
+/* 下拉選單（生活費比例）選到的值也是你填的：一樣綠色 */
+.pct-sel{color:var(--accent-text)}
+/* 固定支出的每一項之間隔開一點、同一項裡面靠近一點，按「移除」時才分得清是哪一項 */
+.fx-rows{gap:18px}
+@media (max-width:480px){.fx-rows{gap:24px}.frow{row-gap:2px}}
 /* 設定裡「定額／浮動」是分組標題：大一點，跟輸入的字分開層級 */
 .fx-group .fx-gh{font-size:16px;letter-spacing:.16em;padding-bottom:8px}
 /* 滑到（或點進）輸入欄：底線從左邊長出一條綠色 */
@@ -1415,10 +1420,13 @@ $("saveFixed").onclick=()=>{
   }
   /* 存完讓按鈕留在畫面上同一個位置，才看得到「儲存成功」（上面的內容變高變矮也一樣） */
   const keep=()=>{window.scrollBy(0,$("saveFixed").getBoundingClientRect().top-top0);stayMark($("saveFixed"))};
-  const top0=$("saveFixed").getBoundingClientRect().top;
+  const top0=$("saveFixed").getBoundingClientRect().top, p0=Math.round(planNow), a0=$("assets").textContent;
   fixed=next;persistSettings();drawFixedRows();render();
   keep();requestAnimationFrame(keep);
-  savedTag($("fixedSaved"),"儲存成功");
+  /* 告訴他每日基準有沒有跟著變；沒變的話說為什麼（35% 比較少，或新金額從下一期才開始） */
+  const p1=Math.round(planNow);
+  savedTag($("fixedSaved"),p1!==p0?"儲存成功，每日基準 NT$"+fmt(p0)+" → NT$"+fmt(p1)
+    :"儲存成功，每日基準不變（"+($("assets").textContent===a0?"新金額從下一期開始，這次發薪日前不受影響":"還是照生活費比例算比較少")+"）");
 };
 
 /* 主畫面的固定支出摘要 */
@@ -1459,7 +1467,7 @@ function drawFixedSummary(today){
 /* 按鈕右邊的灰色小字（例如「儲存成功」）：滑進來，過一下子淡出 */
 function savedTag(el,msg){
   el.textContent=msg;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
-  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2600);
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),Math.max(2600,msg.length*130));   // 字多就多停一下
 }
 /* 分頁底線：一條底線滑到選到的那一個 */
 function moveInd(box,instant){
