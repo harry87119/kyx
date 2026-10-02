@@ -126,13 +126,69 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 
 /* ===== 版面 ===== */
 .page{max-width:1280px;margin:0 auto;padding:32px var(--page-margin) calc(96px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:48px;row-gap:32px;align-items:start}
-.alert{grid-column:1/-1}
 .col{display:flex;flex-direction:column;gap:64px;min-width:0}
-@media (max-width:959px){
-  .page{display:flex;flex-direction:column;align-items:stretch;gap:48px}
-  .col{display:contents}
-  .alert{order:0}.entry{order:1}.hero{order:2}#fixedBox{order:4}.work{order:5}.list{order:6}.settings{order:7}
+.pane{display:flex;flex-direction:column;gap:64px;min-width:0}
+/* 電腦：左邊依序 記帳 → 明細 → 設定；右邊固定是 還可花 + 通知，不跟著捲（太長時右邊自己捲） */
+.col-right{position:sticky;top:calc(var(--top-h,120px) + 24px);max-height:calc(100vh - var(--top-h,120px) - 128px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:4px;gap:40px}
+.col-right .pane{gap:40px}
+/* 電腦右欄的順序：還可花 → 通知 → 每月固定支出（通知緊接在兩個大數字下面，一定看得到） */
+@media (min-width:960px){
+  .col-right .pane[data-pane="money"]{display:contents}
+  .col-right #sec-hero{order:1}.col-right .pane[data-pane="notice"]{order:2}.col-right #fixedBox{order:3}
 }
+.mini-sum,.tabbar{display:none}
+.work{display:none}
+.work.on{display:block;margin:6px 0 4px;animation:pop-in 260ms var(--ease-settle) both}
+.work-h{display:flex;align-items:baseline;gap:12px;margin:14px 0 4px;font-family:var(--font-han-sans);font-size:15px;font-weight:700;letter-spacing:.08em}
+.notice-empty{margin:0}
+/* 手機（和窄的平板）：分頁，一次只顯示一頁，下面一排分頁列 */
+@media (max-width:959px){
+  .page{display:block;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+  .col{display:contents}
+  .col-right{position:static;max-height:none;overflow:visible;padding:0}
+  .pane{display:none}
+  .pane.on{display:flex;gap:48px;animation:pane-in 260ms var(--ease-settle) both}
+  .toc{display:none}
+  .mini-sum{display:flex}
+  .tabbar{display:grid}
+  .notice-empty{padding:24px 0}
+  /* 分頁裡不需要收合：設定直接展開、通知不顯示收起列 */
+  details.settings>summary{pointer-events:none}
+  details.settings .sum-act,details.settings .sum-right::after{display:none}
+  #alert .n-head{display:none}
+}
+/* 「錢能撐幾天」那塊太窄時（電腦右欄並排）：長條換到下一行，不會被擠扁 */
+@container (max-width:340px){
+  .cmp{grid-template-columns:minmax(0,1fr) auto;row-gap:6px}
+  .cmp>:nth-child(1){grid-row:1;grid-column:1}
+  .cmp>:nth-child(2){grid-row:2;grid-column:1/-1;margin-bottom:6px}
+  .cmp>:nth-child(3){grid-row:1;grid-column:2}
+  .cmp>:nth-child(4){grid-row:3;grid-column:1}
+  .cmp>:nth-child(5){display:none}
+  .cmp>:nth-child(6){grid-row:3;grid-column:2}
+}
+@keyframes pane-in{from{opacity:0;transform:translateX(var(--pane-dx,0px))}to{opacity:1;transform:none}}
+/* 分頁列：畫面最下面，選到的那一個上方一條金線 */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:44;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 0 env(safe-area-inset-bottom,0px);background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-top:1px solid var(--line);transition:transform 280ms var(--ease-wipe)}
+.tabbar button{position:relative;height:56px;background:none;border:0;color:var(--fg-3);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease)}
+.tabbar button::before{content:"";position:absolute;left:22%;right:22%;top:-1px;height:2px;background:var(--gh-gold);transform:scaleX(0);transition:transform 260ms var(--ease-settle)}
+.tabbar button.on{color:var(--fg)}
+.tabbar button.on::before{transform:scaleX(1)}
+.tb-i{position:relative;display:inline-block}
+.tb-badge{position:absolute;top:-9px;right:-17px;min-width:16px;height:16px;padding:0 4px;background:var(--gh-red);color:#fff;font-family:var(--font-display);font-size:10px;font-style:normal;font-weight:600;line-height:16px;text-align:center;animation:pop-in 260ms var(--ease-settle) both}
+.tb-dot{position:absolute;top:-3px;right:-11px;width:7px;height:7px;background:var(--gh-turquoise);transition:background var(--dur-base) var(--ease)}
+.tb-dot.tone-low{background:var(--gh-amber)}
+.tb-dot.tone-over{background:var(--gh-red)}
+.tb-dot.new{background:var(--gh-gold);animation:pop-in 260ms var(--ease-settle) both}
+body.typing .tabbar{transform:translateY(100%)}
+/* 記帳頁最上面的小摘要：今天還可花・撐到幾號，顏色跟著狀態；點了去「還可花」 */
+.mini-sum{align-items:center;gap:18px;width:100%;margin:0 0 -24px;padding:12px 16px;border:0;text-align:left;cursor:pointer;transition:background var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
+.mini-sum .ms-i{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mini-sum .ms-l{font-size:11px;letter-spacing:.12em;opacity:.8}
+.mini-sum b{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:20px;font-weight:500;white-space:nowrap}
+.mini-sum b.bump{animation:ms-bump 420ms var(--ease-settle)}
+@keyframes ms-bump{0%{opacity:.25;transform:translateY(6px)}100%{opacity:1;transform:none}}
+.mini-sum .ms-go{margin-left:auto;width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
 @media (max-width:720px){:root{--page-margin:20px}.page{padding-top:24px}}
 
 /* 區段標題：上方 2px 主文字色實線 + 中文宋體 + 英文標籤 */
@@ -141,8 +197,8 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .sec-right{display:flex;align-items:center;gap:14px}
 
 /* ===== 超支提醒（提示樣式：左側 4px 朱紅色條） ===== */
-/* 提示區：最上面，不能手動關掉，條件不成立才消失；新的提示出現時捲到最上面、升起並閃一下 */
-.alert{display:flex;flex-direction:column;gap:2px}
+/* 提示區（通知）：不能手動關掉，條件不成立才消失；新的提示出現時升起並閃一下 */
+.alert{display:flex;flex-direction:column;gap:2px;min-width:0}
 /* 提示區標題列：按一下收起或展開；收起後有新的提示會自己再展開 */
 .n-head{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;background:var(--bg-raised);border:1px solid var(--line-2);color:var(--fg);font-family:var(--font-han-sans);font-size:13.5px;font-weight:500;letter-spacing:.08em;text-align:left;cursor:pointer}
 .n-head .b-label{margin-left:auto}
@@ -197,7 +253,8 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .tt-arr{width:9px;height:9px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:translateY(2px) rotate(45deg);transition:transform var(--dur-fast) var(--ease)}
 .tt-l{font-family:var(--font-display);font-size:9px;font-weight:500;letter-spacing:.2em;line-height:1;margin-right:-.2em}
 body.typing .to-top{display:none}
-@media (max-width:560px){.to-top{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px}}
+@media (max-width:959px){.to-top{bottom:calc(72px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:560px){.to-top{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));width:44px;height:44px}}
 
 /* ===== 總覽色塊 ===== */
 .hero{display:flex;flex-direction:column;gap:12px}
@@ -534,97 +591,15 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   </div>
   <nav class="toc" id="toc" aria-label="目錄">
     <a href="#sec-entry" data-go="sec-entry"><span>記帳</span><span class="b-label">Entry</span></a>
-    <a href="#sec-hero" data-go="sec-hero"><span>還可花</span><span class="b-label">Today</span></a>
-    <a href="#fixedBox" data-go="fixedBox"><span>固定支出</span><span class="b-label">Fixed</span></a>
-    <a href="#sec-work" data-go="sec-work"><span>工作帳</span><span class="b-label">Work</span></a>
     <a href="#sec-list" data-go="sec-list"><span>明細</span><span class="b-label">Recent</span></a>
     <a href="#settingsBox" data-go="settingsBox"><span>設定</span><span class="b-label">Settings</span></a>
   </nav>
 </header>
 
 <main class="page">
-  <div class="alert" id="alert" hidden>
-    <button type="button" class="n-head" id="noticeHead" aria-expanded="true" aria-controls="noticeList">
-      <span class="n-dots" id="noticeDots" aria-hidden="true"></span><span id="noticeTitle">提示</span>
-      <span class="b-label">Notice</span><span class="n-act" id="noticeAct">收起</span><span class="chev" aria-hidden="true"></span>
-    </button>
-    <div class="n-wrap" id="noticeWrap"><div class="n-list" id="noticeList" role="alert"></div></div>
-  </div>
-
-  <div class="col col-main">
-    <section class="hero" id="sec-hero" aria-label="目前狀況">
-      <div class="panels">
-        <div class="panel tone-ok" id="todayPanel">
-          <div class="panel-top"><span class="b-label">今天還可花 / Today</span><span class="tone-tag" id="todayTag"></span></div>
-          <div class="panel-body">
-            <div class="big" id="todayLeft">—</div>
-            <div class="panel-foot">
-              <div class="panel-sub" id="todaySub"></div>
-              <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="panel tone-ok" id="periodPanel">
-          <div class="panel-top"><span class="b-label"><span id="periodLabel">剩餘的錢可以撐到</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
-          <div class="panel-body">
-            <div class="date-line"><div class="big" id="periodDaily">—</div><span class="wk" id="periodWk"></span></div>
-            <div class="panel-foot cmp" id="periodCmp">
-              <span class="cmp-l">錢能撐幾天</span><span class="cmp-bar money"><i id="cmpMoney"></i></span><span class="cmp-v" id="cmpMoneyV"></span>
-              <span class="cmp-l" id="cmpPayL">離發薪日</span><span></span><span class="cmp-v" id="cmpPayV"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <details class="balance" id="balanceBox">
-        <summary><span class="bal-title">剩餘資產</span><span class="b-label">Assets</span><span class="sum-act" aria-hidden="true"></span><span class="chev" aria-hidden="true"></span></summary>
-        <div class="balance-body">
-          <div>
-            <span class="b-field__label">剩餘資產：錢去哪了 / Where it goes</span>
-            <div class="wf">
-              <div class="wf-row"><span>帳上的錢（照記帳算）</span><span class="num" id="wfCash">—</span></div>
-              <div class="wf-row" id="wfOweRow"><span>− 我還欠公司（quota 沒用完，不是你的錢）</span><span class="num" id="wfOwe">—</span></div>
-              <div class="wf-row wf-sub"><span>＝ 你自己的錢</span><span class="num" id="spendable">—</span></div>
-              <div class="wf-row"><span>− 下次發薪日前要繳的固定支出</span><span class="num" id="wfReserve">—</span></div>
-              <div class="wf-note" id="wfReserveList"></div>
-              <div class="wf-row wf-total"><span>＝ 這段期間真正能花的</span><span class="num" id="assets">—</span></div>
-              <div class="wf-row"><span>每日基準（下次發薪日 <span id="wfTarget">—</span>，還有 <span id="wfDaysLeft">—</span> 天）</span><span class="num" id="wfPlan">—</span></div>
-              <p class="wf-runout" id="runout"></p>
-              <div class="wf-row" id="wfExtraRow" hidden><span>照每日基準花用不到的錢<small class="wf-hint">不會加進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）</small></span><span class="num" id="wfExtra">—</span></div>
-            </div>
-            <p class="sub" id="reserve" hidden></p>
-            <p class="sub" id="wfOwed" hidden></p>
-            <p class="sub" id="spendableSub"></p>
-          </div>
-        </div>
-      </details>
-    </section>
-
-
-    <section class="list" id="sec-list" aria-label="明細">
-      <div class="sec-head"><h2 class="sec-han">明細</h2><span class="b-label">Recent</span></div>
-      <div class="list-bar">
-        <div class="filters" role="group" aria-label="篩選">
-          <button data-f="all" class="on">全部</button>
-          <button data-f="personal">私人</button>
-          <button data-f="work">工作</button>
-        </div>
-        <div class="views" role="group" aria-label="檢視方式">
-          <button data-v="day">日</button>
-          <button data-v="month" class="on">月</button>
-        </div>
-      </div>
-      <div class="list-nav">
-        <button type="button" class="ln-btn" id="navPrev" aria-label="上一個"><span class="ln-arr prev" aria-hidden="true"></span></button>
-        <div class="ln-mid"><span class="ln-title" id="navTitle"></span><button type="button" class="ln-now" id="navNow" hidden></button></div>
-        <button type="button" class="ln-btn" id="navNext" aria-label="下一個"><span class="ln-arr next" aria-hidden="true"></span></button>
-      </div>
-      <div class="list-sum" id="listSum"></div>
-      <ul id="list"></ul>
-      <button id="more" class="more b-btn b-btn--secondary b-btn--full" hidden>顯示更早的紀錄</button>
-    </section>
-  </div>
-
-  <div class="col col-side">
+  <div class="col col-left">
+    <div class="pane" data-pane="entry">
+      <button type="button" class="mini-sum tone-ok" id="miniSum" aria-label="看還可花"><span class="ms-i"><span class="ms-l">今天還可花</span><b id="miniToday">—</b></span><span class="ms-i"><span class="ms-l" id="miniUntilL">撐到</span><b id="miniUntil">—</b></span><span class="ms-go" aria-hidden="true"></span></button>
     <section class="entry" id="sec-entry" aria-label="新增一筆">
       <div class="sec-head" style="margin-bottom:0"><h2 class="sec-han">新增一筆</h2><span class="b-label">New entry</span></div>
       <div class="amount-wrap">
@@ -658,25 +633,42 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="toast" id="toast" role="status"></div>
     </section>
-
-    <section class="fixed" id="fixedBox" aria-label="每月固定支出">
-      <div class="sec-head"><h2 class="sec-han">每月固定支出</h2><span class="b-label">Fixed</span></div>
-      <div id="fixedSummary" class="fx-list"></div>
-      <p class="sub" id="fixedNext"></p>
-      <p class="sub fx-hint">要新增或修改，請到最下面的「設定」。</p>
-    </section>
-
-    <section class="work" id="sec-work" aria-label="工作帳明細">
-      <div class="sec-head"><h2 class="sec-han">工作帳明細</h2><span class="b-label">Work</span></div>
-      <p class="sub" id="workSub"></p>
-      <div class="flow-wrap">
-        <table class="flow-t">
-          <thead><tr><th></th><th>收到 quota</th><th>花費</th><th>已還公司</th><th>公司已還我</th></tr></thead>
-          <tbody id="flowBody"></tbody>
-        </table>
+    </div>
+    <div class="pane" data-pane="list">
+    <section class="list" id="sec-list" aria-label="明細">
+      <div class="sec-head"><h2 class="sec-han">明細</h2><span class="b-label">Recent</span></div>
+      <div class="list-bar">
+        <div class="filters" role="group" aria-label="篩選">
+          <button data-f="all" class="on">全部</button>
+          <button data-f="personal">私人</button>
+          <button data-f="work">工作</button>
+        </div>
+        <div class="views" role="group" aria-label="檢視方式">
+          <button data-v="day">日</button>
+          <button data-v="month" class="on">月</button>
+        </div>
       </div>
+      <div class="work" id="sec-work" aria-label="工作帳">
+        <h3 class="work-h">工作帳 <span class="b-label">Work</span></h3>
+        <p class="sub" id="workSub"></p>
+        <div class="flow-wrap">
+          <table class="flow-t">
+            <thead><tr><th></th><th>收到 quota</th><th>花費</th><th>已還公司</th><th>公司已還我</th></tr></thead>
+            <tbody id="flowBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="list-nav">
+        <button type="button" class="ln-btn" id="navPrev" aria-label="上一個"><span class="ln-arr prev" aria-hidden="true"></span></button>
+        <div class="ln-mid"><span class="ln-title" id="navTitle"></span><button type="button" class="ln-now" id="navNow" hidden></button></div>
+        <button type="button" class="ln-btn" id="navNext" aria-label="下一個"><span class="ln-arr next" aria-hidden="true"></span></button>
+      </div>
+      <div class="list-sum" id="listSum"></div>
+      <ul id="list"></ul>
+      <button id="more" class="more b-btn b-btn--secondary b-btn--full" hidden>顯示更早的紀錄</button>
     </section>
-
+    </div>
+    <div class="pane" data-pane="settings">
     <details class="settings" id="settingsBox">
       <summary><span class="sum-left"><span class="sec-han">設定</span><span class="sum-desc">固定支出、每日基準、試算表、備份</span></span><span class="sum-right"><span class="b-label">Settings</span><span class="sum-act" aria-hidden="true"></span></span></summary>
       <div class="set-block">
@@ -736,9 +728,86 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <p id="importNote" class="set-note" role="status"></p>
       </div>
     </details>
+    </div>
   </div>
+  <aside class="col col-right" id="colRight">
+    <div class="pane" data-pane="money">
+    <section class="hero" id="sec-hero" aria-label="目前狀況">
+      <div class="panels">
+        <div class="panel tone-ok" id="todayPanel">
+          <div class="panel-top"><span class="b-label">今天還可花 / Today</span><span class="tone-tag" id="todayTag"></span></div>
+          <div class="panel-body">
+            <div class="big" id="todayLeft">—</div>
+            <div class="panel-foot">
+              <div class="panel-sub" id="todaySub"></div>
+              <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel tone-ok" id="periodPanel">
+          <div class="panel-top"><span class="b-label"><span id="periodLabel">剩餘的錢可以撐到</span> / Until</span><span class="tone-tag" id="periodTag"></span></div>
+          <div class="panel-body">
+            <div class="date-line"><div class="big" id="periodDaily">—</div><span class="wk" id="periodWk"></span></div>
+            <div class="panel-foot cmp" id="periodCmp">
+              <span class="cmp-l">錢能撐幾天</span><span class="cmp-bar money"><i id="cmpMoney"></i></span><span class="cmp-v" id="cmpMoneyV"></span>
+              <span class="cmp-l" id="cmpPayL">離發薪日</span><span></span><span class="cmp-v" id="cmpPayV"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <details class="balance" id="balanceBox">
+        <summary><span class="bal-title">剩餘資產</span><span class="b-label">Assets</span><span class="sum-act" aria-hidden="true"></span><span class="chev" aria-hidden="true"></span></summary>
+        <div class="balance-body">
+          <div>
+            <span class="b-field__label">剩餘資產：錢去哪了 / Where it goes</span>
+            <div class="wf">
+              <div class="wf-row"><span>帳上的錢（照記帳算）</span><span class="num" id="wfCash">—</span></div>
+              <div class="wf-row" id="wfOweRow"><span>− 我還欠公司（quota 沒用完，不是你的錢）</span><span class="num" id="wfOwe">—</span></div>
+              <div class="wf-row wf-sub"><span>＝ 你自己的錢</span><span class="num" id="spendable">—</span></div>
+              <div class="wf-row"><span>− 下次發薪日前要繳的固定支出</span><span class="num" id="wfReserve">—</span></div>
+              <div class="wf-note" id="wfReserveList"></div>
+              <div class="wf-row wf-total"><span>＝ 這段期間真正能花的</span><span class="num" id="assets">—</span></div>
+              <div class="wf-row"><span>每日基準（下次發薪日 <span id="wfTarget">—</span>，還有 <span id="wfDaysLeft">—</span> 天）</span><span class="num" id="wfPlan">—</span></div>
+              <p class="wf-runout" id="runout"></p>
+              <div class="wf-row" id="wfExtraRow" hidden><span>照每日基準花用不到的錢<small class="wf-hint">不會加進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）</small></span><span class="num" id="wfExtra">—</span></div>
+            </div>
+            <p class="sub" id="reserve" hidden></p>
+            <p class="sub" id="wfOwed" hidden></p>
+            <p class="sub" id="spendableSub"></p>
+          </div>
+        </div>
+      </details>
+    </section>
+    <section class="fixed" id="fixedBox" aria-label="每月固定支出">
+      <div class="sec-head"><h2 class="sec-han">每月固定支出</h2><span class="b-label">Fixed</span></div>
+      <div id="fixedSummary" class="fx-list"></div>
+      <p class="sub" id="fixedNext"></p>
+      <p class="sub fx-hint">要新增或修改，請到「設定」。</p>
+    </section>
+    </div>
+    <div class="pane" data-pane="notice">
+      <section class="notices" id="sec-notice" aria-label="通知">
+        <div class="sec-head"><h2 class="sec-han">通知</h2><span class="b-label">Notice</span></div>
+        <p class="empty notice-empty" id="noticeEmpty">目前沒有通知。</p>
+        <div class="alert" id="alert" hidden>
+          <button type="button" class="n-head" id="noticeHead" aria-expanded="true" aria-controls="noticeList">
+            <span class="n-dots" id="noticeDots" aria-hidden="true"></span><span id="noticeTitle">提示</span>
+            <span class="b-label">Notice</span><span class="n-act" id="noticeAct">收起</span><span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="n-wrap" id="noticeWrap"><div class="n-list" id="noticeList" role="alert"></div></div>
+        </div>
+      </section>
+    </div>
+  </aside>
 </main>
 <div id="endSpace" aria-hidden="true"></div>
+<nav class="tabbar" id="tabbar" aria-label="分頁">
+  <button type="button" data-tab="notice"><span class="tb-i">通知<i class="tb-badge" id="tbNotice" hidden></i></span></button>
+  <button type="button" data-tab="entry"><span class="tb-i">記帳</span></button>
+  <button type="button" data-tab="money"><span class="tb-i">還可花<i class="tb-dot" id="tbMoney"></i></span></button>
+  <button type="button" data-tab="list"><span class="tb-i">明細<i class="tb-dot new" id="tbList" hidden></i></span></button>
+  <button type="button" data-tab="settings"><span class="tb-i">設定</span></button>
+</nav>
 <button type="button" class="to-top" id="toTop" aria-label="回到最上面" title="回到最上面"><span class="tt-arr" aria-hidden="true"></span><span class="tt-l">TOP</span></button>
 
 <script>
@@ -779,7 +848,7 @@ let filter="all", shown=60, todayRemainNow=0;
 let listView="month", listMonth="", listDay="", navPrevKey=null, navNextKey=null;
 try{if(localStorage.getItem("kyx-list-view")==="day")listView="day"}catch(e){}
 /* 提示區用：目前撐到的日期（錢不夠時是 null）、目前的每日基準、提示的狀態（只存在這個瀏覽器） */
-let holdNoticeScroll=false, freshTotal=0, bootNotices=new Set();
+let holdNoticeScroll=false, freshTotal=0;
 let endNow=null, planNow=0, noticeReady=false, noticeScrollPending=false, shownNotices=new Set(), quietNotices=false;
 const LS_NOTES="kyx-notes-v1";
 let notes={};
@@ -955,14 +1024,15 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
     if(text)notes.impact={id:e.id,date:todayStr(),text,kind};
   }
   saveNotes();
+  listNew=true;
   render();
   if(fxMode){$("isFixed").checked=false;drawFxPick()}
   flashBtn(b,"已記下 NT$"+fmt(e.amount));
-  if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow)+(freshTotal>fresh0?"，最上面有新的提示。":""),true);
+  if(e.type==="personal"&&e.date===todayStr()&&todayRemainNow<-0.5)toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+"。今天已經超支 NT$"+fmt(-todayRemainNow)+(freshTotal>fresh0?"，「通知」有新的提示。":""),true);
   else if(smallPay)toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。這是小筆收入（不到常規薪水一半），會算進剩餘資產，但不算進每日基準。");
-  else if(e.type==="salary")toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。錢怎麼分配，請看最上面。");
+  else if(e.type==="salary")toast("已記下 真實薪水 NT$"+fmt(e.amount)+"。錢怎麼分配，請看「通知」。");
   else if(fxMode)toast("已記下 "+fxName(e.fx)+" 實際金額 NT$"+fmt(e.amount)+(est>0?"，取代預估 NT$"+fmt(est)+(Math.abs(e.amount-est)<0.5?"，剛好一樣。":e.amount>est?"，多付 NT$"+fmt(e.amount-est)+"。":"，少付的 NT$"+fmt(est-e.amount)+" 回到剩餘資產。"):"。"),e.amount>est+0.5&&est>0);
-  else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+(freshTotal>fresh0?"。最上面有新的提示。":""));
+  else toast("已記下 "+TYPES[e.type].name+" NT$"+fmt(e.amount)+(freshTotal>fresh0?"。「通知」有新的提示。":""));
   holdNoticeScroll=false;
   /* 送出後收起鍵盤；記工作帳捲到誰欠誰；其他的有新提示就捲到最上面看提示（render 會處理），沒有就捲到還可花 */
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
@@ -981,6 +1051,9 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
       stayPause(1600);
       document.body.classList.add("typing");
       const top=rowOf[id]().getBoundingClientRect().top-8;
+      /* 用「鍵盤收起來時」的畫面高度算，收鍵盤時才不會因為捲不到而被推 */
+      const lack=window.scrollY+top-(document.documentElement.scrollHeight-Math.max(window.innerHeight,maxVh));
+      if(lack>0){const sp=$("endSpace");sp.style.height=(sp.offsetHeight+lack+2)+"px"}
       if(Math.abs(top)>4){window.scrollBy(0,top)}
       stayMark($(id));
     });
@@ -1310,6 +1383,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>moveInds(t
 /* ---------- 篩選 ---------- */
 document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
   filter=b.dataset.f;shown=60;armed=null;
+  $("sec-work").classList.toggle("on",filter==="work");
   document.querySelectorAll(".filters button").forEach(x=>x.classList.toggle("on",x===b));
   render();
 }));
@@ -1403,6 +1477,7 @@ $("alert").addEventListener("click",ev=>{
     if(!i||!i.value){toast("先選日期，再按「確定」",true);if(i)i.focus();return}
     setUntil(i.value);
   }else if(b.dataset.act==="got"){
+    if(mobileTabs())setTab("entry");
     $("sec-entry").scrollIntoView({behavior:reduceMotion()?"auto":"smooth",block:"start"});
     $("amount").focus({preventScroll:true});toast("輸入薪水金額，再按「真實薪水」");
   }else if(b.dataset.act==="wait7"||b.dataset.act==="wait14"){
@@ -1522,7 +1597,7 @@ function drawNotices(ns){
     let el=[...al.children].find(x=>x.dataset.key===n.key);
     if(!el){el=document.createElement("div");el.className="notice";el.dataset.key=n.key;}
     el.dataset.kind=n.kind;
-    const isNew=noticeReady&&!bootNotices.has(n.key);
+    const isNew=!seenNotice(n.key);
     const html=(isNew?'<span class="n-new">NEW</span>':"")+n.html;
     if(el._html!==html){el.innerHTML=html;el._html=html}
     if(al.children[i]!==el)al.insertBefore(el,al.children[i]||null);
@@ -1530,19 +1605,35 @@ function drawNotices(ns){
     el.classList.toggle("is-new",isNew);
   });
   $("alert").hidden=!ns.length;
+  $("noticeEmpty").hidden=!!ns.length;
   /* 收起來的時候記住當時有哪幾則；出現不在裡面的新提示就自動展開 */
-  const folded=!!(notes.fold&&keys.length&&keys.every(k=>notes.fold.includes(k)));
+  const folded=!mobileTabs()&&!!(notes.fold&&keys.length&&keys.every(k=>notes.fold.includes(k)));
   if(notes.fold&&!folded){notes.fold=null;saveNotes()}
   setFold(folded);
-  const nNew=ns.filter(n=>noticeReady&&!bootNotices.has(n.key)).length;
+  const nNew=ns.filter(n=>!seenNotice(n.key)).length;
+  curNoticeKeys=keys;drawBadges();
   $("noticeTitle").textContent="提示 "+ns.length+" 則"+(nNew?"（新 "+nNew+"）":"");
   $("noticeDots").innerHTML=ns.map(n=>'<i data-kind="'+n.kind+'"></i>').join("");
   if(noticeReady&&fresh.length){
     for(const el of fresh){el.classList.remove("fresh");void el.offsetWidth;el.classList.add("fresh")}
     freshTotal+=fresh.length;   // 新提示只跑動畫，不自動捲動
   }
-  if(!noticeReady)bootNotices=new Set(keys);   // 打開頁面時就有的，不算新的
   shownNotices=new Set(keys);
+}
+/* 通知「新的」＝還沒點進通知頁看過的（記在 kyx-notes-v1 的 seen） */
+let curNoticeKeys=[];
+const seenNotice=k=>!!(notes.seen&&notes.seen.includes(k));
+function markNoticesSeen(){
+  const add=curNoticeKeys.filter(k=>!seenNotice(k));
+  if(!add.length)return;
+  notes.seen=(notes.seen||[]).concat(add).slice(-200);saveNotes();
+}
+/* 分頁列上的標示：通知＝沒看過的則數；還可花＝顏色；明細＝剛記了一筆 */
+let listNew=false;
+function drawBadges(){
+  const n=curTab==="notice"&&mobileTabs()?0:curNoticeKeys.filter(k=>!seenNotice(k)).length;
+  const b=$("tbNotice");b.hidden=!n;if(n&&b.textContent!==String(n))b.textContent=n;
+  $("tbList").hidden=!listNew||curTab==="list";
 }
 function setFold(f){
   $("alert").classList.toggle("folded",f);
@@ -1616,8 +1707,8 @@ function baseDay(today){
    iPhone 的 Safari 沒有內建這個功能，所以自己做 */
 /* 記的是那個元素在「整頁」裡的位置（不是在畫面上的位置）：
    捲動（使用者捲、iOS 開關鍵盤時自己捲）不會改變它，只有上面的內容變高變矮才會，所以只補這種變動，永遠不會跟捲動搶 */
-const stay={el:null,doc:0,sec:null,secDoc:0,y:0,h:0};
-const stayable=el=>el&&el.isConnected&&!el.closest(".topbar,#toTop")&&el.getBoundingClientRect().height>0;
+const stay={el:null,doc:0,sec:null,secDoc:0,y:0,h:0,vh:0};
+const stayable=el=>el&&el.isConnected&&!el.closest(".topbar,#toTop,#tabbar")&&el.getBoundingClientRect().height>0;
 const docTop=el=>el.getBoundingClientRect().top+window.scrollY;
 function stayMark(el){
   if(!stayable(el))return;
@@ -1630,12 +1721,13 @@ function stayPause(){}   // 舊的暫停機制已經不需要
 const endSpace=()=>$("endSpace");
 const pageH=()=>document.documentElement.scrollHeight;
 function keepRoom(){
-  const H=pageH();
-  if(stay.h&&H<stay.h-0.5){                 // 頁面變短了：底部空白補回同樣的高度，瀏覽器就不會把畫面往上推
-    const sp=endSpace();sp.style.height=(sp.offsetHeight+stay.h-H)+"px";
-    if(Math.abs(window.scrollY-stay.y)>0.5)window.scrollTo(0,stay.y);
+  /* 頁面變短、或畫面變高（鍵盤收起），捲不到原本的位置了：底部空白補上差的那一段，瀏覽器就不會把畫面推走 */
+  const max=pageH()-window.innerHeight;
+  if(stay.h&&stay.y>max+0.5){
+    const sp=endSpace();sp.style.height=(sp.offsetHeight+stay.y-max)+"px";
+    window.scrollTo(0,stay.y);
   }
-  stay.h=pageH();
+  stay.h=pageH();stay.vh=window.innerHeight;
 }
 function stayFix(){
   keepRoom();
@@ -1650,12 +1742,13 @@ function stayFix(){
 document.addEventListener("pointerdown",e=>stayMark(e.target.closest("button,input,select,summary,a,label,li")||e.target),true);
 document.addEventListener("focusin",e=>stayMark(e.target),true);
 window.addEventListener("scroll",()=>{
-  if(stay.h&&pageH()<stay.h-0.5)return;     // 頁面變短被瀏覽器推的，不是使用者捲的：交給 keepRoom 補回去
+  /* 頁面變短或畫面變高、被瀏覽器推上去的，不是使用者捲的：交給 keepRoom 補回去 */
+  if(stay.h&&window.scrollY<stay.y-0.5&&(pageH()<stay.h-0.5||window.innerHeight>stay.vh+0.5)){keepRoom();return}
   stay.y=window.scrollY;
   /* 底部空白：視窗下面還有多少就收掉多少，不會把畫面拉動 */
   const sp=endSpace(), h=sp.offsetHeight;
   if(h>0){
-    const room=pageH()-window.innerHeight-window.scrollY;
+    const room=pageH()-Math.max(window.innerHeight,maxVh)-window.scrollY;   // 用鍵盤收起來時的高度算，鍵盤開著時不要先收掉
     if(room>0)sp.style.height=Math.max(0,h-room)+"px";
   }
   stay.h=pageH();
@@ -1668,6 +1761,8 @@ window.addEventListener("scroll",()=>{
   }
 },{passive:true});
 if("ResizeObserver" in window)new ResizeObserver(()=>stayFix()).observe(document.body);
+let maxVh=window.innerHeight;
+window.addEventListener("resize",()=>{maxVh=Math.max(maxVh,window.innerHeight);keepRoom()});
 function render(){
   renderCore();
   stayFix();
@@ -1819,6 +1914,15 @@ function renderCore(){
   $("runout").textContent=runout;
   /* 顏色：撐到的日期在下次發薪日當天或之後＝青綠「注意」（不說「夠」，免得他放心花）、提早 7 天內用完＝琥珀「緊繃」、提早超過 7 天或已經不夠＝朱紅「超支」 */
   setTone("periodPanel","periodTag",periodTone,{ok:"注意",low:"緊繃",over:"超支"});
+  if(!quietNotices){
+    /* 記帳頁的小摘要、分頁列「還可花」的點：顏色取兩個裡面比較嚴重的 */
+    const rank={ok:0,low:1,over:2}, worst=rank[todayTone]>=rank[periodTone]?todayTone:periodTone;
+    const ms=$("miniSum");ms.classList.remove("tone-ok","tone-low","tone-over");ms.classList.add("tone-"+worst);
+    $("tbMoney").className="tb-dot tone-"+worst;
+    const mt=money(todayRemain), mu=periodLeft<-0.5?"還差 NT$"+fmt(-periodLeft):md(dayAt(endNow?dayDiff(today,endNow):0));
+    $("miniUntilL").textContent=periodLeft<-0.5?"剩餘的錢":"撐到";
+    for(const [id,v] of [["miniToday",mt],["miniUntil",mu]]){const el=$(id);if(el.textContent!==v){el.textContent=v;if(noticeReady){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}}
+  }
   drawFixedSummary(today);
   /* ---------- 提示區：條件不成立就自動消失，不能手動關 ---------- */
   const ns=[];
@@ -1931,7 +2035,7 @@ function renderCore(){
   const ul=$("list");ul.textContent="";
   if(!list.length){
     const li=document.createElement("div");li.className="empty";
-    li.textContent=cfg&&!loaded?"讀取中…":(!all.length?"還沒有紀錄。在最上面輸入金額，再點一個類型就記好了。":listView==="month"?"這個月還沒有紀錄。":"這天沒有紀錄。");
+    li.textContent=cfg&&!loaded?"讀取中…":(!all.length?"還沒有紀錄。在「記帳」輸入金額，再點一個類型就記好了。":listView==="month"?"這個月還沒有紀錄。":"這天沒有紀錄。");
     ul.appendChild(li);return;
   }
   let lastDate=null, lastYear=today.slice(0,4);
@@ -2082,6 +2186,44 @@ $("importYes").onclick=()=>{
   importNote("已匯入 "+fresh.length+" 筆新紀錄，設定也已更新。");
 };
 
+/* ---------- 分頁（手機）---------- */
+const TABS=["notice","entry","money","list","settings"];
+let curTab="entry";const tabScroll={};
+const mobileTabs=()=>window.matchMedia&&matchMedia("(max-width:959px)").matches;
+function setTab(t,how){
+  if(!TABS.includes(t))t="entry";
+  const prev=curTab;
+  if(prev==="notice"&&t!=="notice"){markNoticesSeen();render()}   // 離開通知頁：看過了，NEW 拿掉
+  tabScroll[prev]=window.scrollY;
+  curTab=t;
+  const dx=TABS.indexOf(t)>TABS.indexOf(prev)?18:TABS.indexOf(t)<TABS.indexOf(prev)?-18:0;
+  document.querySelectorAll(".pane").forEach(p=>{const on=p.dataset.pane===t;p.classList.toggle("on",on);if(on)p.style.setProperty("--pane-dx",dx+"px")});
+  document.querySelectorAll("#tabbar button").forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle("on",on);b.setAttribute("aria-current",on?"page":"false")});
+  if(t==="list")listNew=false;
+  if(t==="notice"&&$("alert").classList.contains("folded")){notes.fold=null;saveNotes();setFold(false)}
+  if(t==="settings"&&mobileTabs())$("settingsBox").open=true;
+  $("endSpace").style.height="0px";
+  stay.el=stay.sec=null;                        // 換頁了，「維持原位」從新的一頁重新開始
+  if(mobileTabs())window.scrollTo(0,tabScroll[t]||0);
+  stay.y=window.scrollY;stay.h=pageH();stay.vh=window.innerHeight;
+  moveInds(true);
+  drawBadges();
+  if(how==="push"&&prev!==t)history.pushState({tab:t},"","#"+t);
+  else if(how==="replace")history.replaceState({tab:t},"","#"+t);
+}
+$("tabbar").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(b&&b.dataset.tab!==curTab)setTab(b.dataset.tab,"push")});
+window.addEventListener("popstate",e=>setTab(e.state&&e.state.tab||"entry"));
+$("miniSum").addEventListener("click",()=>setTab("money","push"));
+/* 電腦：右邊那欄固定在頂部列下面，要知道頂部列多高；通知在畫面上看得到 3 秒就算看過 */
+function topH(){document.documentElement.style.setProperty("--top-h",document.querySelector(".topbar").offsetHeight+"px")}
+window.addEventListener("resize",()=>{topH();drawBadges()});
+if("IntersectionObserver" in window){
+  let seenT=null;
+  new IntersectionObserver(es=>{for(const en of es){
+    clearTimeout(seenT);
+    if(en.isIntersecting&&!mobileTabs())seenT=setTimeout(()=>{markNoticesSeen();drawBadges()},3000);   // 電腦：NEW 留到下次畫面更新
+  }},{threshold:.4}).observe($("alert"));
+}
 /* ---------- 目錄 ---------- */
 $("toc").addEventListener("click",e=>{
   const a=e.target.closest("a[data-go]");if(!a)return;
@@ -2121,6 +2263,7 @@ drawThemeBtn();
 /* ---------- 啟動 ---------- */
 lsLoad();
 drawFixedRows();drawSheetBox();render();noticeReady=true;
+topH();setTab("entry","replace");   // 打開時一律停在「記帳」
 setInterval(render,60000);
 if(cfg)sync();else setStatus("local");
 window.addEventListener("online",()=>sync());
