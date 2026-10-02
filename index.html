@@ -180,6 +180,16 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .notice .n-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;color:var(--gold-text)}
 .notice .n-in input{width:auto;min-width:150px;font-family:var(--font-display);font-size:16px;border-bottom:2px solid var(--gh-gold)}
 
+/* ===== 回到最上面：右下角的方塊，捲下去才出現 ===== */
+.to-top{position:fixed;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:45;width:48px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:var(--bg-header);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--gh-gold);color:var(--gold-text);cursor:pointer;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity var(--dur-base) var(--ease),transform var(--dur-base) var(--ease-settle),background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.to-top.show{opacity:1;transform:none;pointer-events:auto}
+.to-top:hover{background:var(--gh-gold);color:#000}
+.to-top:hover .tt-arr{transform:translateY(-2px) rotate(45deg)}
+.tt-arr{width:9px;height:9px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:translateY(2px) rotate(45deg);transition:transform var(--dur-fast) var(--ease)}
+.tt-l{font-family:var(--font-display);font-size:9px;font-weight:500;letter-spacing:.2em;line-height:1;margin-right:-.2em}
+body.typing .to-top{display:none}
+@media (max-width:560px){.to-top{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px}}
+
 /* ===== 總覽色塊 ===== */
 .hero{display:flex;flex-direction:column;gap:12px}
 .panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
@@ -708,6 +718,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
     </details>
   </div>
 </main>
+<button type="button" class="to-top" id="toTop" aria-label="回到最上面" title="回到最上面"><span class="tt-arr" aria-hidden="true"></span><span class="tt-l">TOP</span></button>
 
 <script>
 (function(){
@@ -1953,6 +1964,14 @@ $("themeBtn").onclick=()=>{
   drawThemeBtn();
 };
 drawThemeBtn();
+
+/* ---------- 回到最上面 ---------- */
+{
+  const tt=$("toTop");let on=false;
+  const upd=()=>{const v=window.scrollY>window.innerHeight*0.6;if(v!==on){on=v;tt.classList.toggle("show",v)}};
+  window.addEventListener("scroll",upd,{passive:true});upd();
+  tt.onclick=()=>window.scrollTo({top:0,behavior:reduceMotion()?"auto":"smooth"});
+}
 
 /* ---------- 啟動 ---------- */
 lsLoad();
