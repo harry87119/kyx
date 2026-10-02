@@ -103,7 +103,9 @@ button{cursor:pointer}
 .top-right .sync{margin-right:6px}
 @media (max-width:560px){.top-right .sync{max-width:118px;font-size:10px;line-height:1.35}}
 /* 目錄：一直展開，橫向一排；手機上可以左右滑 */
-body.typing .topbar{position:relative}
+/* 打字時頂部列往上滑走（不改變排版，不會讓頁面跳） */
+.topbar{transition:transform 280ms var(--ease-wipe)}
+body.typing .topbar{transform:translateY(-100%)}
 /* 打字時按鈕縮矮、說明淡出；離開備註再長回來（都用動畫，不會一格一格跳） */
 body.typing .tbtn{min-height:58px;padding-top:10px;padding-bottom:10px;gap:0}
 body.typing .tbtn small{opacity:0;max-height:0}
@@ -973,7 +975,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px)").matches;
   let pinUntil=0;
   const place=()=>{
-    if(document.activeElement!==$("note")||Date.now()>pinUntil)return;
+    if(document.activeElement!==$("note")||performance.now()>pinUntil)return;
     const vv=window.visualViewport, top=vv?vv.offsetTop:0, h=vv?vv.height:window.innerHeight;
     const a=$("note").closest(".meta").getBoundingClientRect().top;
     const b=document.querySelector('.tbtn[data-type="personal"]').getBoundingClientRect().bottom;
@@ -983,13 +985,18 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   };
   $("note").addEventListener("focus",()=>{
     if(!small())return;
+    stayPause(1600);
     document.body.classList.add("typing");
-    pinUntil=Date.now()+1500;
+    pinUntil=performance.now()+1500;
     place();setTimeout(place,300);setTimeout(place,700);
   });
   if(window.visualViewport)visualViewport.addEventListener("resize",place);
   /* 晚一點才恢復，免得按鈕在手指按下去的瞬間變高、按錯 */
-  $("note").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("note"))document.body.classList.remove("typing")},400));
+  $("note").addEventListener("blur",()=>{
+    if(!small())return;
+    stayPause(1200);   // 鍵盤收起、按鈕長回來的這段時間不要跟 iOS 搶著捲
+    setTimeout(()=>{if(document.activeElement!==$("note"))document.body.classList.remove("typing")},400);
+  });
 }
 
 /* 按下記帳按鈕後：色帶掃過，小字短暫改成「已記下 NT$X」 */
@@ -1612,11 +1619,14 @@ function baseDay(today){
 /* 畫面維持原位：記住最後操作的元素（或畫面頂端看到的元素）在畫面上的位置，
    上面的內容變高變矮（例如新提示出現、提示區展開）時把畫面補回去，那個東西就停在原地。
    iPhone 的 Safari 沒有內建這個功能，所以自己做 */
-const stay={el:null,top:0,y:0};
+const stay={el:null,top:0,y:0,pause:0};
 const stayable=el=>el&&el.isConnected&&!el.closest(".topbar,#toTop")&&el.getBoundingClientRect().height>0;
 function stayMark(el){if(stayable(el)){stay.el=el;stay.top=el.getBoundingClientRect().top;stay.y=window.scrollY}}
+/* 鍵盤升起、收起的這段時間 iOS 會自己捲頁面：先暫停，讓 iOS 捲完，之後從當時的位置繼續 */
+function stayPause(ms){stay.pause=Math.max(stay.pause,performance.now()+ms)}
 function stayFix(){
   if(!stayable(stay.el))return;
+  if(performance.now()<stay.pause){stay.top=stay.el.getBoundingClientRect().top;stay.y=window.scrollY;return}
   const d=stay.el.getBoundingClientRect().top-stay.top;
   if(Math.abs(d)>0.5)window.scrollBy(0,d);
   stay.top=stay.el.getBoundingClientRect().top;stay.y=window.scrollY;
@@ -1624,6 +1634,7 @@ function stayFix(){
 document.addEventListener("pointerdown",e=>stayMark(e.target.closest("button,input,select,summary,a,label,li")||e.target),true);
 document.addEventListener("focusin",e=>stayMark(e.target),true);
 let stayScrollT=0;
+if(window.visualViewport)visualViewport.addEventListener("resize",()=>stayPause(700));
 window.addEventListener("scroll",()=>{
   if(Math.abs(window.scrollY-stay.y)<1)return;   // 自己補的捲動，不是使用者捲的
   stay.y=window.scrollY;
