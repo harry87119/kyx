@@ -123,11 +123,7 @@ html,body{overflow-anchor:none}
 @media (max-width:560px){.toc{gap:0;justify-content:space-between;overflow-x:visible}.toc a{font-size:13px;letter-spacing:.04em}.toc a .b-label{display:none}}
 section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 @media (max-width:560px){section,details.settings,#settleLabel{scroll-margin-top:136px}}
-.sync{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.06em;color:var(--fg-3);text-align:right;min-width:0}
-.sync::before{content:"";width:6px;height:6px;flex:none;background:var(--fg-3)}
-.sync[data-state="ok"]::before{background:var(--gh-turquoise)}
-.sync[data-state="syncing"]::before,.sync[data-state="offline"]::before{background:var(--gh-amber)}
-.sync[data-state="error"]::before{background:var(--gh-red)}
+.sync{display:inline-flex;align-items:center;font-size:11px;letter-spacing:.06em;color:var(--fg-3);text-align:right;min-width:0}
 .sync.bad{color:var(--expense)}
 
 /* ===== 版面 ===== */
@@ -938,7 +934,7 @@ function applyOps(d,ops){
 
 /* ---------- 同步 ---------- */
 let syncing=false, syncAgain=false, retryTimer=null;
-const STATUS={local:"未連上雲端，只存在這個瀏覽器",ok:"已同步",syncing:"同步中…",offline:"離線，恢復連線後會自動補送"};
+const STATUS={local:"未連結 Google 試算表",ok:"已連結 Google 試算表",syncing:"同步中…",offline:"離線，恢復連線後會自動補送"};
 function setStatus(kind,msg){
   const el=$("sync");
   el.textContent=STATUS[kind]||msg;
