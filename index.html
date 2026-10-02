@@ -284,12 +284,14 @@ body.typing .to-top{display:none}
 .panel{display:flex;flex-direction:column;justify-content:flex-start;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
 .panel .b-label{color:inherit}
 /* 還可花的三種顏色：充裕／注意＝綠 #A8DA40、緊繃＝琥珀 #FFBB22、超支／不夠＝紅 #F92C16。
-   色塊只畫外框（不再整塊塗滿），字照一般顏色；顏色出現在外框和右上角的小方塊 */
+   色塊只畫外框，字照一般顏色；顏色出現在外框和右上角的小方塊。超支例外，整塊塗滿紅色（見下面） */
 .tone-ok{--tone:var(--ok)}
 .tone-low{--tone:var(--low)}
 .tone-over{--tone:var(--gh-red)}
 .panel.tone-ok,.panel.tone-low,.panel.tone-over,.mini-sum{background:transparent;border:2px solid var(--tone,var(--line));color:var(--fg)}
-.panel{transition:border-color var(--dur-base) var(--ease-wipe)}
+/* 超支例外：整塊塗滿紅色、白字，一眼就看得出來（長條、右上角小方塊改白色） */
+.panel.tone-over,.mini-sum.tone-over{background:var(--gh-red);border-color:var(--gh-red);--tone:#fff;--fg:#fff;--fg-2:rgba(255,255,255,.85);--fg-3:rgba(255,255,255,.72);--line:rgba(255,255,255,.32);--focus:#fff;--expense:#fff;color:#fff}
+.panel{transition:border-color var(--dur-base) var(--ease-wipe),background-color var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
 .panel .neg{color:inherit}
 /* 兩塊的大數字放在同一個高度（標題下面），下面的小字和長條貼齊底部 */
 .panel-body{flex:1;display:flex;flex-direction:column;min-width:0}
