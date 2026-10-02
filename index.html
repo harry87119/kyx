@@ -893,8 +893,8 @@ function lsLoad(){
   if(!o){
     /* 第一次使用：先帶入一項每月固定支出，之後可以隨時修改 */
     o={fixed:[
-      {id:"fx-default",name:"每月固定支出",amount:18000,day:1,since:firstSince(1)},
-      {id:"fx-card",name:"卡費",amount:5000,day:1,since:firstSince(1)}
+      {id:"fx-default",name:"每月固定支出",amount:18000,day:1,since:firstSince(1),from:todayStr()},
+      {id:"fx-card",name:"卡費",amount:5000,day:1,since:firstSince(1),from:todayStr()}
     ]};
     setData(o);lsSave();
   }
@@ -1245,11 +1245,28 @@ function dueDate(y,m,day){const dim=new Date(y,m,0).getDate();return y+"-"+pad(m
 /* 同一項固定支出改過金額會分成好幾段設定，sid 把它們串成同一項 */
 const sidOf=f=>f.sid||f.id;
 /* 每一期預估扣款的日期（還沒算實際金額取代） */
+/* 固定支出從哪個月開始扣：
+   新增一項時 since 是「今天以後第一次扣款」的月份（新增不會往回扣）。但剛開始用的時候，常常是先設好固定支出、
+   再補記之前就進來的薪水（例如 10/2 才開始用，補記 9/7 的薪水）：這時 9/7 之後到期的固定項目（10/1 房租）
+   其實已經從這筆薪水付掉了，要扣。所以「真固定」的項目如果是在第一個發薪週期內設定的（設定那天不晚於
+   第一筆常規薪水之後預計的下次發薪日），就往前補到「第一筆常規薪水之後第一次到期」的那個月。
+   浮動的（金額會變）不往前補：沒記實際金額的那期不扣。之後才新增的項目（例如新訂閱）也不往前補 */
+function startMonth(f,anchor){
+  if(f.vary||!anchor)return f.since;
+  if(f.sid&&f.sid!==f.id)return f.since;   // 改過金額後的新版本（舊版本停在改之前）：照原本的
+  let created=f.from;
+  if(!created){const [sy,sm]=f.since.split("-").map(Number);created=addDays(dueDate(sm===1?sy-1:sy,sm===1?12:sm-1,f.day||1),1)}   // 舊資料沒記設定日：當成最早可能的那天
+  if(created>expectedPayday(anchor))return f.since;
+  let [y,m]=anchor.split("-").map(Number);
+  if(dueDate(y,m,f.day||1)<anchor){m++;if(m>12){m=1;y++}}
+  const ym=y+"-"+pad(m);
+  return ym<f.since?ym:f.since;
+}
 function rawOcc(endDate,list){
-  const out=[];
+  const out=[], ms=mainSalaries(todayStr()), anchor=ms.length?ms[0].date:null;   // 第一筆常規薪水＝開始記帳
   for(const f of list||fixed){
     if(!(f.amount>0)||!f.since)continue;
-    let [y,m]=f.since.split("-").map(Number);
+    let [y,m]=startMonth(f,anchor).split("-").map(Number);
     for(let i=0;i<600;i++){
       const d=dueDate(y,m,f.day||1);
       if(d>endDate||(f.end&&d.slice(0,7)>f.end))break;
@@ -1367,7 +1384,7 @@ $("saveFixed").onclick=()=>{
     const amt=Math.round(amount*100)/100;
     const vary=r.closest(".fx-group").dataset.vary==="1";
     const old=fixed.find(f=>f.id===r.dataset.id&&!f.end);
-    if(!old){const id=newId();next.push(Object.assign({id,sid:id,name,amount:amt,day,since:firstSince(day)},vary?{vary:true}:{}));continue}
+    if(!old){const id=newId();next.push(Object.assign({id,sid:id,name,amount:amt,day,since:firstSince(day),from:todayStr()},vary?{vary:true}:{}));continue}
     kept.add(old.id);
     if(old.amount===amt&&old.day===day){next.push(Object.assign({},old,{name}));continue}
     const last=lastChargedMonth(old);
