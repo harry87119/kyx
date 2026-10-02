@@ -1047,16 +1047,32 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
 {
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px) and (pointer:coarse)").matches;
   const rowOf={amount:()=>$("amount").closest(".amount-wrap"),note:()=>$("note").closest(".meta")};
+  /* 平順地捲過去（約 0.35 秒，先快後慢）；減少動態效果時直接到 */
+  let glideId=0;
+  const glide=dy=>{
+    const y0=window.scrollY, gid=++glideId;
+    if(reduceMotion()){window.scrollTo(0,y0+dy);return}
+    const t0=performance.now(), dur=350;
+    stay.glide=true;
+    const step=now=>{
+      if(gid!==glideId){stay.glide=false;return}
+      const t=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-t,3);
+      window.scrollTo(0,y0+dy*e);
+      if(t<1)requestAnimationFrame(step);else stay.glide=false;
+    };
+    requestAnimationFrame(step);
+  };
+  window.addEventListener("touchstart",()=>glideId++,{passive:true});   // 手指一碰就停，讓使用者自己捲
   for(const id of ["amount","note"]){
     $(id).addEventListener("focus",()=>{
       if(!small())return;
       stayPause(1600);
       document.body.classList.add("typing");
-      const top=rowOf[id]().getBoundingClientRect().top-8;
+      const top=rowOf[id]().getBoundingClientRect().top-16;   // 上面留一點，標籤（備註 / NOTE）才不會被蓋住
       /* 用「鍵盤收起來時」的畫面高度算，收鍵盤時才不會因為捲不到而被推 */
       const lack=window.scrollY+top-(document.documentElement.scrollHeight-Math.max(window.innerHeight,maxVh));
       if(lack>0){const sp=$("endSpace");sp.style.height=(sp.offsetHeight+lack+2)+"px"}
-      if(Math.abs(top)>4){window.scrollBy(0,top)}
+      if(Math.abs(top)>4)glide(top);
       stayMark($(id));
     });
     $(id).addEventListener("blur",()=>{
@@ -1709,7 +1725,7 @@ function baseDay(today){
    iPhone 的 Safari 沒有內建這個功能，所以自己做 */
 /* 記的是那個元素在「整頁」裡的位置（不是在畫面上的位置）：
    捲動（使用者捲、iOS 開關鍵盤時自己捲）不會改變它，只有上面的內容變高變矮才會，所以只補這種變動，永遠不會跟捲動搶 */
-const stay={el:null,doc:0,sec:null,secDoc:0,y:0,h:0,vh:0};
+const stay={el:null,doc:0,sec:null,secDoc:0,y:0,h:0,vh:0,glide:false};
 const stayable=el=>el&&el.isConnected&&!el.closest(".topbar,#toTop,#tabbar")&&el.getBoundingClientRect().height>0;
 const docTop=el=>el.getBoundingClientRect().top+window.scrollY;
 function stayMark(el){
@@ -1749,7 +1765,7 @@ window.addEventListener("scroll",()=>{
   stay.y=window.scrollY;
   /* 底部空白：視窗下面還有多少就收掉多少，不會把畫面拉動 */
   const sp=endSpace(), h=sp.offsetHeight;
-  if(h>0){
+  if(h>0&&!stay.glide){                   // 自己正在平順捲動時不收，免得捲不到目標
     const room=pageH()-Math.max(window.innerHeight,maxVh)-window.scrollY;   // 用鍵盤收起來時的高度算，鍵盤開著時不要先收掉
     if(room>0)sp.style.height=Math.max(0,h-room)+"px";
   }
