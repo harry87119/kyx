@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Archivo:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Archivo:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700;900&display=swap">
 <script>try{var kt=localStorage.getItem("kyx-theme");if(kt==="light"||kt==="dark")document.documentElement.setAttribute("data-theme",kt)}catch(e){}</script>
 <style>
 /* ===== Bito UI 規格（BITO-STYLE.md）：黑色是舞臺，顏色以整塊平塗色面出現；直角、1px 細線、無陰影、無漸層 ===== */
@@ -25,9 +25,9 @@
 --ink-900:#1b1919;
 /* 字體 */
 --font-display:"Jost","Futura","Avenir Next",system-ui,sans-serif;
---font-text:"Archivo","Helvetica Neue",Arial,"Noto Sans TC","PingFang TC",sans-serif;
+--font-text:"Archivo","Helvetica Neue",Arial,"Noto Serif TC","Songti TC",serif;
 --font-han-serif:"Noto Serif TC","Songti TC",serif;
---font-han-sans:"Noto Sans TC","PingFang TC",sans-serif;
+--font-han-sans:"Noto Serif TC","Songti TC",serif;   /* 中文內文也用宋體（Bito 參考稿的中文都是宋體；原本的黑體不用了），名稱沿用 */
 --page-margin:48px;
 --dur-instant:80ms;--dur-fast:140ms;--dur-base:240ms;--dur-reveal:700ms;
 --ease:cubic-bezier(.22,.61,.36,1);--ease-wipe:cubic-bezier(.76,0,.24,1);--ease-settle:cubic-bezier(.16,1,.3,1);
@@ -113,6 +113,8 @@ html,body{overflow-anchor:none}
 /* 目錄：一直展開，橫向一排；手機上可以左右滑 */
 /* 打字時頂部列往上滑走（不改變排版，不會讓頁面跳） */
 .topbar{transition:transform 280ms var(--ease-wipe)}
+/* 電腦：頂部列的左右邊跟下面的內容（最寬 1280px、置中）切齊，不會拉到整個視窗的兩邊 */
+.topbar{padding-left:max(var(--page-margin),calc((100% - 1280px)/2 + var(--page-margin)));padding-right:max(var(--page-margin),calc((100% - 1280px)/2 + var(--page-margin)))}
 
 
 .toc{order:10;width:100%;display:flex;gap:28px;overflow-x:auto;scrollbar-width:none;margin:2px 0 -10px;padding-top:4px}
