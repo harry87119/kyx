@@ -18,8 +18,9 @@
 <script>try{var kt=localStorage.getItem("kyx-theme");if(kt==="light"||kt==="dark")document.documentElement.setAttribute("data-theme",kt)}catch(e){}</script>
 <style>
 /* ===== Bito UI 規格（BITO-STYLE.md）：黑色是舞臺，顏色以整塊平塗色面出現；直角、1px 細線、無陰影、無漸層 ===== */
-/* 版面：手機單欄；寬螢幕左 7 右 5 兩欄（左：還可花色塊、剩餘資產、明細；右：新增一筆、固定支出、工作帳、設定） */
+/* 版面：手機分頁；電腦三欄一樣寬（左：通知、中：記帳／固定支出／明細／設定、右：還可花＋剩餘資產） */
 :root{
+--page-max:1440px;   /* 內容最寬多少（電腦三欄） */
 /* 品牌色（深淺模式共用） */
 --ok:#a8da40;--low:#ffbb22;--gh-red:#f92c16;--gh-vermilion:#ee5522;--gh-gold:#a89379;--gh-turquoise:#03c2b8;--gh-navy:#071729;--gh-blue:#041bca;--gh-blue-hover:#0a22e0;--gh-camel:#b0967a;--gh-ember:#df6a33;--gh-amber:#ffbb22;--gh-lime:#9bba05;--gh-acid:#df6a33;--gh-sky:#1178cb;
 --ink-900:#1b1919;
@@ -113,8 +114,8 @@ html,body{overflow-anchor:none}
 /* 目錄：一直展開，橫向一排；手機上可以左右滑 */
 /* 打字時頂部列往上滑走（不改變排版，不會讓頁面跳） */
 .topbar{transition:transform 280ms var(--ease-wipe)}
-/* 電腦：頂部列的左右邊跟下面的內容（最寬 1280px、置中）切齊，不會拉到整個視窗的兩邊 */
-.topbar{padding-left:max(var(--page-margin),calc((100% - 1280px)/2 + var(--page-margin)));padding-right:max(var(--page-margin),calc((100% - 1280px)/2 + var(--page-margin)))}
+/* 電腦：頂部列的左右邊跟下面的內容（最寬 --page-max、置中）切齊，不會拉到整個視窗的兩邊 */
+.topbar{padding-left:max(var(--page-margin),calc((100% - var(--page-max))/2 + var(--page-margin)));padding-right:max(var(--page-margin),calc((100% - var(--page-max))/2 + var(--page-margin)))}
 
 
 .toc{order:10;width:100%;display:flex;gap:28px;overflow-x:auto;scrollbar-width:none;margin:2px 0 -10px;padding-top:4px}
@@ -129,21 +130,32 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .sync.bad{color:var(--expense)}
 
 /* ===== 版面 ===== */
-.page{max-width:1280px;margin:0 auto;padding:32px var(--page-margin) calc(96px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:48px;row-gap:32px;align-items:start}
+.page{max-width:var(--page-max);margin:0 auto;padding:32px var(--page-margin) calc(96px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:48px;row-gap:32px;align-items:start}
 .col{display:flex;flex-direction:column;gap:64px;min-width:0}
 .pane{display:flex;flex-direction:column;gap:64px;min-width:0}
-/* 電腦：左邊依序 記帳 → 每月固定支出 → 明細 → 設定；右邊固定是 還可花 + 通知，不跟著捲（太長時右邊自己捲） */
-.col-right{position:sticky;top:calc(var(--top-h,120px) + 24px);max-height:calc(100vh - var(--top-h,120px) - 40px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;gap:40px}
-/* 右欄太長時：不顯示捲軸，下面（或上面）還有東西的那一邊淡出，用滑鼠滾輪捲 */
-.col-right::-webkit-scrollbar{display:none}
-.col-right.fade-b{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 96px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 96px),transparent)}
-.col-right.fade-t{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 56px);mask-image:linear-gradient(to bottom,transparent,#000 56px)}
-.col-right.fade-t.fade-b{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 56px,#000 calc(100% - 96px),transparent);mask-image:linear-gradient(to bottom,transparent,#000 56px,#000 calc(100% - 96px),transparent)}
-.col-right .pane{gap:40px}
-/* 電腦右欄的順序：還可花 → 通知 → 每月固定支出（通知緊接在兩個大數字下面，一定看得到） */
+/* 電腦三欄、一樣寬：左＝通知、中＝記帳 → 每月固定支出 → 明細 → 設定（跟著頁面捲）、右＝還可花。
+   左右兩欄固定在頂部列下面不動，一直展開；太長時那一欄自己捲（不顯示捲軸，還有東西的那一邊淡出） */
 @media (min-width:960px){
-  .col-right .pane[data-pane="money"]{display:contents}
-  .col-right #sec-hero{order:1}.col-right .pane[data-pane="notice"]{order:2}
+  .col-right{display:contents}
+  .col-left{grid-column:2;grid-row:1}
+  .col-right>.pane{grid-row:1;position:sticky;top:calc(var(--top-h,120px) + 32px);max-height:calc(100vh - var(--top-h,120px) - 48px);   /* top＝一開始的位置（頂部列下面 + 內容上方的 32px），捲動時才不會往上跳一下 */
+    overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;gap:40px}
+  .col-right>.pane::-webkit-scrollbar{display:none}
+  .col-right>.pane[data-pane="notice"]{grid-column:1}
+  .col-right>.pane[data-pane="money"]{grid-column:3}
+  .col-right>.pane.fade-b{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 96px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 96px),transparent)}
+  .col-right>.pane.fade-t{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 56px);mask-image:linear-gradient(to bottom,transparent,#000 56px)}
+  .col-right>.pane.fade-t.fade-b{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 56px,#000 calc(100% - 96px),transparent);mask-image:linear-gradient(to bottom,transparent,#000 56px,#000 calc(100% - 96px),transparent)}
+  /* 中間那欄：還沒捲到底時，畫面最下面淡出一段，暗示下面還有東西（捲到最後就看不到，因為底下留了一樣高的空白） */
+  .col-left{padding-bottom:96px}
+  .col-left::after{content:"";position:sticky;bottom:0;display:block;height:96px;margin-top:-96px;margin-bottom:-96px;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg))}
+  /* 還可花一欄比較窄：兩塊上下排 */
+  .col-right .panels{grid-template-columns:1fr}
+  .col-right .panels>.panel{min-height:220px}
+  /* 通知、剩餘資產一直展開，沒有收起來的按鈕 */
+  #alert .n-head{display:none}
+  .balance summary{cursor:default}
+  .balance summary .sum-act,.balance summary .chev{display:none}
 }
 .mini-sum,.tabbar{display:none}
 .work{display:none}
@@ -845,7 +857,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
               <div class="wf-row"><span>− 下次發薪日前要繳的固定支出</span><span class="num" id="wfReserve">—</span></div>
               <div class="wf-note" id="wfReserveList"></div>
               <div class="wf-row wf-total"><span>＝ 這段期間真正能花的</span><span class="num" id="assets">—</span></div>
-              <div class="wf-row"><span>每日基準（下次發薪日 <span id="wfTarget">—</span>，還有 <span id="wfDaysLeft">—</span> 天）</span><span class="num" id="wfPlan">—</span></div>
+              <div class="wf-row"><span>每日基準（到 <span id="wfTarget">—</span>，<span id="wfDaysLeft">—</span> 天）</span><span class="num" id="wfPlan">—</span></div>
               <p class="wf-runout" id="runout"></p>
               <div class="wf-row" id="wfExtraRow" hidden><span>照每日基準花用不到的錢<small class="wf-hint">不會加進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）</small></span><span class="num" id="wfExtra">—</span></div>
             </div>
@@ -1832,7 +1844,7 @@ function drawNotices(ns){
   $("alert").hidden=!ns.length;
   $("noticeEmpty").hidden=!!ns.length;
   /* 收起來的時候記住當時有哪幾則；出現不在裡面的新提示就自動展開 */
-  const folded=!mobileTabs()&&!!(notes.fold&&keys.length&&keys.every(k=>notes.fold.includes(k)));
+  const folded=false;   // 通知一直展開（電腦左欄、手機通知頁都不收起）
   if(notes.fold&&!folded){notes.fold=null;saveNotes()}
   setFold(folded);
   const nNew=ns.filter(n=>!seenNotice(n.key)).length;
@@ -1883,6 +1895,10 @@ function smoothDetails(d){
     an.oncancel=done;
   });
 }
+/* 電腦：剩餘資產一直展開，點標題不會收起來（要在 smoothDetails 之前攔下來） */
+$("balanceBox").addEventListener("click",e=>{if(!mobileTabs()&&e.target.closest("summary")){e.preventDefault();e.stopImmediatePropagation()}},true);
+const balanceOpen=()=>{if(!(window.matchMedia&&matchMedia("(max-width:959px)").matches))$("balanceBox").open=true};balanceOpen();
+if(window.matchMedia)matchMedia("(max-width:959px)").addEventListener("change",e=>{if(e.matches)$("balanceBox").open=false;else balanceOpen()});
 smoothDetails($("balanceBox"));smoothDetails($("settingsBox"));
 $("noticeHead").addEventListener("click",()=>{
   const f=!$("alert").classList.contains("folded");
@@ -2054,14 +2070,15 @@ function fitBigs(){
 if("ResizeObserver" in window){let lastW=-1;new ResizeObserver(es=>{const w=Math.round(es[0].contentRect.width);if(w!==lastW){lastW=w;fitBigs()}}).observe($("sec-hero").querySelector(".panels"))}
 /* 電腦右欄：上面／下面還有沒看到的內容，那一邊就淡出 */
 function fadeRight(){
-  const c=document.querySelector(".col-right");if(!c)return;
-  const scrollable=getComputedStyle(c).overflowY==="auto"&&c.scrollHeight>c.clientHeight+1;
-  c.classList.toggle("fade-t",scrollable&&c.scrollTop>2);
-  c.classList.toggle("fade-b",scrollable&&c.scrollTop+c.clientHeight<c.scrollHeight-2);
+  for(const c of document.querySelectorAll(".col-right>.pane")){
+    const scrollable=getComputedStyle(c).overflowY==="auto"&&c.scrollHeight>c.clientHeight+1;
+    c.classList.toggle("fade-t",scrollable&&c.scrollTop>2);
+    c.classList.toggle("fade-b",scrollable&&c.scrollTop+c.clientHeight<c.scrollHeight-2);
+  }
 }
-document.querySelector(".col-right").addEventListener("scroll",fadeRight,{passive:true});
+document.querySelectorAll(".col-right>.pane").forEach(c=>c.addEventListener("scroll",fadeRight,{passive:true}));
 window.addEventListener("resize",fadeRight);
-if("ResizeObserver" in window){const ro=new ResizeObserver(fadeRight);ro.observe(document.querySelector(".col-right"));[...document.querySelector(".col-right").children].forEach(k=>ro.observe(k))}
+if("ResizeObserver" in window){const ro=new ResizeObserver(fadeRight);document.querySelectorAll(".col-right>.pane").forEach(p=>{ro.observe(p);[...p.children].forEach(k=>ro.observe(k))})}
 function render(){
   renderCore();
   fitBigs();
