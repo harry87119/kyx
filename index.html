@@ -268,6 +268,18 @@ body.typing .to-top{display:none}
 .hero{display:flex;flex-direction:column;gap:12px}
 .panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
 @media (max-width:560px){.panels{grid-template-columns:1fr}}
+/* 兩塊並排時：每塊分上中下三區（標題／大數字／小字）。兩塊的標題區、小字區由程式設成一樣高（equalPanels），
+   中間的大數字上下置中，左右兩塊的三區就會對齊 */
+@media (min-width:561px){
+  .panels>.panel{gap:24px}
+  .panel>.panel-body{gap:24px}
+  .panel>.panel-body>.big,.panel>.panel-body>.date-line{margin:auto 0;min-width:0;text-align:center;justify-content:center}
+  .panel>.panel-body>.panel-foot{margin-top:0;padding-top:0}
+  .panel .panel-foot>.panel-sub{margin-top:0}
+  .panel>.panel-body>.date-line{align-items:flex-end}   /* 星期貼著日期底部，不撐高這一行 */
+  .panel>.panel-body>.date-line .wk{line-height:1.1;padding-bottom:.08em}
+}
+@media (min-width:960px){.panels>.panel{min-height:300px;padding:28px}}
 .panel{display:flex;flex-direction:column;justify-content:flex-start;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
 .panel .b-label{color:inherit}
 /* 還可花的三種顏色：充裕＝青綠、偏緊＝琥珀、超支／不夠＝朱紅；色塊內的文字、細線跟著換色 */
@@ -297,7 +309,7 @@ body.typing .to-top{display:none}
 .cmp-l .num,.cmp-v{font-family:var(--font-display);font-variant-numeric:tabular-nums}
 .cmp-v{text-align:right;white-space:nowrap;min-width:3.6em}
 .cmp-bar{position:relative;height:4px;background:var(--line)}
-.cmp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width var(--dur-reveal) var(--ease-wipe)}
+.cmp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-reveal) var(--ease-wipe)}
 .cmp-bar.money i{background:var(--fg)}
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
 .panel .panel-sub{color:var(--fg-2)}
@@ -1636,7 +1648,7 @@ if("IntersectionObserver" in window){
   let seen=false;
   new IntersectionObserver(es=>{
     for(const en of es){
-      if(en.isIntersecting&&!seen){seen=true;countUp($("todayLeft"));countUp($("periodDaily"))}
+      if(en.isIntersecting&&!seen){seen=true;countUp($("todayLeft"));countUp($("periodDaily"));for(const i of document.querySelectorAll("#todayMeter i,#cmpMoney")){i.style.animation="none";void i.offsetWidth;i.style.animation=""}}
       else if(!en.isIntersecting)seen=false;
     }
   },{threshold:.35}).observe($("sec-hero").querySelector(".panels"));
@@ -1859,8 +1871,28 @@ window.addEventListener("scroll",()=>{
 if("ResizeObserver" in window)new ResizeObserver(()=>stayFix()).observe(document.body);
 let maxVh=window.innerHeight;
 window.addEventListener("resize",()=>{maxVh=Math.max(maxVh,window.innerHeight);keepRoom()});
+/* 大數字放不下時縮小字（例如超支金額很大、電腦右欄比較窄），不會超出色塊 */
+function fitBigs(){
+  /* 兩塊並排時，標題區、小字區設成一樣高，中間的大數字才會對齊 */
+  const side=window.matchMedia&&matchMedia("(min-width:561px)").matches;
+  for(const sel of [".panels .panel-top",".panels .panel-foot"]){
+    const els=[...document.querySelectorAll(sel)];els.forEach(e=>e.style.minHeight="");
+    if(side){const h=Math.max(...els.map(e=>e.offsetHeight));els.forEach(e=>e.style.minHeight=h+"px")}
+  }
+  for(const box of [$("todayLeft"),$("periodDaily").closest(".date-line")]){
+    const big=box.classList.contains("big")?box:box.querySelector(".big");
+    big.style.fontSize="";
+    /* 置中時往左超出的部分 scrollWidth 量不到，所以自己加總內容寬度 */
+    const kids=[...box.children].filter(k=>k.offsetWidth>0), gap=parseFloat(getComputedStyle(box).columnGap)||0;
+    const need=big===box?big.scrollWidth:kids.reduce((t,k)=>t+(k===big?k.scrollWidth:k.offsetWidth),0)+gap*(kids.length-1);
+    const w=box.clientWidth, over=need-w;
+    if(over>1){const bw=big.scrollWidth, f=parseFloat(getComputedStyle(big).fontSize);big.style.fontSize=Math.max(16,Math.floor(f*(bw-over)/bw*0.97))+"px"}
+  }
+}
+if("ResizeObserver" in window)new ResizeObserver(()=>fitBigs()).observe($("sec-hero").querySelector(".panels"));
 function render(){
   renderCore();
+  fitBigs();
   stayFix();
 }
 function renderCore(){
