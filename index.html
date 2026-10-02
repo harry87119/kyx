@@ -1521,7 +1521,8 @@ function render(){
   const all=entries;
   const today=todayStr();
   const sum=(t,f)=>all.filter(e=>e.type===t&&(!f||f(e))).reduce((s,e)=>s+e.amount,0);
-  const salary=sum("salary"),personal=sum("personal"),billPaid=sum("fixpay");
+  /* 日期還沒到的薪水先不算（錢還沒進來不能先花）；日期還沒到的花費照算（保守） */
+  const salary=sum("salary",e=>e.date<=today),personal=sum("personal"),billPaid=sum("fixpay");
   const work={};
   for(const c of CATS)work[c.id]={q:0,spend:0,ret:0,rb:0};
   for(const e of all){const T=TYPES[e.type];if(T&&T.cat)work[T.cat][T.kind]+=e.amount}
@@ -1640,7 +1641,15 @@ function render(){
     runout="到下次發薪日 "+tgs+" 前，錢已經不夠用。";periodTone="over";endNow=null;
   }else{
     const rem=periodLeft-Math.max(0,todayMax-todaySpent);
-    const lastDays=plan>=0.5?Math.max(0,Math.floor(rem/plan+1e-9)):0;
+    let lastDays=plan>=0.5?Math.max(0,Math.floor(rem/plan+1e-9)):0;
+    /* 撐過下次發薪日的話，之後每月的固定支出也要照日期扣（薪水可能不會準時進來） */
+    if(lastDays>0&&ymd(dayAt(lastDays))>target){
+      const due={};
+      for(const o of occurrences(ymd(dayAt(800))))if(o.date>target&&!o.covered)due[o.date]=(due[o.date]||0)+o.amount;
+      let money=rem,k=0;
+      while(k<730){const ds=ymd(dayAt(k+1));money-=due[ds]||0;if(money+1e-9<plan)break;money-=plan;k++}
+      lastDays=k;
+    }
     const endD=dayAt(lastDays), end=ymd(endD);
     endNow=end;
     $("periodDaily").classList.remove("is-short");
