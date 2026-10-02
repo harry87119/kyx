@@ -263,6 +263,7 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .tt-arr{width:9px;height:9px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:translateY(2px) rotate(45deg);transition:transform var(--dur-fast) var(--ease)}
 .tt-l{font-family:var(--font-display);font-size:9px;font-weight:500;letter-spacing:.2em;line-height:1;margin-right:-.2em}
 body.typing .to-top{display:none}
+body.head-folded .topbar,body.head-folded #miniSum,body.head-folded #sec-entry>.sec-head{display:none}
 @media (max-width:560px){.to-top{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px}}
 
 /* ===== 總覽色塊 ===== */
@@ -1163,73 +1164,65 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   /* 記完留在原位，不自動捲動 */
 }));
 
-/* 手機點金額或備註：那一欄停在分頁列正下方，下面就是六個記帳按鈕（按鈕不縮小）。
-   做法：一點下去就「直接」捲到位，iOS 準備開鍵盤時看到輸入欄已經在畫面上，就不會自己再捲一次（兩邊一起捲就會捲過頭、跳來跳去）；
-   看起來的滑動用 transform 動畫補：內容從原本的位置滑上來，真正的捲動位置一開始就是對的。
-   收鍵盤時頁面不捲回去、留在原位 */
+/* 手機點金額或備註：頁面完全不捲動，改成把上面的「KYX記帳」標題列、還可花小摘要、「新增一筆」標題收起來（高度縮成 0），
+   輸入欄跟著往上移到分頁列下面，下面就是六個記帳按鈕。
+   不捲動的原因：iOS Safari 開鍵盤時自己會捲、收鍵盤時會把超出範圍的捲動拉回來，跟網頁自己的捲動互相拉扯，畫面就會上下彈。
+   收起來之後，收鍵盤也維持收起（不會彈回去）；換分頁、或在最上面往下拉，才再展開 */
+const headFold={on:false,anims:[]};
+const foldEls=()=>[document.querySelector(".topbar"),$("miniSum"),document.querySelector("#sec-entry > .sec-head")].filter(Boolean);
+function setHeadFold(on,animate){
+  if(on===headFold.on)return;
+  headFold.on=on;
+  headFold.anims.forEach(a=>a.cancel());headFold.anims=[];
+  const els=foldEls();
+  const zero=el=>{const p=el.parentElement, pcs=p?getComputedStyle(p):null;
+    /* 父層是 flex／grid 時，藏起來也會少掉一個間距：縮到 0 時用負的 margin 把間距抵掉，動畫最後一格跟藏起來一模一樣 */
+    /* 邊框粗細瀏覽器不會縮到 0（會停在 1px），所以邊框不動，改用 margin 把它抵掉 */
+    const gap=pcs&&/flex|grid/.test(pcs.display)?parseFloat(pcs.rowGap)||0:0, cs=getComputedStyle(el);
+    const bd=(parseFloat(cs.borderTopWidth)||0)+(parseFloat(cs.borderBottomWidth)||0);
+    return {height:"0px",minHeight:"0px",paddingTop:"0px",paddingBottom:"0px",marginTop:"0px",marginBottom:-(gap+bd)+"px",opacity:0}};
+  const full=el=>{const cs=getComputedStyle(el);return {height:el.offsetHeight+"px",minHeight:"0px",paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom,marginTop:cs.marginTop,marginBottom:cs.marginBottom,opacity:1}};
+  const done=()=>{stay.hold=false;stay.y=viewTop();stay.h=pageH();stay.vh=window.innerHeight;
+    const a=document.activeElement;stayMark(a&&(a.id==="amount"||a.id==="note")?a:$("amount"));updateStick()};
+  if(!on)document.body.classList.remove("head-folded");
+  if(!animate||reduceMotion()||!Element.prototype.animate){if(on)document.body.classList.add("head-folded");done();return}
+  stay.hold=true;   // 動畫中高度一直變，「維持原位」先不要補捲動
+  const frames=els.map(el=>{const f=full(el),z=zero(el);return on?[f,z]:[z,f]});
+  if(!on)document.body.classList.remove("head-folded");
+  const opt={duration:300,easing:"cubic-bezier(.215,.61,.355,1)",fill:"forwards"};
+  headFold.anims=els.map((el,i)=>{el.style.overflow="hidden";return el.animate(frames[i],opt)});
+  const mine=headFold.anims;
+  Promise.all(mine.map(a=>a.finished.catch(()=>{}))).then(()=>{
+    if(headFold.anims!==mine)return;
+    if(on)document.body.classList.add("head-folded");
+    els.forEach(el=>el.style.overflow="");
+    mine.forEach(a=>a.cancel());headFold.anims=[];
+    done();
+  });
+}
 {
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px) and (pointer:coarse)").matches;
-  const rowOf={amount:()=>$("amount").closest(".amount-wrap"),note:()=>$("note").closest(".meta")};
-  const target=()=>obscuredTop()+$("tabbar").offsetHeight+8;   // 那一欄要停在畫面上的位置：分頁列正下方
-  /* 底部空白補夠，才捲得到目標（用鍵盤收起來時的畫面高度算，收鍵盤時才不會被推回來） */
-  const room=y=>{const lack=y-(pageH()-Math.max(window.innerHeight,maxVh));if(lack>0){const sp=endSpace();sp.style.height=(sp.offsetHeight+lack+2)+"px"}};
-  const jumpTo=y=>{room(y);for(let i=0;i<3;i++){const d=y-viewTop();if(Math.abs(d)<0.5)break;window.scrollBy(0,d)}updateStick()};
-  let anims=[], glideId=0;
-  const place=row=>{
-    glideId++;anims.forEach(a=>a.finish());anims=[];stay.hold=false;
-    const tb=$("tabbar"), r0=onScreen(row), t0=onScreen(tb);
-    jumpTo(docY(row)-target());
-    const dRow=r0-onScreen(row), dTab=t0-onScreen(tb);
-    stay.y=viewTop();stayMark(row);
-    if(reduceMotion()||Math.abs(dRow)<2||!Element.prototype.animate)return;
-    /* 下一格才開始動畫：iOS 量輸入欄位置（決定要不要自己捲）是在這之後，量到的是已經捲到位的位置 */
-    stay.hold=true;
-    requestAnimationFrame(()=>{
-      const opt={duration:360,easing:"cubic-bezier(.215,.61,.355,1)"};
-      const slide=(el,d)=>{if(el&&Math.abs(d)>=0.5)anims.push(el.animate([{transform:"translateY("+d+"px)"},{transform:"translateY(0)"}],opt))};
-      slide(document.querySelector(".topbar"),dRow);slide(document.querySelector(".page"),dRow);slide(tb,dTab);
-      const mine=anims;
-      Promise.all(mine.map(a=>a.finished.catch(()=>{}))).then(()=>{
-        if(anims!==mine)return;
-        anims=[];stay.hold=false;stay.y=viewTop();stay.h=pageH();stayMark(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#amount,#note")||row);
-      });
-    });
-  };
-  /* 鍵盤升起後檢查一次：如果還是被推開了（iOS 或 App 自己捲），平順地挪回來 */
-  const settle=(row,id)=>{
-    if(document.activeElement!==$(id))return;
-    if(anims.length||stay.hold){setTimeout(()=>settle(row,id),80);return}   // 滑動動畫還沒結束，等它
-    const err=onScreen(row)-target();
-    if(Math.abs(err)<=3)return;
-    room(viewTop()+err);
-    if(reduceMotion()){window.scrollBy(0,err);return}
-    const gid=++glideId, t0=performance.now();let done=0;stay.glide=true;
-    const step=now=>{
-      if(gid!==glideId){stay.glide=false;return}
-      const t=Math.min(1,(now-t0)/240), want=err*(1-Math.pow(1-t,3));
-      window.scrollBy(0,want-done);done=want;
-      if(t<1)requestAnimationFrame(step);else{stay.glide=false;stay.y=viewTop();stayMark(row)}
-    };
-    requestAnimationFrame(step);
-  };
-  window.addEventListener("touchstart",e=>{if(!e.target.closest("#amount,#note"))glideId++},{passive:true});   // 手指一碰就停，讓使用者自己捲
   for(const id of ["amount","note"]){
     $(id).addEventListener("focus",()=>{
       if(!small())return;
       document.body.classList.add("typing");
-      const row=rowOf[id]();
-      place(row);
-      if(window.visualViewport){
-        const chk=()=>settle(row,id);
-        visualViewport.addEventListener("resize",()=>setTimeout(chk,120),{once:true});
-        setTimeout(chk,700);
-      }
+      /* 只有在記帳頁最上面時才收：已經往下捲了，標題本來就不在畫面上，收起來反而會讓內容跳一下 */
+      if(curTab==="entry"&&viewTop()<=topOfPage()+8)setHeadFold(true,true);
     });
     $(id).addEventListener("blur",()=>{
       if(!small())return;
       setTimeout(()=>{if(!["amount","note"].includes(document.activeElement&&document.activeElement.id))document.body.classList.remove("typing")},60);
     });
   }
+  /* 收起來以後，在最上面往下拉：展開 */
+  let y0=null;
+  window.addEventListener("touchstart",e=>{y0=headFold.on&&e.touches.length===1?e.touches[0].clientY:null},{passive:true});
+  window.addEventListener("touchmove",e=>{
+    if(y0==null||!headFold.on)return;
+    const a=document.activeElement;if(a&&(a.id==="amount"||a.id==="note"))return;
+    if(viewTop()<=topOfPage()+1&&e.touches[0].clientY-y0>40){y0=null;setHeadFold(false,true)}
+  },{passive:true});
+  if(window.matchMedia)matchMedia("(max-width:959px)").addEventListener("change",e=>{if(!e.matches)setHeadFold(false,false)});
 }
 
 /* 按下記帳按鈕後：色帶掃過，小字短暫改成「已記下 $X」 */
@@ -2549,6 +2542,7 @@ function setTab(t,how){
   const prev=curTab;
   if(prev==="notice"&&t!=="notice"){markNoticesSeen();render()}   // 離開通知頁：看過了，NEW 拿掉
   curTab=t;
+  if(prev!==t)setHeadFold(false,false);   // 換分頁：標題列、小摘要展開回來
   const dx=TABS.indexOf(t)>TABS.indexOf(prev)?18:TABS.indexOf(t)<TABS.indexOf(prev)?-18:0;
   document.querySelectorAll(".pane").forEach(p=>{const on=p.dataset.pane===t;p.classList.toggle("on",on);if(on)p.style.setProperty("--pane-dx",dx+"px")});
   document.querySelectorAll("#tabbar button").forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle("on",on);b.setAttribute("aria-current",on?"page":"false")});
