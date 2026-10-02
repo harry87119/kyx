@@ -172,7 +172,8 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 }
 @keyframes pane-in{from{opacity:0;transform:translateX(var(--pane-dx,0px))}to{opacity:1;transform:none}}
 /* 分頁列（手機）：KYX記帳 那一列跟著頁面捲走，分頁列一直黏在畫面最上面；選到的那一個下面一條金線 */
-.tabbar{position:sticky;top:0;z-index:41;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 calc(var(--page-margin) - 8px);background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
+/* 分頁列黏住的位置：--stick 由程式算（畫面最上面被蓋住多少：瀏海、Claude App 的頂部列），沒有的話就避開瀏海 */
+.tabbar{position:sticky;top:var(--stick,env(safe-area-inset-top,0px));z-index:41;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 calc(var(--page-margin) - 8px);background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
 .tabbar button{position:relative;height:44px;background:none;border:0;color:var(--fg-3);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease)}
 .tabbar button::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;background:var(--gh-gold);transform:scaleX(0);transition:transform 260ms var(--ease-settle)}
 .tabbar button.on{color:var(--fg)}
@@ -1042,28 +1043,52 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   /* 記完留在原位，不自動捲動 */
 }));
 
-/* 手機點金額或備註：頁面捲一次，讓那一欄貼在畫面最上面（頂部列往上滑走，它是浮在上面的，不會推動內容），
-   下面就是六個記帳按鈕。收鍵盤時頁面不再捲回去，只有頂部列滑回來；
-   不縮按鈕、不跟 iOS 搶捲動，畫面才不會跳 */
+/* 手機點金額或備註：那一欄停在分頁列正下方，下面就是六個記帳按鈕（按鈕不縮小）。
+   做法：一點下去就「直接」捲到位，iOS 準備開鍵盤時看到輸入欄已經在畫面上，就不會自己再捲一次（兩邊一起捲就會捲過頭、跳來跳去）；
+   看起來的滑動用 transform 動畫補：內容從原本的位置滑上來，真正的捲動位置一開始就是對的。
+   收鍵盤時頁面不捲回去、留在原位 */
 {
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px) and (pointer:coarse)").matches;
   const rowOf={amount:()=>$("amount").closest(".amount-wrap"),note:()=>$("note").closest(".meta")};
-  /* 讓那一欄停在分頁列正下方：目標是「整頁裡的絕對位置」，每一格重新算，iOS 開鍵盤時自己捲也不會疊加、捲過頭 */
-  let glideId=0;
-  const want=row=>row.getBoundingClientRect().top+window.scrollY-($("tabbar").getBoundingClientRect().height+12);
-  const glide=(row,dur)=>{
-    const gid=++glideId, y0=window.scrollY;
-    const room=()=>{const lack=want(row)-(document.documentElement.scrollHeight-Math.max(window.innerHeight,maxVh));
-      if(lack>0){const sp=$("endSpace");sp.style.height=(sp.offsetHeight+lack+2)+"px"}};
-    room();
-    if(reduceMotion()||!dur){window.scrollTo(0,want(row));return}
-    const t0=performance.now();
-    stay.glide=true;
+  const target=()=>obscuredTop()+$("tabbar").offsetHeight+8;   // 那一欄要停在畫面上的位置：分頁列正下方
+  /* 底部空白補夠，才捲得到目標（用鍵盤收起來時的畫面高度算，收鍵盤時才不會被推回來） */
+  const room=y=>{const lack=y-(pageH()-Math.max(window.innerHeight,maxVh));if(lack>0){const sp=endSpace();sp.style.height=(sp.offsetHeight+lack+2)+"px"}};
+  const jumpTo=y=>{room(y);for(let i=0;i<3;i++){const d=y-viewTop();if(Math.abs(d)<0.5)break;window.scrollBy(0,d)}updateStick()};
+  let anims=[], glideId=0;
+  const place=row=>{
+    glideId++;anims.forEach(a=>a.finish());anims=[];stay.hold=false;
+    const tb=$("tabbar"), r0=onScreen(row), t0=onScreen(tb);
+    jumpTo(docY(row)-target());
+    const dRow=r0-onScreen(row), dTab=t0-onScreen(tb);
+    stay.y=viewTop();stayMark(row);
+    if(reduceMotion()||Math.abs(dRow)<2||!Element.prototype.animate)return;
+    /* 下一格才開始動畫：iOS 量輸入欄位置（決定要不要自己捲）是在這之後，量到的是已經捲到位的位置 */
+    stay.hold=true;
+    requestAnimationFrame(()=>{
+      const opt={duration:360,easing:"cubic-bezier(.215,.61,.355,1)"};
+      const slide=(el,d)=>{if(el&&Math.abs(d)>=0.5)anims.push(el.animate([{transform:"translateY("+d+"px)"},{transform:"translateY(0)"}],opt))};
+      slide(document.querySelector(".topbar"),dRow);slide(document.querySelector(".page"),dRow);slide(tb,dTab);
+      const mine=anims;
+      Promise.all(mine.map(a=>a.finished.catch(()=>{}))).then(()=>{
+        if(anims!==mine)return;
+        anims=[];stay.hold=false;stay.y=viewTop();stay.h=pageH();stayMark(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#amount,#note")||row);
+      });
+    });
+  };
+  /* 鍵盤升起後檢查一次：如果還是被推開了（iOS 或 App 自己捲），平順地挪回來 */
+  const settle=(row,id)=>{
+    if(document.activeElement!==$(id))return;
+    if(anims.length||stay.hold){setTimeout(()=>settle(row,id),80);return}   // 滑動動畫還沒結束，等它
+    const err=onScreen(row)-target();
+    if(Math.abs(err)<=3)return;
+    room(viewTop()+err);
+    if(reduceMotion()){window.scrollBy(0,err);return}
+    const gid=++glideId, t0=performance.now();let done=0;stay.glide=true;
     const step=now=>{
       if(gid!==glideId){stay.glide=false;return}
-      const t=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-t,3);
-      window.scrollTo(0,y0+(want(row)-y0)*e);
-      if(t<1)requestAnimationFrame(step);else{stay.glide=false;stayMark(row)}
+      const t=Math.min(1,(now-t0)/240), want=err*(1-Math.pow(1-t,3));
+      window.scrollBy(0,want-done);done=want;
+      if(t<1)requestAnimationFrame(step);else{stay.glide=false;stay.y=viewTop();stayMark(row)}
     };
     requestAnimationFrame(step);
   };
@@ -1073,17 +1098,15 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
       if(!small())return;
       document.body.classList.add("typing");
       const row=rowOf[id]();
-      glide(row,350);
-      /* 鍵盤升起後再對一次位置（iOS 可能自己又捲過） */
+      place(row);
       if(window.visualViewport){
-        const fix=()=>{if(document.activeElement===$(id))glide(row,220)};
-        visualViewport.addEventListener("resize",fix,{once:true});
-        setTimeout(fix,650);
+        const chk=()=>settle(row,id);
+        visualViewport.addEventListener("resize",()=>setTimeout(chk,120),{once:true});
+        setTimeout(chk,700);
       }
     });
     $(id).addEventListener("blur",()=>{
       if(!small())return;
-      stayPause(1400);
       setTimeout(()=>{if(!["amount","note"].includes(document.activeElement&&document.activeElement.id))document.body.classList.remove("typing")},60);
     });
   }
@@ -1731,11 +1754,51 @@ function baseDay(today){
    iPhone 的 Safari 沒有內建這個功能，所以自己做 */
 /* 記的是那個元素在「整頁」裡的位置（不是在畫面上的位置）：
    捲動（使用者捲、iOS 開關鍵盤時自己捲）不會改變它，只有上面的內容變高變矮才會，所以只補這種變動，永遠不會跟捲動搶 */
-const stay={el:null,doc:0,sec:null,secDoc:0,y:0,h:0,vh:0,glide:false};
+/* ---------- 畫面幾何 ----------
+   iPhone 開著鍵盤時，getBoundingClientRect() 量的是相對「版面視窗」的位置，window.scrollY 卻是「看得到的那一塊」的位置，
+   兩者會差一段（visualViewport.offsetTop，最多一個鍵盤高）；混在一起算，就會捲過頭一個鍵盤高。
+   在 Claude App 裡，頁面上面還蓋著 App 自己的頂部列（頁面在最上面靜止時，看得到的那一塊最上緣在頁首上方，是負的）。
+   位置一律用下面這幾個換算 */
+function docY(el){return el.getBoundingClientRect().top-document.documentElement.getBoundingClientRect().top}   // 在整頁裡的位置，跟怎麼捲無關
+function viewTop(){return window.visualViewport?visualViewport.pageTop:window.scrollY}                           // 看得到的那一塊，最上緣在整頁的哪裡
+function onScreen(el){return docY(el)-viewTop()}                                                                    // 在畫面上的位置（0＝網頁顯示範圍的最上緣）
+let safeTopPx=0, restInset=0, touching=false;
+function obscuredTop(){return Math.max(safeTopPx,restInset)}   // 畫面最上面被蓋住多少（瀏海、Claude App 的頂部列）
+function topOfPage(){return -restInset}                         // 「捲到最上面」的位置
+window.__kyxInset=v=>{restInset=v;updateStick()};   // 測試用：模擬 App 頂部列蓋住多少
+{
+  const probe=document.createElement("div");
+  probe.style.cssText="position:absolute;top:0;left:0;width:1px;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none";
+  document.body.appendChild(probe);
+  const readSafe=()=>{safeTopPx=probe.offsetHeight};
+  /* 頁面在最上面靜止時，頁首被往下推了多少（Claude App 的頂部列）：手指沒碰、捲動停下來才量，彈回來的過程不算 */
+  const readRest=()=>{if(touching)return;const t=viewTop();if(t<-1)restInset=Math.round(-t)};
+  const small=window.matchMedia?matchMedia("(max-width:959px)"):null;
+  let last=null;
+  /* 分頁列要黏在「被蓋住的地方」正下方。sticky 的 top 是從「版面視窗」上緣算的，
+     而版面視窗在畫面上的位置會變（頁面在最上面時被推下來、開鍵盤時看得到的那一塊往下移），所以每次捲動重算 */
+  window.updateStick=()=>{
+    const v=small&&small.matches?Math.max(0,Math.round(obscuredTop()-(-document.documentElement.getBoundingClientRect().top-viewTop())))+"px":"";
+    if(v!==last){last=v;if(v)document.documentElement.style.setProperty("--stick",v);else document.documentElement.style.removeProperty("--stick")}
+  };
+  let idle=0;
+  const onScroll=()=>{updateStick();clearTimeout(idle);idle=setTimeout(()=>{readRest();updateStick()},160)};
+  window.addEventListener("scroll",onScroll,{passive:true});
+  if(window.visualViewport){visualViewport.addEventListener("scroll",onScroll,{passive:true});visualViewport.addEventListener("resize",()=>{readSafe();updateStick()})}
+  window.addEventListener("resize",()=>{readSafe();updateStick()});
+  window.addEventListener("touchstart",()=>{touching=true},{passive:true,capture:true});
+  const up=e=>{if(!e.touches||!e.touches.length){touching=false;onScroll()}};
+  window.addEventListener("touchend",up,{passive:true,capture:true});
+  window.addEventListener("touchcancel",up,{passive:true,capture:true});
+  readSafe();readRest();updateStick();
+  requestAnimationFrame(()=>{readSafe();readRest();updateStick()});
+}
+
+const stay={el:null,doc:0,sec:null,secDoc:0,y:0,h:0,vh:0,glide:false,hold:false};   // hold：滑動動畫進行中（transform 會讓量到的位置不準），先不記、不補
 const stayable=el=>el&&el.isConnected&&!el.closest(".topbar,#toTop,#tabbar")&&el.getBoundingClientRect().height>0;
-const docTop=el=>el.getBoundingClientRect().top+window.scrollY;
+const docTop=docY;
 function stayMark(el){
-  if(!stayable(el))return;
+  if(stay.hold||!stayable(el))return;
   stay.el=el;stay.doc=docTop(el);
   /* 明細那一列重畫或刪掉之後就不在了：同時記住它所在的那一區，找不到原本那個時改用這一區 */
   const sec=el.closest("section,details,.col");stay.sec=sec;stay.secDoc=sec?docTop(sec):0;
@@ -1749,11 +1812,12 @@ function keepRoom(){
   const max=pageH()-window.innerHeight;
   if(stay.h&&stay.y>max+0.5){
     const sp=endSpace();sp.style.height=(sp.offsetHeight+stay.y-max)+"px";
-    window.scrollTo(0,stay.y);
+    window.scrollBy(0,stay.y-viewTop());
   }
   stay.h=pageH();stay.vh=window.innerHeight;
 }
 function stayFix(){
+  if(stay.hold)return;
   keepRoom();
   let el=stay.el, ref=stay.doc;
   if(!stayable(el)){el=stay.sec;ref=stay.secDoc;if(!stayable(el))return}
@@ -1761,26 +1825,28 @@ function stayFix(){
   if(Math.abs(d)>0.5){window.scrollBy(0,d);keepRoom()}
   if(el===stay.el)stay.doc=docTop(el);else stay.secDoc=docTop(el);
   if(stay.sec&&stayable(stay.sec))stay.secDoc=docTop(stay.sec);
-  stay.y=window.scrollY;stay.h=pageH();
+  stay.y=viewTop();stay.h=pageH();
 }
 document.addEventListener("pointerdown",e=>stayMark(e.target.closest("button,input,select,summary,a,label,li")||e.target),true);
 document.addEventListener("focusin",e=>stayMark(e.target),true);
 window.addEventListener("scroll",()=>{
+  /* 滑動動畫進行中：transform 會把頁面量起來變長（底部空白會被誤收、然後畫面被推回來），等動畫結束 */
+  if(stay.hold){stay.y=viewTop();return}
   /* 頁面變短或畫面變高、被瀏覽器推上去的，不是使用者捲的：交給 keepRoom 補回去 */
-  if(stay.h&&window.scrollY<stay.y-0.5&&(pageH()<stay.h-0.5||window.innerHeight>stay.vh+0.5)){keepRoom();return}
-  stay.y=window.scrollY;
+  if(stay.h&&viewTop()<stay.y-0.5&&(pageH()<stay.h-0.5||window.innerHeight>stay.vh+0.5)){keepRoom();return}
+  stay.y=viewTop();
   /* 底部空白：視窗下面還有多少就收掉多少，不會把畫面拉動 */
   const sp=endSpace(), h=sp.offsetHeight;
   if(h>0&&!stay.glide){                   // 自己正在平順捲動時不收，免得捲不到目標
-    const room=pageH()-Math.max(window.innerHeight,maxVh)-window.scrollY;   // 用鍵盤收起來時的高度算，鍵盤開著時不要先收掉
+    const room=pageH()-Math.max(window.innerHeight,maxVh)-Math.max(0,viewTop());   // 用鍵盤收起來時的高度算，鍵盤開著時不要先收掉
     if(room>0)sp.style.height=Math.max(0,h-room)+"px";
   }
   stay.h=pageH();
   /* 捲到別處（記住的東西不在畫面上了）：改記畫面上方看到的元素 */
-  if(!stayable(stay.el))return;
+  if(stay.hold||!stayable(stay.el))return;
   const r=stay.el.getBoundingClientRect();
   if(r.bottom<0||r.top>window.innerHeight){
-    const hb=document.querySelector(".topbar").getBoundingClientRect().bottom;
+    const hb=Math.max(document.querySelector(".topbar").getBoundingClientRect().bottom,$("tabbar").getBoundingClientRect().bottom);
     stayMark(document.elementFromPoint(window.innerWidth/2,Math.min(window.innerHeight-1,Math.max(0,hb)+24)));
   }
 },{passive:true});
@@ -2218,7 +2284,7 @@ function setTab(t,how){
   if(!TABS.includes(t))t="entry";
   const prev=curTab;
   if(prev==="notice"&&t!=="notice"){markNoticesSeen();render()}   // 離開通知頁：看過了，NEW 拿掉
-  tabScroll[prev]=window.scrollY;
+  tabScroll[prev]=viewTop();
   curTab=t;
   const dx=TABS.indexOf(t)>TABS.indexOf(prev)?18:TABS.indexOf(t)<TABS.indexOf(prev)?-18:0;
   document.querySelectorAll(".pane").forEach(p=>{const on=p.dataset.pane===t;p.classList.toggle("on",on);if(on)p.style.setProperty("--pane-dx",dx+"px")});
@@ -2228,8 +2294,8 @@ function setTab(t,how){
   if(t==="settings"&&mobileTabs())$("settingsBox").open=true;
   $("endSpace").style.height="0px";
   stay.el=stay.sec=null;                        // 換頁了，「維持原位」從新的一頁重新開始
-  if(mobileTabs())window.scrollTo(0,tabScroll[t]||0);
-  stay.y=window.scrollY;stay.h=pageH();stay.vh=window.innerHeight;
+  if(mobileTabs()){window.scrollBy(0,(t in tabScroll?tabScroll[t]:topOfPage())-viewTop());updateStick()}
+  stay.y=viewTop();stay.h=pageH();stay.vh=window.innerHeight;
   moveInds(true);
   drawBadges();
   if(how==="push"&&prev!==t)history.pushState({tab:t},"","#"+t);
@@ -2289,7 +2355,7 @@ drawThemeBtn();
   const tt=$("toTop");let on=false;
   const upd=()=>{const v=window.scrollY>window.innerHeight*0.6;if(v!==on){on=v;tt.classList.toggle("show",v)}};
   window.addEventListener("scroll",upd,{passive:true});upd();
-  tt.onclick=()=>window.scrollTo({top:0,behavior:reduceMotion()?"auto":"smooth"});
+  tt.onclick=()=>window.scrollTo({top:topOfPage(),behavior:reduceMotion()?"auto":"smooth"});
 }
 
 /* ---------- 啟動 ---------- */
