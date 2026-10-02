@@ -50,7 +50,7 @@ color-scheme:light;
 --line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
---expense:#f92c16;--income:#00807a;--input-ink:#03c2b8;
+--expense:#f92c16;--income:#00807a;--input-ink:#00807a;
 }}
 :root[data-theme="light"]{
 color-scheme:light;
@@ -59,7 +59,7 @@ color-scheme:light;
 --line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
---expense:#f92c16;--income:#00807a;--input-ink:#03c2b8;
+--expense:#f92c16;--income:#00807a;--input-ink:#00807a;
 }
 
 /* ===== 基礎 ===== */
@@ -119,7 +119,7 @@ html,body{overflow-anchor:none}
 .toc::-webkit-scrollbar{display:none}
 .toc a{flex:none;display:inline-flex;align-items:baseline;gap:8px;padding:6px 0 10px;border-bottom:2px solid transparent;color:var(--fg-3);text-decoration:none;font-family:var(--font-han-sans);font-size:13.5px;letter-spacing:.1em;white-space:nowrap;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .toc a .b-label{font-size:9px}
-.toc a:hover,.toc a.on{color:var(--fg);border-bottom-color:var(--gh-turquoise)}
+.toc a:hover,.toc a.on{color:var(--fg);border-bottom-color:var(--focus)}
 @media (max-width:560px){.toc{gap:0;justify-content:space-between;overflow-x:visible}.toc a{font-size:13px;letter-spacing:.04em}.toc a .b-label{display:none}}
 section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 @media (max-width:560px){section,details.settings,#settleLabel{scroll-margin-top:136px}}
@@ -182,7 +182,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 /* 分頁列黏住的位置：--stick 由程式算（畫面最上面被蓋住多少：瀏海、Claude App 的頂部列），沒有的話就避開瀏海 */
 .tabbar{position:sticky;top:var(--stick,env(safe-area-inset-top,0px));z-index:41;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 calc(var(--page-margin) - 8px);background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
 .tabbar button{position:relative;height:44px;background:none;border:0;color:var(--fg-3);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease)}
-.tabbar button::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;background:var(--gh-turquoise);transform:scaleX(0);transition:transform 260ms var(--ease-settle)}
+.tabbar button::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;background:var(--focus);transform:scaleX(0);transition:transform 260ms var(--ease-settle)}
 .tabbar button.on{color:var(--fg)}
 .tabbar button.on::before{transform:scaleX(1)}
 .tb-i{position:relative;display:inline-block}
@@ -519,8 +519,8 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .filters,.views{position:relative}
 .filters button,.views button{border-bottom-color:transparent!important}
 .tab-ind{position:absolute;left:0;bottom:-1px;height:2px;width:0;pointer-events:none;transition:transform 300ms var(--ease-settle),width 300ms var(--ease-settle)}
-.filters .tab-ind{background:var(--gh-turquoise)}
-.views .tab-ind{background:var(--gh-turquoise)}   /* 分頁的底線一律青綠 */
+.filters .tab-ind{background:var(--focus)}
+.views .tab-ind{background:var(--focus)}   /* 分頁的底線一律青綠 */
 ul{list-style:none;margin:0;padding:0}
 li{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
 li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8px;border-bottom:1px solid var(--line-2);font-family:var(--font-display);font-size:11px;letter-spacing:.14em;color:var(--fg-3)}
@@ -604,7 +604,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 /* 手機上輸入框至少 16px，iPhone 點下去才不會自動放大 */
 @media (max-width:720px){input:not(#amount),select,textarea{font-size:16px!important}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}}
-/* 你輸入的字：不分深淺色都是青綠 #03C2B8，跟標題、說明分開 */
+/* 你輸入的字：青綠，跟點輸入欄的底線同色（深色模式 #03C2B8、淺色模式深一點的 #00807A） */
 .b-input,.frow input,#amount,#note{color:var(--input-ink)}
 .b-input::placeholder,.frow input::placeholder,#amount::placeholder,#note::placeholder{color:var(--fg-3)}
 /* 下拉選單（生活費比例）選到的值也是你填的：一樣綠色 */
