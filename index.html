@@ -581,6 +581,12 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .pct-sel option{background:var(--bg-raised);color:var(--fg)}
 .pct-warn{display:flex;align-items:baseline;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--expense)}
 .pct-warn::before{content:"";flex:none;width:7px;height:7px;background:var(--gh-red);transform:translateY(-1px)}
+.daily-warn{display:flex;align-items:baseline;gap:6px;font-size:12.5px!important;font-weight:700;letter-spacing:.04em;line-height:1.6!important;color:var(--expense)!important;margin:4px 0 2px!important}
+.daily-warn::before{content:"";flex:none;width:7px;height:7px;background:var(--gh-red);transform:translateY(-1px)}
+.daily-warn[hidden]{display:none}
+.daily-set .set-row{margin-top:8px}
+.daily-set .set-row:not(:has(button:not([hidden]))){display:none}
+.set-block h3.sug-head{margin-top:28px}
 .sg-note{font-size:12px!important;color:var(--fg-3)!important;margin:2px 0 6px!important;line-height:1.6!important}
 .suggest{margin-top:10px}
 .calc-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13.5px;color:var(--fg-2);padding:2px 0}
@@ -744,15 +750,22 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="set-block">
         <h3>每日基準</h3>
-        <p>每天預計花多少錢：上次薪水的一部分（生活費比例，預設 35%）平均分到下次發薪日，再和「扣掉固定支出後實際每天能花的」比，取比較小的，照這個花一定撐得到下次發薪日。上次薪水會自動抓最近一筆常規薪水，也可以自己改；下次發薪日照每月發薪日推算，這次不一樣可以自己改。不到常規薪水一半的小筆收入會算進剩餘資產，但不算進每日基準。「剩餘的錢可以撐到」會用它算出錢可以撐到哪一天。</p>
+        <p>每天預計花多少錢，預設 $500。「剩餘的錢可以撐到」照這個金額一天一天扣，算出錢可以撐到哪一天；今天最多也只能花這麼多（剩下的錢平均下來比較少時，會更少）。</p>
+        <div class="suggest daily-set">
+          <label class="calc-row calc-in"><span>每日基準<small>預設 $500，可以改</small></span><input id="dailyIn" class="b-input" inputmode="numeric" aria-label="每日基準"></label>
+          <p class="daily-warn" id="dailyWarn" role="status" hidden></p>
+          <div class="set-row"><button id="useSug" type="button" class="b-btn b-btn--secondary b-btn--sm">改用建議基準</button><button id="useDefault" type="button" class="b-btn b-btn--secondary b-btn--sm">改回預設 $500</button></div>
+        </div>
+        <h3 class="sug-head">建議基準</h3>
+        <p>照這個花一定撐得到下次發薪日，給你設定每日基準時參考：上次薪水的一部分（生活費比例，預設 35%）平均分到下次發薪日，再和「扣掉固定支出後實際每天能花的」比，取比較小的。上次薪水會自動抓最近一筆常規薪水，也可以自己改；下次發薪日照每月發薪日推算，這次不一樣可以自己改。不到常規薪水一半的小筆收入會算進剩餘資產，但不算進建議基準。</p>
         <div class="suggest" id="dailyCalc">
           <label class="calc-row calc-in"><span>上次薪水<small id="dcAuto"></small></span><input id="payBase" class="b-input" inputmode="decimal" aria-label="上次薪水" placeholder="還沒有薪水紀錄"></label>
-          <div class="sg-row pct-row"><span><span class="pct-line">× <select id="pctIn" class="pct-sel" aria-label="生活費比例"></select> ＝ 這段期間可動用</span><small class="pct-warn">先不要動。比例調高，每天能花的就變多，錢會更早花完。</small></span><span class="num" id="dcBudget">—</span></div>
+          <div class="sg-row pct-row"><span><span class="pct-line">× <select id="pctIn" class="pct-sel" aria-label="生活費比例"></select> ＝ 這段期間可動用</span><small class="pct-warn">先不要動。比例調高，建議基準就變多，照它花錢會更早花完。</small></span><span class="num" id="dcBudget">—</span></div>
           <label class="calc-row calc-in"><span>每月發薪日<small>用來推算下次發薪日</small></span><span class="day-in"><input id="paydayIn" class="b-input" type="number" inputmode="numeric" min="1" max="31" step="1" aria-label="每月發薪日">號</span></label>
           <label class="calc-row calc-in until-field"><span>下次發薪日<small id="dcFrom"></small></span><input id="until" type="date" class="b-input" aria-label="下次發薪日"></label>
           <div class="sg-row"><span>÷ 上次發薪日到下次發薪日（<span id="dcDays">—</span>）</span><span class="num" id="dcD35">—</span></div>
           <div class="sg-row"><span>扣掉固定支出後，實際每天可花</span><span class="num" id="dcAvail">—</span></div>
-          <div class="sg-row sg-total"><span>＝ 每日基準（取兩者比較小的）</span><span class="num" id="dcDaily">—</span></div>
+          <div class="sg-row sg-total"><span>＝ 建議基準（取兩者比較小的）</span><span class="num" id="dcDaily">—</span></div>
           <p class="sg-note" id="dcNote"></p>
           <span id="untilDays" hidden></span>
         </div>
@@ -895,7 +908,7 @@ const parseDate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1
 const dayDiff=(a,b)=>Math.round((parseDate(b)-parseDate(a))/86400000);
 
 let entries=[];
-let opening=0, until="", fixed=[], pay=0, payday=10, pct=35;
+let opening=0, until="", fixed=[], pay=0, payday=10, pct=35, daily=500;
 let cfg=null, queue=[], loaded=false;
 let filter="all", shown=60, todayRemainNow=0;
 /* 明細的檢視方式（月／日）記在這個瀏覽器；看哪個月、哪一天每次打開都回到現在 */
@@ -903,13 +916,13 @@ let listView="month", listMonth="", listDay="", navPrevKey=null, navNextKey=null
 try{if(localStorage.getItem("kyx-list-view")==="day")listView="day"}catch(e){}
 /* 提示區用：目前撐到的日期（錢不夠時是 null）、目前的每日基準、提示的狀態（只存在這個瀏覽器） */
 let holdNoticeScroll=false, freshTotal=0;
-let endNow=null, planNow=0, noticeReady=false, noticeScrollPending=false, shownNotices=new Set(), quietNotices=false;
-/* 一天至少要 $400 才過得去：今日額度低於這個就算緊繃；「撐到幾號」每天至少照這個金額算 */
-const MIN_DAILY=400;
+let endNow=null, planNow=0, sugNow=0, todayMaxNow=0, noticeReady=false, noticeScrollPending=false, shownNotices=new Set(), quietNotices=false;
+/* 每日基準預設 $500（設定裡可以改）；每天能花的不到 $250 就算緊繃（臺北市一天的基本生活費）；撐到的日子只比下次發薪日多 5 天以內也算緊繃 */
+const DEFAULT_DAILY=500, TIGHT_DAILY=250, TIGHT_DAYS=5;
 const LS_NOTES="kyx-notes-v1";
 let notes={};
 try{notes=JSON.parse(localStorage.getItem(LS_NOTES)||"{}")||{}}catch(e){notes={}}
-function saveNotes(){try{localStorage.setItem(LS_NOTES,JSON.stringify(notes))}catch(e){}}
+function saveNotes(){try{localStorage.setItem(LS_NOTES,JSON.stringify(notes))}catch(e){}if(typeof syncPrefs==="function")syncPrefs()}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const mdOf=ds=>{const d=parseDate(ds);return (d.getMonth()+1)+"/"+d.getDate()};
 
@@ -943,13 +956,17 @@ function setData(o){
   fixed=Array.isArray(o.fixed)?o.fixed:[];
   payday=dayOk(o.payday)||10;
   pct=pctOk(o.pct)||35;
+  /* 每日基準：沒有這個欄位（舊版的資料或舊版的試算表程式）就保留目前的值 */
+  if(o.daily!=null)daily=dailyOk(o.daily)||DEFAULT_DAILY;
 }
+/* 每日基準：50～20,000 的整數 */
+function dailyOk(v){const n=Number(v);return Number.isInteger(n)&&n>=50&&n<=20000?n:0}
 /* 生活費比例：10～60 的整數，其他都當成沒設定（預設 35） */
 function pctOk(v){const n=Number(v);return Number.isInteger(n)&&n>=10&&n<=60?n:0}
 /* 每月發薪日：1～31 的整數，其他都當成沒設定 */
 function dayOk(v){const n=Number(v);return Number.isInteger(n)&&n>=1&&n<=31?n:0}
-function lsSave(){lsSet(LS_DATA,{entries,opening,until,fixed,pay,payday,pct})}
-function settingsObj(){return {opening,until,fixed,pay,payday,pct}}
+function lsSave(){lsSet(LS_DATA,{entries,opening,until,fixed,pay,payday,pct,daily})}
+function settingsObj(){return {opening,until,fixed,pay,payday,pct,daily}}
 
 /* 先存進瀏覽器，有連結試算表再排進待送清單 */
 function commit(op){
@@ -959,13 +976,55 @@ function commit(op){
   sync();
 }
 function persistSettings(){commit({action:"saveSettings",settings:settingsObj()})}
+/* 通知狀態（看過哪些、當天的提醒）和偏好（深淺色、明細用月／日檢視）也存到試算表，手機和電腦一樣。
+   只有新版的試算表程式（v2，設定可以只存一部分）才送；舊版會把沒送的設定清掉，所以不送 */
+const LS_SERVERV="kyx-serverv-v1";
+let serverV=Number(lsGet(LS_SERVERV))||0, prefsTimer=null, lastPrefs="";
+const syncedNotes=()=>{const n=Object.assign({},notes);return n};
+const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView}};
+const prefsKey=()=>JSON.stringify([syncedNotes(),prefsObj()]);
+function syncPrefs(){
+  if(!cfg||serverV<2)return;
+  clearTimeout(prefsTimer);
+  prefsTimer=setTimeout(()=>{
+    prefsTimer=null;
+    const k=prefsKey();if(k===lastPrefs)return;
+    lastPrefs=k;
+    /* 還沒送出的上一份就直接換掉，不會排一長串 */
+    queue=queue.filter(op=>!(op.action==="saveSettings"&&op.prefsOnly));
+    commit({action:"saveSettings",prefsOnly:true,settings:{notes:syncedNotes(),prefs:prefsObj()}});
+  },1200);
+}
+function applyRemotePrefs(rn,rp){
+  if(rn&&typeof rn==="object"&&!prefsTimer){
+    /* 看過的通知兩邊合起來；其他（當天的提醒、收合）以試算表為準 */
+    const seen=[...new Set([].concat(rn.seen||[],notes.seen||[]))].slice(-200);
+    notes=Object.assign({},rn,{seen});
+    try{localStorage.setItem(LS_NOTES,JSON.stringify(notes))}catch(e){}
+  }
+  if(rp&&typeof rp==="object"&&!prefsTimer){
+    if(rp.theme==="light"||rp.theme==="dark"){
+      try{localStorage.setItem("kyx-theme",rp.theme)}catch(e){}
+      document.documentElement.setAttribute("data-theme",rp.theme);
+      if(typeof drawThemeBtn==="function")drawThemeBtn();
+    }
+    if((rp.listView==="day"||rp.listView==="month")&&rp.listView!==listView){
+      listView=rp.listView;
+      try{localStorage.setItem("kyx-list-view",listView)}catch(e){}
+      document.querySelectorAll(".views button").forEach(b=>b.classList.toggle("on",b.dataset.v===listView));
+    }
+  }
+  lastPrefs=prefsKey();
+  /* 這台有、試算表還沒有的（例如第一次連上新版程式）：送上去 */
+  if(((!rn||!Object.keys(rn).length)&&Object.keys(notes).length)||!rp||!("theme" in rp)){lastPrefs="";syncPrefs()}
+}
 /* 以試算表的資料為基準，再套上還沒送出的動作 */
 function applyOps(d,ops){
-  let list=(d.entries||[]).slice(), s={opening:d.opening,until:d.until,fixed:d.fixed,pay:d.pay,payday:d.payday,pct:d.pct};
+  let list=(d.entries||[]).slice(), s={opening:d.opening,until:d.until,fixed:d.fixed,pay:d.pay,payday:d.payday,pct:d.pct,daily:d.daily,notes:d.notes,prefs:d.prefs};
   for(const op of ops){
     if(op.action==="add"){const ids=new Set(list.map(e=>e.id));for(const e of op.entries)if(!ids.has(e.id)){list.push(e);ids.add(e.id)}}
     else if(op.action==="delete")list=list.filter(e=>e.id!==op.id);
-    else if(op.action==="saveSettings")s=op.settings;
+    else if(op.action==="saveSettings")s=Object.assign({},s,op.settings);   // 可能只有一部分（例如只有通知狀態）
   }
   return Object.assign({entries:list},s);
 }
@@ -1024,7 +1083,14 @@ async function sync(){
   }
 }
 function applyRemote(d){
-  setData(applyOps(d,queue));
+  serverV=Number(d.v)||1;lsSet(LS_SERVERV,serverV);
+  const o=applyOps(d,queue);
+  setData(o);
+  if(serverV>=2){
+    applyRemotePrefs(o.notes,o.prefs);
+    /* 試算表還沒有每日基準（第一次連上新版程式）：把這台的送上去 */
+    if(d.daily==null&&!queue.some(op=>op.action==="saveSettings"&&!op.prefsOnly))persistSettings();
+  }
   loaded=true;lsSave();
   if(!$("settingsBox").open)drawFixedRows();
 
@@ -1449,13 +1515,13 @@ $("saveFixed").onclick=()=>{
   }
   /* 存完讓按鈕留在畫面上同一個位置，才看得到「儲存成功」（上面的內容變高變矮也一樣） */
   const keep=()=>{window.scrollBy(0,$("saveFixed").getBoundingClientRect().top-top0);stayMark($("saveFixed"))};
-  const top0=$("saveFixed").getBoundingClientRect().top, p0=Math.round(planNow), a0=$("assets").textContent;
+  const top0=$("saveFixed").getBoundingClientRect().top, p0=Math.round(sugNow), a0=$("assets").textContent;
   fixed=next;persistSettings();drawFixedRows();render();
   keep();requestAnimationFrame(keep);
-  /* 告訴他每日基準有沒有跟著變；沒變的話說為什麼（35% 比較少，或新金額從下一期才開始） */
-  const p1=Math.round(planNow);
-  savedTag($("fixedSaved"),p1!==p0?"儲存成功，每日基準 $"+fmt(p0)+" → $"+fmt(p1)
-    :"儲存成功，每日基準不變（"+($("assets").textContent===a0?"新金額從下一期開始，這次發薪日前不受影響":"還是照生活費比例算比較少")+"）");
+  /* 告訴他建議基準有沒有跟著變；沒變的話說為什麼（35% 比較少，或新金額從下一期才開始） */
+  const p1=Math.round(sugNow);
+  savedTag($("fixedSaved"),p1!==p0?"儲存成功，建議基準 $"+fmt(p0)+" → $"+fmt(p1)
+    :"儲存成功，建議基準不變（"+($("assets").textContent===a0?"新金額從下一期開始，這次發薪日前不受影響":"還是照生活費比例算比較少")+"）");
 };
 
 /* 主畫面的固定支出摘要 */
@@ -1529,6 +1595,7 @@ document.querySelectorAll(".views button").forEach(b=>b.addEventListener("click"
   if(listView===b.dataset.v)return;
   listView=b.dataset.v;shown=60;armed=null;
   try{localStorage.setItem("kyx-list-view",listView)}catch(e){}
+  syncPrefs();
   render();listSwap(0);
 }));
 $("navPrev").onclick=()=>{if(!navPrevKey)return;if(listView==="month")listMonth=navPrevKey;else listDay=navPrevKey;shown=60;armed=null;render();listSwap(-14)};
@@ -1550,19 +1617,50 @@ $("paydayIn").addEventListener("change",()=>{
   payday=n;persistSettings();render();
   toast("每月發薪日改成 "+n+" 號");
 });
+/* 每日基準：他自己設定（預設 500）；比建議基準高時不擋，但警告 */
+function dailyWarnText(n){
+  const sg=Math.round(sugNow);
+  if(!(sg>0)||n<=sg)return "";
+  return "比建議基準 $"+fmt(sg)+" 多 $"+fmt(n-sg)+"。照每天 $"+fmt(n)+" 花，"+(dailyEffect||"錢會比較早花完")+"。";
+}
+let dailyEffect="";
+function drawDailyIn(sug,periodLeft,diff,tgs){
+  if(document.activeElement!==$("dailyIn"))$("dailyIn").value=daily;
+  dailyEffect=periodLeft<-0.5?"到下次發薪日 "+tgs+" 前錢已經不夠":diff!=null&&diff<0?"會比下次發薪日 "+tgs+" 早 "+(-diff)+" 天用完":diff!=null&&diff<=TIGHT_DAYS?"只比下次發薪日 "+tgs+" 多撐 "+diff+" 天":"剩下能拿去還卡費的錢會變少";
+  const w=dailyWarnText(daily);
+  $("dailyWarn").hidden=!w;$("dailyWarn").textContent=w;
+  const sg=Math.round(sug);
+  $("useSug").hidden=!(sg>0)||sg===daily;$("useSug").textContent="改用建議基準 $"+fmt(sg);
+  $("useDefault").hidden=daily===DEFAULT_DAILY;
+}
+function setDaily(n){
+  const p0=daily;
+  daily=n;
+  notes.daily=n>Math.round(sugNow)&&Math.round(sugNow)>0?{daily:n,date:todayStr()}:null;   // 當天在通知區也提醒一次
+  saveNotes();persistSettings();render();
+  const w=dailyWarnText(n);
+  toast("每日基準 $"+fmt(p0)+" → $"+fmt(n)+(w?"。"+w:"。"),!!w);
+}
+$("dailyIn").addEventListener("change",()=>{
+  const n=dailyOk(Math.round(parseAmount($("dailyIn").value)));
+  if(!n){$("dailyIn").value=daily;toast("每日基準請輸入 50～20,000",true);return}
+  if(n!==daily)setDaily(n);
+});
+$("useSug").onclick=()=>{const n=dailyOk(Math.round(sugNow));if(n&&n!==daily)setDaily(n)};
+$("useDefault").onclick=()=>{if(daily!==DEFAULT_DAILY)setDaily(DEFAULT_DAILY)};
 /* 生活費比例的選單：20%～50%，預設 35% */
 $("pctIn").innerHTML=[20,25,30,35,40,45,50].map(v=>'<option value="'+v+'">'+v+'%'+(v===35?"（預設）":"")+'</option>').join("");
 $("pctIn").addEventListener("change",()=>{
   const n=pctOk(Number($("pctIn").value));if(!n)return;
-  const p0=planNow;
+  const p0=sugNow;
   quietNotices=true;
-  pct=35;render();const pDef=planNow;           // 照預設 35% 算的每日基準
-  pct=n;render();const p1=planNow;
+  pct=35;render();const pDef=sugNow;           // 照預設 35% 算的建議基準
+  pct=n;render();const p1=sugNow;
   quietNotices=false;
-  /* 調得比預設高、每天能花的因此變多：最上面警告（當天有效，改回 35% 以下就消失） */
-  notes.pct=n>35&&p1>pDef+0.5?{pct:n,date:todayStr(),text:"生活費比例改成 "+n+"%，比預設的 35% 高。每天能花的會從 $"+fmt(pDef)+" 變成 $"+fmt(p1)+"；錢會更早花完，建議改回 35%。"}:null;
+  /* 調得比預設高、建議基準因此變多：最上面警告（當天有效，改回 35% 以下就消失） */
+  notes.pct=n>35&&p1>pDef+0.5?{pct:n,date:todayStr(),text:"生活費比例改成 "+n+"%，比預設的 35% 高。建議基準會從 $"+fmt(pDef)+" 變成 $"+fmt(p1)+"；照這個設定每日基準，錢會更早花完，建議改回 35%。"}:null;
   saveNotes();persistSettings();render();
-  toast("生活費比例改成 "+n+"%"+(Math.abs(p1-p0)>=0.5?"，每天能花的從 $"+fmt(p0)+" 變成 $"+fmt(p1):"，每天能花的沒有變（扣掉固定支出後能花的比較少）")+(n<35&&p1<p0-0.5?"，多出來的可以多還卡費。":"。"),n>35&&p1>p0+0.5);
+  toast("生活費比例改成 "+n+"%"+(Math.abs(p1-p0)>=0.5?"，建議基準從 $"+fmt(p0)+" 變成 $"+fmt(p1):"，建議基準沒有變（扣掉固定支出後能花的比較少）")+"。每日基準還是 $"+fmt(daily)+"，要跟著改請到上面。",n>35&&p1>p0+0.5);
 });
 /* 某天（含）之後第一個發薪日：每月 payday 號，那個月沒有這天就用月底 */
 function paydayFrom(ds){
@@ -1580,17 +1678,17 @@ function setUntil(v,fromAsk){
   const nv=v||"";
   noticeScrollPending=false;
   quietNotices=true;
-  until="";render();const pDef=planNow;          // 照預設（每月發薪日推算）的每日基準
-  until=nv;render();const pNew=planNow;
+  until="";render();const pDef=todayMaxNow;          // 照預設（每月發薪日推算）的今日額度
+  until=nv;render();const pNew=todayMaxNow;
   quietNotices=false;
   const raw=autoUntil(entries);
   notes.impact=null;                            // 日期換了，上一筆「提早／延後幾天」就不準了
   /* 回答「還沒，再等…」時不算設太早：那是他照實回答的日期 */
-  if(nv&&!fromAsk&&nv<raw&&pNew>pDef+0.5)
-    notes.early={until:nv,date:todayStr(),text:"下次發薪日設在 "+mdOf(nv)+"，比預設的 "+mdOf(raw)+" 早。每天能花的會從 $"+fmt(pDef)+" 變成 $"+fmt(pNew)+"；設太近，錢可能撐不到真正入帳那天。"};
+  if(nv&&!fromAsk&&nv<raw)
+    notes.early={until:nv,date:todayStr(),text:"下次發薪日設在 "+mdOf(nv)+"，比預設的 "+mdOf(raw)+" 早。"+(pNew>pDef+0.5?"今天能花的會從 $"+fmt(pDef)+" 變成 $"+fmt(pNew)+"；":"撐到的日子會看起來比較寬裕；")+"設太近，錢可能撐不到真正入帳那天。"};
   else notes.early=null;
   saveNotes();persistSettings();render();
-  toast(until?"下次發薪日改成 "+mdOf(until)+"，每天能花 $"+fmt(planNow):"已改回照每月發薪日推算");
+  toast(until?"下次發薪日改成 "+mdOf(until)+"，今天能花 $"+fmt(todayMaxNow):"已改回照每月發薪日推算");
 }
 /* 手機（觸控）：日曆關掉、離開欄位時才存，日曆開著時選來選去不會一直存；電腦：選好就存 */
 const touchUI=()=>window.matchMedia&&matchMedia("(pointer:coarse)").matches;
@@ -2021,20 +2119,24 @@ function renderCore(){
   const payDate=lastSal?lastSal.date:today;
   const salDays=Math.max(1,dayDiff(payDate,target)+1);   // 跟「還有幾天」一樣，兩頭都算
   const d35=payAmt>0?payAmt*pct/100/salDays:Infinity;
-  /* 每日基準＝「35% 每天」和「扣掉固定支出後實際每天可花（發薪那天算的）」取比較小的 */
+  /* 建議基準＝「35% 每天」和「扣掉固定支出後實際每天可花（發薪那天算的）」取比較小的，只給他參考 */
   const availDaily=base>0?base:rolling;
-  let plan=Math.min(availDaily,d35);
-  if(!isFinite(plan))plan=0;
+  let sug=Math.min(availDaily,d35);
+  if(!isFinite(sug))sug=0;
+  sugNow=sug;
+  /* 每日基準＝他設定的（預設 500）：撐到幾號照這個算 */
+  const plan=daily;
   planNow=plan;
-  /* 今日額度：不超過每日基準；之前花多了就照剩下的錢平均（會變少） */
+  /* 今日額度：不超過每日基準；錢平均下來不夠的話照剩下的錢平均（會變少） */
   const todayMax=Math.min(rolling,plan);
+  todayMaxNow=todayMax;
   /* 照每日基準花用不到的錢（今天花超過的部分要先扣掉）：不會加進每天的額度 */
   /* 用畫面上看到的整數算（每天的金額取整數再乘天數），跟發薪分配那則通知的算式一樣 */
   const saved=Math.max(0,Math.round(startOfDay)-Math.round(plan)*daysLeft-Math.round(Math.max(0,todaySpent-todayMax)));
   const todayRemain=todayMax-todaySpent;
   todayRemainNow=todayRemain;
-  /* 今天：超過額度＝超支；今日額度不到 MIN_DAILY（一天 $400）＝緊繃；其他照剩下多少：一半以上＝充裕、不到一半＝緊繃（跟右邊那塊用同一組字） */
-  const todayTone=todayRemain<-0.5?"over":(todayMax>=MIN_DAILY&&todayRemain>=todayMax*0.5?"ok":"low");
+  /* 今天：超過額度＝超支；今日額度不到 TIGHT_DAILY（一天 $250）＝緊繃；其他照剩下多少：一半以上＝充裕、不到一半＝緊繃（跟右邊那塊用同一組字） */
+  const todayTone=todayRemain<-0.5?"over":(todayMax+1e-9>=TIGHT_DAILY&&todayRemain>=todayMax*0.5?"ok":"low");
   setTone("todayPanel","todayTag",todayTone,{ok:"充裕",low:"緊繃",over:"超支"});
 
   $("spendable").textContent=money(spendable);
@@ -2077,7 +2179,7 @@ function renderCore(){
     $("dcBudget").textContent="—";$("dcFrom").textContent="";$("dcDays").textContent="—";$("dcD35").textContent="—";
   }
   $("dcAvail").textContent="$"+fmt(availDaily);
-  $("dcDaily").textContent="$"+fmt(plan);
+  $("dcDaily").textContent="$"+fmt(sug);
   $("dcNote").textContent=(payAmt>0&&d35<availDaily?pct+"% 比較少，用 "+pct+"%。":payAmt>0?"扣掉固定支出後能花的比 "+pct+"% 少，用實際能花的。":"還沒有薪水紀錄，用實際能花的。")+(manual?"":(passed?"輸入的下次發薪日已經過了，":"")+"下次發薪日照每月 "+payday+" 號推算（"+tgs+"）。");
   /* 剩餘資產條：每日基準、用不到的錢 */
   $("wfPlan").textContent="$"+fmt(plan);
@@ -2090,7 +2192,7 @@ function renderCore(){
   const t0=parseDate(today);
   const dayAt=n=>new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+n);
   const md=d=>(d.getMonth()+1)+"/"+d.getDate();
-  let runout, periodTone;
+  let runout, periodTone, periodDiff=null;
   if(periodLeft<-0.5){
     $("periodDaily").classList.add("is-short");
     setMoney($("periodDaily"),-periodLeft,"還差 ");
@@ -2099,8 +2201,8 @@ function renderCore(){
     runout="到下次發薪日 "+tgs+" 前，錢已經不夠用。";periodTone="over";endNow=null;
   }else{
     const rem=periodLeft-Math.max(0,todayMax-todaySpent);
-    /* 每天至少照 MIN_DAILY（$400）算：每日基準比較低時，用 400 算才是真的撐得到的日子 */
-    const rate=Math.max(Math.round(plan),MIN_DAILY);
+    /* 照每日基準（他設定的，預設 500）一天一天扣 */
+    const rate=Math.round(plan);
     let lastDays=Math.max(0,Math.floor(rem/rate+1e-9));
     /* 撐過下次發薪日的話，之後每月的固定支出也要照日期扣（薪水可能不會準時進來） */
     if(lastDays>0&&ymd(dayAt(lastDays))>target){
@@ -2117,12 +2219,14 @@ function renderCore(){
     if(!quietNotices)$("periodWk").textContent="週"+"日一二三四五六"[dayAt(lastDays).getDay()];
     drawCmp(lastDays,Math.max(0,dayDiff(today,target)),tgs,manual);
     const diff=dayDiff(target,end), pr="照每天 $"+fmt(rate)+" 花，";
-    if(diff===0){runout=pr+"剛好撐到下次發薪日 "+tgs+"。";periodTone="ok"}
-    else if(diff>0){runout=pr+"比下次發薪日 "+tgs+" 多撐 "+diff+" 天。";periodTone="ok"}
-    else{runout=pr+"比下次發薪日 "+tgs+" 早 "+(-diff)+" 天用完。";periodTone=-diff<=7?"low":"over"}
+    if(diff===0){runout=pr+"剛好撐到下次發薪日 "+tgs+"。";periodTone="low"}
+    else if(diff>0){runout=pr+"比下次發薪日 "+tgs+" 多撐 "+diff+" 天。";periodTone=diff<=TIGHT_DAYS?"low":"ok"}
+    else{runout=pr+"比下次發薪日 "+tgs+" 早 "+(-diff)+" 天用完。";periodTone="over"}
+    periodDiff=diff;
   }
   $("runout").textContent=runout;
-  /* 顏色：撐到的日期在下次發薪日當天或之後＝青綠「注意」（不說「夠」，免得他放心花）、提早 7 天內用完＝琥珀「緊繃」、提早超過 7 天或已經不夠＝朱紅「超支」 */
+  drawDailyIn(sug,periodLeft,periodDiff,tgs);
+  /* 顏色：撐到的日期比下次發薪日多 6 天以上＝綠「注意」（不說「夠」，免得他放心花）、剛好撐到或只多 5 天以內＝琥珀「緊繃」、提早用完或已經不夠＝紅「超支」 */
   /* 還沒填下次發薪日（用的是推算的日期）：最多只到琥珀，標示寫「未填發薪日」，提醒他去填 */
   if(!manual&&periodTone==="ok")periodTone="low";
   setTone("periodPanel","periodTag",periodTone,{ok:"注意",low:manual?"緊繃":"未填發薪日",over:"超支"});
@@ -2168,11 +2272,12 @@ function renderCore(){
       if(todaySpent>0)h+=row("今天已花",sgn(-Math.round(todaySpent)));
       h+=row("不夠","−$"+fmt(Math.round(todaySpent)-base),"n-sum neg")+"</div>";
     }else{
-      const living=Math.round(plan)*daysLeft, left=Math.max(0,base-living-over);   // 每天的金額用畫面上看到的整數算，乘起來才對得上
+      const living=Math.round(plan)*daysLeft, left=base-living-over;   // 每天的金額用畫面上看到的整數算，乘起來才對得上
       h+=row("生活費（每天 "+fmt(plan)+" × "+daysLeft+" 天，到 "+tgs+"）",sgn(-living))
         +(over>0?row("今天多花的",sgn(-over)):"")
-        +row("剩下","$"+fmt(left),"n-sum")+"</div>"
-        +(left>0?"剩下的錢不會算進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）。":"");
+        +(left<0?row("不夠","−$"+fmt(-left),"n-sum neg"):row("剩下","$"+fmt(left),"n-sum"))+"</div>"
+        +(left<0?"照每天 $"+fmt(plan)+" 花撐不到 "+tgs+"。每天要少花一點，或到設定把每日基準調低"+(sug>0.5?"（建議 $"+fmt(sug)+"）":"")+"。"
+         :left>0?"剩下的錢不會算進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）。":"");
     }
     if(!manual)h+='<label class="n-in">下次發薪日先照每月 '+payday+' 號算（'+tgs+'）。這次不一樣的話請輸入：<span class="n-in-row"><input type="date" class="b-input" data-act="until" aria-label="下次發薪日"><button type="button" class="b-btn b-btn--secondary b-btn--sm" data-act="setUntil">確定</button></span></label>';
     ns.push({key:"alloc-"+lastSal.id,kind:"alloc",html:h});
@@ -2186,6 +2291,8 @@ function renderCore(){
   if(notes.early&&notes.early.date===today&&manual&&until===notes.early.until&&until<autoUntil())ns.push({key:"early-"+until,kind:"warn",html:esc(notes.early.text)});
   /* ⑦ 生活費比例調得比預設高：當天有效，改回 35% 以下就消失 */
   if(notes.pct&&notes.pct.date===today&&pct===notes.pct.pct&&pct>35)ns.push({key:"pct-"+pct,kind:"warn",html:esc(notes.pct.text)});
+  /* ⑧ 每日基準設得比建議基準高：當天有效，改回不高於建議就消失 */
+  if(notes.daily&&notes.daily.date===today&&daily===notes.daily.daily){const w=dailyWarnText(daily);if(w)ns.push({key:"daily-"+daily,kind:"warn",html:esc("每日基準設成 $"+fmt(daily)+"，"+w)})}
   drawNotices(ns);
   /* 今天的長條＝今天還剩多少：一開始是滿的，花越多越短，超支就空了（跟「錢能撐幾天」一樣，越長越好） */
   const left=todayMax>0?Math.max(0,Math.min(100,todayRemain/todayMax*100)):0;
@@ -2374,7 +2481,7 @@ $("unlinkSheet").onclick=()=>{
 let pendingImport=null;
 function importNote(msg,bad){const n=$("importNote");n.textContent=msg;n.classList.toggle("bad",!!bad)}
 $("exportBtn").onclick=()=>{
-  const data={app:"KYX記帳",version:1,exportedAt:new Date().toISOString(),entries,opening,until,fixed,pay,payday,pct};
+  const data={app:"KYX記帳",version:1,exportedAt:new Date().toISOString(),entries,opening,until,fixed,pay,payday,pct,daily};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="KYX-backup-"+todayStr()+".json";
@@ -2399,7 +2506,8 @@ function parseBackup(o){
     fixed:Array.isArray(o.fixed)?o.fixed.filter(f=>f&&f.amount>0):[],
     pay:Number(o.pay)>0?Number(o.pay):0,
     payday:dayOk(o.payday)||10,
-    pct:pctOk(o.pct)||35
+    pct:pctOk(o.pct)||35,
+    daily:dailyOk(o.daily)||DEFAULT_DAILY
   }};
 }
 $("importBtn").onclick=()=>{$("importFile").value="";$("importFile").click()};
@@ -2415,7 +2523,7 @@ $("importFile").onchange=async()=>{
   $("importSummary").textContent="這個備份檔有 "+p.entries.length+" 筆紀錄，其中 "+fresh.length+" 筆是新的"
     +(p.skipped?"（另有 "+p.skipped+" 筆格式不對，會略過）":"")
     +"；固定支出 "+p.settings.fixed.filter(f=>!f.end).length+" 項"
-    +"。匯入後，新的紀錄會加進來，固定支出、上次薪水、生活費比例、每月發薪日和下次發薪日會改成備份檔裡的設定。";
+    +"。匯入後，新的紀錄會加進來，固定支出、每日基準、上次薪水、生活費比例、每月發薪日和下次發薪日會改成備份檔裡的設定。";
   $("importConfirm").hidden=false;importNote("");
 };
 $("importNo").onclick=()=>{pendingImport=null;$("importConfirm").hidden=true;importNote("已取消匯入。")};
@@ -2424,7 +2532,7 @@ $("importYes").onclick=()=>{
   const {fresh,settings}=pendingImport;
   pendingImport=null;$("importConfirm").hidden=true;
   if(fresh.length){entries=entries.concat(fresh);commit({action:"add",entries:fresh})}
-  opening=settings.opening;until=settings.until;fixed=settings.fixed;pay=settings.pay;payday=settings.payday;pct=settings.pct;
+  opening=settings.opening;until=settings.until;fixed=settings.fixed;pay=settings.pay;payday=settings.payday;pct=settings.pct;daily=settings.daily;
   persistSettings();
   drawFixedRows();render();
   importNote("已匯入 "+fresh.length+" 筆新紀錄，設定也已更新。");
@@ -2499,7 +2607,7 @@ $("themeBtn").onclick=()=>{
   const next=effectiveTheme()==="dark"?"light":"dark";
   document.documentElement.setAttribute("data-theme",next);
   try{localStorage.setItem("kyx-theme",next)}catch(e){}
-  drawThemeBtn();
+  drawThemeBtn();syncPrefs();
 };
 drawThemeBtn();
 

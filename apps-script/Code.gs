@@ -83,7 +83,8 @@ function readAll_() {
   } catch (err) {
     fixed = [];
   }
-  return {
+  var out = {
+    v: 2, // 有這個欄位的版本：設定可以只存一部分、會回傳每日基準和通知狀態
     entries: entries,
     opening: toNumber_(s.opening),
     until: s.until ? toDateStr_(s.until) : '',
@@ -92,6 +93,10 @@ function readAll_() {
     payday: toNumber_(s.payday),
     pct: toNumber_(s.pct)
   };
+  if (s.daily != null && s.daily !== '') out.daily = toNumber_(s.daily);
+  out.notes = parseObj_(s.notes);
+  out.prefs = parseObj_(s.prefs);
+  return out;
 }
 
 function addEntries_(list) {
@@ -133,24 +138,28 @@ function deleteEntry_(id) {
   return { removed: removed }; // 已經刪掉的再刪一次也算成功
 }
 
+/* 只存有送來的欄位：通知狀態、偏好這類常常變的東西單獨送，不會蓋掉別台裝置剛改的固定支出 */
 function saveSettings_(s) {
-  var opening = toNumber_(s.opening);
-  var until = typeof s.until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.until) ? s.until : '';
-  var fixed = Array.isArray(s.fixed) ? s.fixed : [];
-  var pay = toNumber_(s.pay) > 0 ? toNumber_(s.pay) : 0;
-  var payday = Math.round(toNumber_(s.payday));
-  if (!(payday >= 1 && payday <= 31)) payday = 10;
-  var pct = Math.round(toNumber_(s.pct));
-  if (!(pct >= 10 && pct <= 60)) pct = 35;
-  var sh = settingsSheet_();
-  sh.getRange(2, 1, 6, 2).setValues([
-    ['opening', opening],
-    ['until', until],
-    ['fixed', JSON.stringify(fixed)],
-    ['pay', pay],
-    ['payday', payday],
-    ['pct', pct]
-  ]);
+  var vals = {};
+  if ('opening' in s) vals.opening = toNumber_(s.opening);
+  if ('until' in s) vals.until = typeof s.until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.until) ? s.until : '';
+  if ('fixed' in s) vals.fixed = JSON.stringify(Array.isArray(s.fixed) ? s.fixed : []);
+  if ('pay' in s) vals.pay = toNumber_(s.pay) > 0 ? toNumber_(s.pay) : 0;
+  if ('payday' in s) {
+    var payday = Math.round(toNumber_(s.payday));
+    vals.payday = payday >= 1 && payday <= 31 ? payday : 10;
+  }
+  if ('pct' in s) {
+    var pct = Math.round(toNumber_(s.pct));
+    vals.pct = pct >= 10 && pct <= 60 ? pct : 35;
+  }
+  if ('daily' in s) {
+    var daily = Math.round(toNumber_(s.daily));
+    vals.daily = daily >= 50 && daily <= 20000 ? daily : 500;
+  }
+  if ('notes' in s) vals.notes = JSON.stringify(s.notes && typeof s.notes === 'object' ? s.notes : {});
+  if ('prefs' in s) vals.prefs = JSON.stringify(s.prefs && typeof s.prefs === 'object' ? s.prefs : {});
+  writeSettings_(vals);
   return { saved: true };
 }
 
@@ -203,6 +212,23 @@ function settingsSheet_() {
   return sh;
 }
 
+/* 照名稱找到那一列再寫；舊版建立的工作表沒有的欄位（例如 daily、notes）加在最後 */
+function writeSettings_(vals) {
+  var sh = settingsSheet_();
+  var last = sh.getLastRow();
+  var names = last >= 2 ? sh.getRange(2, 1, last - 1, 1).getValues() : [];
+  var row = {};
+  for (var i = 0; i < names.length; i++) if (names[i][0]) row[String(names[i][0])] = i + 2;
+  for (var k in vals) {
+    if (row[k]) sh.getRange(row[k], 2, 1, 1).setValues([[vals[k]]]);
+    else {
+      last = Math.max(last, 1) + 1;
+      sh.getRange(last, 1, 1, 2).setValues([[k, vals[k]]]);
+      row[k] = last;
+    }
+  }
+}
+
 function readSettings_() {
   var sh = settingsSheet_();
   var out = {};
@@ -217,6 +243,16 @@ function readSettings_() {
 }
 
 /* ---------- 工具 ---------- */
+
+function parseObj_(v) {
+  if (!v) return {};
+  try {
+    var o = JSON.parse(v);
+    return o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  } catch (err) {
+    return {};
+  }
+}
 
 function AppError_(code, message) {
   this.code = code;
