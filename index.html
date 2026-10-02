@@ -114,6 +114,15 @@ html,body{overflow-anchor:none}
 /* 目錄：一直展開，橫向一排；手機上可以左右滑 */
 /* 打字時頂部列往上滑走（不改變排版，不會讓頁面跳） */
 .topbar{transition:transform 280ms var(--ease-wipe)}
+/* 電腦：頂部列一排三塊——左「KYX記帳」、中目錄（置中）、右連線狀態和深淺色鈕；三塊的底部對齊（字貼著目錄底線那一條） */
+@media (min-width:960px){
+  .topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;padding-top:calc(env(safe-area-inset-top,0px) + 14px);padding-bottom:0}
+  .topbar .brand{grid-column:1;grid-row:1;padding-bottom:16px}
+  .topbar .brand h1{font-size:30px;line-height:1}
+  .topbar .toc{grid-column:2;grid-row:1;justify-self:center;width:auto;margin:0;padding-top:0}
+  .topbar .top-right{grid-column:3;grid-row:1;justify-self:end;padding-bottom:6px}
+  .topbar .top-right .sync{transform:translateY(2px)}   /* 字的下緣跟目錄的字切齊（用截圖量過） */
+}
 /* 電腦：頂部列的左右邊跟下面的內容（最寬 --page-max、置中）切齊，不會拉到整個視窗的兩邊 */
 .topbar{padding-left:max(var(--page-margin),calc((100% - var(--page-max))/2 + var(--page-margin)));padding-right:max(var(--page-margin),calc((100% - var(--page-max))/2 + var(--page-margin)))}
 
@@ -708,7 +717,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <button class="tbtn t-in cat-trans" data-type="q_trans">收到交通費<small></small></button>
         <div class="types-rule" aria-hidden="true"></div>
         <div class="group-label settle-head" id="settleLabel"><span>誰欠誰 / Settle</span><span class="settle-hint">會隨記帳改變方向</span></div>
-        <p class="settle-empty" id="settleEmpty" hidden>目前沒有人欠誰，製作費和交通費都打平。公司撥的 quota 還沒用完時，這裡會出現「我欠公司」；你自己先墊錢時，會出現「公司欠我」。</p>
+        <p class="settle-empty" id="settleEmpty" hidden>目前沒有人欠誰，製作費和交通費都打平。公司撥的製作費、交通費還沒用完時，這裡會出現「我欠公司」；你自己先墊錢時，會出現「公司欠我」。</p>
         <div class="settle-grid" id="settleRow" hidden>
           <div class="settle-col cat-prod" id="settle_prod"></div>
           <div class="settle-col cat-trans" id="settle_trans"></div>
@@ -736,7 +745,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <p class="sub" id="workSub"></p>
         <div class="flow-wrap">
           <table class="flow-t">
-            <thead><tr><th></th><th>收到 quota</th><th>花費</th><th>已還公司</th><th>公司已還我</th></tr></thead>
+            <thead><tr><th></th><th>公司撥的</th><th>花費</th><th>已還公司</th><th>公司已還我</th></tr></thead>
             <tbody id="flowBody"></tbody>
           </table>
         </div>
@@ -852,7 +861,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
             <span class="b-field__label">剩餘資產：錢去哪了 / Where it goes</span>
             <div class="wf">
               <div class="wf-row"><span>帳上的錢（照記帳算）</span><span class="num" id="wfCash">—</span></div>
-              <div class="wf-row" id="wfOweRow"><span>− 我還欠公司（quota 沒用完，不是你的錢）</span><span class="num" id="wfOwe">—</span></div>
+              <div class="wf-row" id="wfOweRow"><span>− 我還欠公司（公司撥的錢沒用完，不是你的錢）</span><span class="num" id="wfOwe">—</span></div>
               <div class="wf-row wf-sub"><span>＝ 你自己的錢</span><span class="num" id="spendable">—</span></div>
               <div class="wf-row"><span>− 下次發薪日前要繳的固定支出</span><span class="num" id="wfReserve">—</span></div>
               <div class="wf-note" id="wfReserveList"></div>
@@ -902,8 +911,8 @@ const TYPES={
   fixpay:{name:"固定支出・實際金額",en:"Bill",color:"var(--fg-3)",sign:-1,group:"personal"},
   salary:{name:"真實薪水",en:"Income",color:"var(--gh-gold)",sign:1,group:"personal"},
   personal:{name:"私人花費",en:"Personal",color:"var(--gh-gold)",sign:-1,group:"personal"},
-  q_prod:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
-  q_trans:{name:"交通費 quota",en:"Quota",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"q"},
+  q_prod:{name:"收到製作費",en:"Received",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
+  q_trans:{name:"收到交通費",en:"Received",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"q"},
   prod:{name:"製作費",en:"Production",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"spend"},
   trans:{name:"交通費",en:"Transit",color:"var(--gh-sky)",sign:-1,group:"work",cat:"trans",kind:"spend"},
   ret_prod:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
@@ -911,7 +920,7 @@ const TYPES={
   rb_prod:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"rb"},
   rb_trans:{name:"公司還我・交通費",en:"Reimbursed",color:"var(--gh-sky)",sign:1,group:"work",cat:"trans",kind:"rb"},
   /* 舊版類型，一律算在製作費 */
-  quota:{name:"製作費 quota",en:"Quota",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
+  quota:{name:"收到製作費",en:"Received",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"q"},
   advance:{name:"製作費",en:"Production",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"spend"},
   return:{name:"還公司・製作費",en:"Returned",color:"var(--gh-acid)",sign:-1,group:"work",cat:"prod",kind:"ret"},
   reimb:{name:"公司還我・製作費",en:"Reimbursed",color:"var(--gh-acid)",sign:1,group:"work",cat:"prod",kind:"rb"}
@@ -947,6 +956,9 @@ $("date").value=todayStr();
 
 /* ---------- 儲存 ---------- */
 /* 所有資料都快取在這個瀏覽器；有連結試算表時，每個動作也排進待送清單，依序送到試算表 */
+/* 第一次使用時帶入的固定支出：都是每月 1 號，可以在設定裡改（vary＝浮動，金額先填預估）。
+   測試用的模擬伺服器會把下面這一行換成舊的兩項（每月固定支出 18,000、卡費 5,000），舊測試的算式才對得上 */
+/*DEFAULT_FIXED*/const DEFAULT_FIXED=[{name:"房租",amount:11500},{name:"郭文森基金",amount:3600},{name:"電費",amount:2000,vary:1},{name:"水費",amount:500,vary:1},{name:"瓦斯費",amount:500,vary:1},{name:"電話費",amount:600,vary:1},{name:"訂閱費",amount:600,vary:1},{name:"卡債",amount:5000,vary:1}];/*END_DEFAULT_FIXED*/
 const LS_DATA="kyx-data-v1", LS_QUEUE="kyx-queue-v1", LS_SHEET="kyx-sheet-v1", LS_OLD="ledger-fallback-v1";
 function lsGet(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -955,10 +967,7 @@ function lsLoad(){
   if(!o){const old=lsGet(LS_OLD);if(old)o={entries:Object.values(old.months||{}).flat(),opening:old.opening,until:old.until,fixed:old.fixed}}
   if(!o){
     /* 第一次使用：先帶入一項每月固定支出，之後可以隨時修改 */
-    o={fixed:[
-      {id:"fx-default",name:"每月固定支出",amount:18000,day:1,since:firstSince(1),from:todayStr()},
-      {id:"fx-card",name:"卡費",amount:5000,day:1,since:firstSince(1),from:todayStr()}
-    ]};
+    o={fixed:DEFAULT_FIXED.map((d,i)=>Object.assign({id:d.id||"fx-d"+i,name:d.name,amount:d.amount,day:1,since:firstSince(1),from:todayStr()},d.vary?{vary:true}:{}))};
     setData(o);lsSave();
   }
   setData(o);
@@ -2348,7 +2357,7 @@ function renderCore(){
   }
   $("settleRow").hidden=!anyDebt;
   $("settleEmpty").hidden=anyDebt;
-  $("workSub").textContent=workNotes.length?workNotes.join("，")+"。兩筆 quota 各算各的，不會互相抵。":"製作費和交通費目前都打平。";
+  $("workSub").textContent=workNotes.length?workNotes.join("，")+"。製作費和交通費各算各的，不會互相抵。":"製作費和交通費目前都打平。";
 
   /* 明細：月檢視一次一個月、日檢視一次一天，用上一個／下一個切換，用久了也不會變成很長一串 */
   const pool=all.concat(paidFixed).filter(e=>filter==="all"||(TYPES[e.type]||TYPES.personal).group===filter);
@@ -2385,7 +2394,7 @@ function renderCore(){
   /* 小計：私人和全部看收入、私人花費、固定支出；工作看 quota、工作花費、結清 */
   const tot=f=>full.filter(f).reduce((a,e)=>a+e.amount,0);
   const items=filter==="work"
-    ?[["收到 quota","+",tot(e=>(TYPES[e.type]||{}).kind==="q"),"var(--income)"],["工作花費","−",tot(e=>(TYPES[e.type]||{}).kind==="spend"),"var(--expense)"],["結清","",tot(e=>["ret","rb"].includes((TYPES[e.type]||{}).kind)),"var(--fg)"]]
+    ?[["公司撥的","+",tot(e=>(TYPES[e.type]||{}).kind==="q"),"var(--income)"],["工作花費","−",tot(e=>(TYPES[e.type]||{}).kind==="spend"),"var(--expense)"],["結清","",tot(e=>["ret","rb"].includes((TYPES[e.type]||{}).kind)),"var(--fg)"]]
     :[["收入","+",tot(e=>e.type==="salary"),"var(--income)"],["私人花費","−",tot(e=>e.type==="personal"),"var(--expense)"],["固定支出","−",tot(e=>e.type==="fixed"||e.type==="fixpay"),"var(--expense)"]];
   $("listSum").innerHTML=items.map(([l,sg,v,c])=>'<div class="ls-item"><span class="ls-l">'+l+'</span><span class="ls-v" style="color:'+(v>0?c:"var(--fg-3)")+'">'+(v>0?sg:"")+fmt(v)+'</span></div>').join("");
   full.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
