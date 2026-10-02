@@ -644,14 +644,14 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
       </div>
       <div class="types">
-        <div class="group-label">收入 / Income</div>
-        <button class="tbtn t-in cat-own" data-type="salary">真實薪水<small>進私人可花</small></button>
-        <button class="tbtn t-in cat-prod" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
-        <button class="tbtn t-in cat-trans" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
         <div class="group-label">支出 / Expense</div>
         <button class="tbtn t-out cat-own" data-type="personal">私人花費<small>從私人可花扣</small></button>
         <button class="tbtn t-out cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
         <button class="tbtn t-out cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
+        <div class="group-label">收入 / Income</div>
+        <button class="tbtn t-in cat-own" data-type="salary">真實薪水<small>進私人可花</small></button>
+        <button class="tbtn t-in cat-prod" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
+        <button class="tbtn t-in cat-trans" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
         <div class="types-rule" aria-hidden="true"></div>
         <div class="group-label settle-head" id="settleLabel"><span>誰欠誰 / Settle</span><span class="settle-hint">會隨記帳改變方向</span></div>
         <p class="settle-empty" id="settleEmpty" hidden>目前沒有人欠誰，製作費和交通費都打平。公司撥的 quota 還沒用完時，這裡會出現「我欠公司」；你自己先墊錢時，會出現「公司欠我」。</p>
@@ -1180,6 +1180,8 @@ function collapseOut(el,done){
   stayMark(el.previousElementSibling||el.parentNode);
   if(!el||reduceMotion()||!el.animate){done();return}
   const cs=getComputedStyle(el), h=el.offsetHeight;
+  /* 先在頁面最底下補上這一列的高度，再開始收：頁面總高度不會變短，捲到最底時瀏覽器就不會先把畫面往上拉一下再補回來（會跳） */
+  const sp=$("endSpace");sp.style.height=(sp.offsetHeight+h+(parseFloat(cs.marginTop)||0)+(parseFloat(cs.marginBottom)||0))+"px";
   el.style.overflow="hidden";el.style.pointerEvents="none";
   const an=el.animate([
     {height:h+"px",opacity:1,paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom,marginTop:cs.marginTop,marginBottom:cs.marginBottom},
@@ -1904,11 +1906,12 @@ function fitBigs(){
     /* 置中時往左超出的部分 scrollWidth 量不到，所以自己加總內容寬度 */
     const kids=[...box.children].filter(k=>k.offsetWidth>0), gap=parseFloat(getComputedStyle(box).columnGap)||0;
     const need=big===box?big.scrollWidth:kids.reduce((t,k)=>t+(k===big?k.scrollWidth:k.offsetWidth),0)+gap*(kids.length-1);
-    const w=box.clientWidth, over=need-w;
+    const w=box.parentElement.clientWidth, over=need-w;   // 跟外框（色塊內容寬）比，不是跟自己比：自己的寬會跟著字變，會反覆縮放、畫面跳動
     if(over>1){const bw=big.scrollWidth, f=parseFloat(getComputedStyle(big).fontSize);big.style.fontSize=Math.max(16,Math.floor(f*(bw-over)/bw*0.97))+"px"}
   }
 }
-if("ResizeObserver" in window)new ResizeObserver(()=>fitBigs()).observe($("sec-hero").querySelector(".panels"));
+/* 只在色塊變寬變窄時重算（高度變化是縮字自己造成的，不要再算，免得來回跳） */
+if("ResizeObserver" in window){let lastW=-1;new ResizeObserver(es=>{const w=Math.round(es[0].contentRect.width);if(w!==lastW){lastW=w;fitBigs()}}).observe($("sec-hero").querySelector(".panels"))}
 /* 電腦右欄：上面／下面還有沒看到的內容，那一邊就淡出 */
 function fadeRight(){
   const c=document.querySelector(".col-right");if(!c)return;
@@ -1981,7 +1984,8 @@ function renderCore(){
   /* 今日額度：不超過每日基準；之前花多了就照剩下的錢平均（會變少） */
   const todayMax=Math.min(rolling,plan);
   /* 照每日基準花用不到的錢（今天花超過的部分要先扣掉）：不會加進每天的額度 */
-  const saved=Math.max(0,startOfDay-plan*daysLeft-Math.max(0,todaySpent-todayMax));
+  /* 用畫面上看到的整數算（每天的金額取整數再乘天數），跟發薪分配那則通知的算式一樣 */
+  const saved=Math.max(0,Math.round(startOfDay)-Math.round(plan)*daysLeft-Math.round(Math.max(0,todaySpent-todayMax)));
   const todayRemain=todayMax-todaySpent;
   todayRemainNow=todayRemain;
   /* 今天：剩下額度一半以上＝充裕、有剩但不到一半＝偏緊、超過額度＝超支 */
@@ -2093,18 +2097,35 @@ function renderCore(){
     +'<div class="n-actions"><button class="b-btn b-btn--secondary b-btn--sm" data-act="got">已經進來，去記一筆</button><button class="b-btn b-btn--secondary b-btn--sm" data-act="wait7">還沒，再等一週</button><button class="b-btn b-btn--secondary b-btn--sm" data-act="wait14">還沒，再等兩週</button></div>'});
   /* ② 發薪日分配：記常規薪水的那天 */
   if(notes.alloc&&notes.alloc.date===today&&lastSal&&lastSal.id===notes.alloc.sid){
-    const todayFixed=paidFixed.filter(e=>e.date===today&&!e.covered);
-    const fxList=todayFixed.concat(upcoming), fxAmt=fxList.reduce((a,e)=>a+e.amount,0);
+    /* 一條算式，每一行加起來要等於最後一行：薪水 − 固定支出 ± 之前的錢 − 生活費 ＝ 剩下
+       固定支出＝這次薪水之後到期的（已經扣的＋下次發薪日前要繳的） */
+    const sinceFixed=paidFixed.filter(e=>e.date>=lastSal.date&&!e.covered);
+    const fxList=sinceFixed.concat(upcoming), fxAmt=Math.round(fxList.reduce((a,e)=>a+e.amount,0));
     const byDate={};for(const e of fxList)(byDate[e.date]=byDate[e.date]||[]).push(e.note);
     const fxDates=Object.keys(byDate).sort().map(d=>mdOf(d)).join("、");
-    /* 剩下＝剩餘資產裡「用不到的錢」；錢不夠時寫的差額和下面「錢不夠」那則一樣 */
-    const living=Math.round(plan*daysLeft), left=Math.round(saved);
-    let h="<b>薪水 NT$"+fmt(lastSal.amount)+" 進來了，錢先分配好：</b><div class=\"alloc\">"
-      +(fxAmt>0?"<span>固定支出（"+esc(fxDates)+"）</span><span class=\"num\">NT$"+fmt(fxAmt)+"</span>":"")
-      +"<span>生活費（每天 "+fmt(plan)+" × "+daysLeft+" 天，到 "+tgs+"）</span><span class=\"num\">NT$"+fmt(living)+"</span>"
-      +(periodLeft<-0.5?"<span class=\"n-sum\">不夠</span><span class=\"num n-sum neg\">−NT$"+fmt(-periodLeft)+"</span></div>"
-        :"<span class=\"n-sum\">剩下</span><span class=\"num n-sum\">NT$"+fmt(left)+"</span></div>")
-      +(periodLeft>=-0.5&&left>0?"剩下的錢不會算進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）。":"");
+    const salAmt=Math.round(lastSal.amount);
+    /* 讓算式對得起來的另外兩行：這次薪水之後（今天以前）已經花的；剩下的差額是之前留下的（或之前不夠、要先補上的） */
+    const spentSince=Math.round(all.filter(e=>(e.type==="personal"||e.type==="fixpay")&&e.date>=lastSal.date&&e.date<today).reduce((a,e)=>a+e.amount,0));
+    const other=Math.round(startOfDay)-(salAmt-fxAmt), prior=other+spentSince;
+    const over=Math.round(Math.max(0,todaySpent-todayMax));
+    const row=(l,v,cls)=>"<span"+(cls?" class=\""+cls+"\"":"")+">"+l+"</span><span class=\"num"+(cls?" "+cls:"")+"\">"+v+"</span>";
+    const sgn=v=>(v<0?"− ":"＋ ")+"NT$"+fmt(Math.abs(v));
+    let h="<b>薪水 NT$"+fmt(salAmt)+" 進來了，錢先分配好：</b><div class=\"alloc\">"
+      +row("薪水（"+mdOf(lastSal.date)+"）","NT$"+fmt(salAmt))
+      +(fxAmt>0?row("固定支出（"+esc(fxDates)+"）",sgn(-fxAmt)):"")
+      +(Math.abs(prior)>=1?row(prior>0?"之前留下的錢":"補之前不夠的錢",sgn(prior)):"")
+      +(spentSince>=1?row("這次薪水之後已經花的",sgn(-spentSince)):"");
+    const base=salAmt-fxAmt+other;   // ＝ 一天開始時能分配的錢
+    if(periodLeft<-0.5){
+      if(todaySpent>0)h+=row("今天已花",sgn(-Math.round(todaySpent)));
+      h+=row("不夠","−NT$"+fmt(Math.round(todaySpent)-base),"n-sum neg")+"</div>";
+    }else{
+      const living=Math.round(plan)*daysLeft, left=Math.max(0,base-living-over);   // 每天的金額用畫面上看到的整數算，乘起來才對得上
+      h+=row("生活費（每天 "+fmt(plan)+" × "+daysLeft+" 天，到 "+tgs+"）",sgn(-living))
+        +(over>0?row("今天多花的",sgn(-over)):"")
+        +row("剩下","NT$"+fmt(left),"n-sum")+"</div>"
+        +(left>0?"剩下的錢不會算進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）。":"");
+    }
     if(!manual)h+='<label class="n-in">下次發薪日先照每月 '+payday+' 號算（'+tgs+'）。這次不一樣的話請輸入：<span class="n-in-row"><input type="date" class="b-input" data-act="until" aria-label="下次發薪日"><button type="button" class="b-btn b-btn--secondary b-btn--sm" data-act="setUntil">確定</button></span></label>';
     ns.push({key:"alloc-"+lastSal.id,kind:"alloc",html:h});
   }
