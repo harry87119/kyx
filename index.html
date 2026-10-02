@@ -21,7 +21,7 @@
 /* 版面：手機單欄；寬螢幕左 7 右 5 兩欄（左：還可花色塊、剩餘資產、明細；右：新增一筆、固定支出、工作帳、設定） */
 :root{
 /* 品牌色（深淺模式共用） */
---ok:#a8da40;--low:#ffdd00;--gh-red:#f92c16;--gh-vermilion:#ee5522;--gh-gold:#a89379;--gh-turquoise:#03c2b8;--gh-navy:#071729;--gh-blue:#041bca;--gh-blue-hover:#0a22e0;--gh-camel:#b0967a;--gh-ember:#df6a33;--gh-amber:#ffbb22;--gh-lime:#9bba05;--gh-acid:#df6a33;--gh-sky:#1178cb;
+--ok:#a8da40;--low:#ffbb22;--gh-red:#f92c16;--gh-vermilion:#ee5522;--gh-gold:#a89379;--gh-turquoise:#03c2b8;--gh-navy:#071729;--gh-blue:#041bca;--gh-blue-hover:#0a22e0;--gh-camel:#b0967a;--gh-ember:#df6a33;--gh-amber:#ffbb22;--gh-lime:#9bba05;--gh-acid:#df6a33;--gh-sky:#1178cb;
 --ink-900:#1b1919;
 /* 字體 */
 --font-display:"Jost","Futura","Avenir Next",system-ui,sans-serif;
@@ -283,7 +283,7 @@ body.typing .to-top{display:none}
 @media (min-width:960px){.panels>.panel{min-height:300px;padding:28px}}
 .panel{display:flex;flex-direction:column;justify-content:flex-start;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
 .panel .b-label{color:inherit}
-/* 還可花的三種顏色：充裕／注意＝綠 #A8DA40、緊繃＝黃 #FFDD00、超支／不夠＝紅 #F92C16。
+/* 還可花的三種顏色：充裕／注意＝綠 #A8DA40、緊繃＝琥珀 #FFBB22、超支／不夠＝紅 #F92C16。
    色塊只畫外框（不再整塊塗滿），字照一般顏色；顏色出現在外框和右上角的小方塊 */
 .tone-ok{--tone:var(--ok)}
 .tone-low{--tone:var(--low)}
@@ -424,24 +424,28 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .tbtn:hover::before,.tbtn:focus-visible::before{transform:scaleY(1)}
 .t-out{transition:color var(--dur-base) var(--ease-wipe),transform var(--dur-instant) var(--ease),min-height 280ms var(--ease-wipe),padding 280ms var(--ease-wipe),gap 280ms var(--ease-wipe),opacity 240ms var(--ease)}
 .t-out:hover,.t-out:focus-visible{color:var(--on-cat)}
-.settle-grid{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px}
+.settle-grid{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:28px}
 .types-rule{grid-column:1/-1;height:0;border-top:1px solid var(--line-2);margin-top:20px}
 .settle-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-.settle-empty{grid-column:1/-1;margin:0;padding:14px 16px;border:1px solid var(--line-2);font-size:13.5px;line-height:1.7;letter-spacing:.03em;color:var(--fg-2)}
+.settle-empty{grid-column:1/-1;margin:0;padding:14px 0 0;border:0;border-top:4px solid var(--line);font-size:13.5px;line-height:1.7;letter-spacing:.03em;color:var(--fg-2)}
 .settle-hint{font-family:var(--font-han-sans);font-size:11.5px;letter-spacing:.08em;text-transform:none;color:var(--fg-2)}
 .settle-col{min-width:0;display:flex;flex-direction:column}
 /* 誰欠誰：顏色跟著方向走，方向一翻轉顏色就換；出現時從下方升起 */
-.settle{--dir:var(--gh-turquoise);background:transparent;border:2px solid var(--dir);color:var(--fg);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1;--on-cat:#000}
+/* 誰欠誰：不畫框。跟各區塊標題一樣，上面一條粗線（顏色＝方向），下面是英文小標、粗黑體「我欠公司」、大金額 */
+.settle{--dir:var(--gh-turquoise);background:transparent;border:0;border-top:4px solid var(--dir);color:var(--fg);padding:14px 0 4px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1;--on-cat:#000}
 .settle.owe{--dir:var(--gh-red)}   /* 我欠公司＝超支紅 */
 .settle.owed{--dir:var(--gh-turquoise)}
 .settle:not([hidden]){animation:b-rise var(--dur-base) var(--ease-settle) both}
-.settle .cap{font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;overflow-wrap:anywhere}
-.settle{border-top-width:4px}
-.settle .label{font-family:var(--font-han-serif);font-weight:900;font-size:32px;font-size:clamp(24px,14cqi,40px);line-height:1.1;letter-spacing:.02em;margin-top:10px;white-space:nowrap}
-.settle .mid{font-size:24px;font-size:clamp(18px,16cqi,28px);white-space:nowrap;color:var(--fg);margin-top:4px}
+.settle .cap{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-3);overflow-wrap:anywhere}
+.settle .cap::before{content:"";flex:none;width:8px;height:8px;background:var(--dir)}
+.settle .label{display:flex;align-items:baseline;gap:8px;font-family:var(--font-han-sans);font-weight:700;font-size:20px;line-height:1.2;letter-spacing:.06em;margin-top:10px;white-space:nowrap}
+.settle .mid{font-size:40px;font-size:clamp(30px,20cqi,48px);line-height:1.05;white-space:nowrap;color:var(--fg);margin-top:6px}
+/* 記完一筆：「我欠公司」那一行的右邊短暫出現這次的變化（放在這裡不會推動版面，兩欄維持對齊） */
+.settle .dl{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:15px;font-weight:400;letter-spacing:.02em;white-space:nowrap;text-transform:none;color:var(--fg);opacity:0;transform:translateY(6px);transition:opacity 260ms var(--ease),transform 320ms var(--ease-settle)}
+.settle .dl.show{opacity:1;transform:none}
 .settle .sub{font-size:11.5px;color:inherit;opacity:.8}
 /* 已收到＝錢回到我這邊，黑色由下往上升；已還清＝錢還給公司，黑色由上往下降（滑過、按下都會跑） */
-.clear{position:relative;isolation:isolate;overflow:hidden;align-self:flex-start;margin-top:10px;padding:0 14px;min-height:44px;border:1px solid var(--fg);border-radius:0;background:transparent;color:var(--fg);font-family:var(--font-display);font-size:12px;font-weight:500;letter-spacing:.16em;transition:color var(--dur-base) var(--ease-wipe)}
+.clear{position:relative;isolation:isolate;overflow:hidden;align-self:flex-start;margin-top:10px;padding:0 22px;min-width:124px;min-height:44px;border:1px solid var(--fg);border-radius:0;background:transparent;color:var(--fg);font-family:var(--font-display);font-size:12px;font-weight:500;letter-spacing:.16em;transition:color var(--dur-base) var(--ease-wipe)}
 .clear::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--fg);transform:scaleY(0);transition:transform var(--dur-base) var(--ease-wipe);pointer-events:none}
 .settle.owe .clear::before{transform-origin:top}
 .settle.owed .clear::before{transform-origin:bottom}
@@ -625,6 +629,10 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .b-label{font-size:11px}
 .b-field__label,.group-label{font-size:12px}
 .settle .cap,.info .d,.flow-t th,.fx-row .fx-name small{font-size:11px}
+/* 記帳按鈕：只寫名稱（說明小字拿掉，按下去才短暫顯示「已記下 $X」）；收入那排比較矮 */
+.tbtn small:empty{display:none}
+.tbtn.t-in{min-height:56px;padding:9px 12px}
+@media (max-width:420px){.tbtn.t-in{min-height:56px;padding:8px 10px}}
 </style>
 </head>
 <body>
@@ -670,13 +678,13 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="types">
         <div class="group-label">支出 / Expense</div>
-        <button class="tbtn t-out cat-own" data-type="personal">私人花費<small>從私人可花扣</small></button>
-        <button class="tbtn t-out cat-prod" data-type="prod">工作・製作費<small>先扣製作費 quota</small></button>
-        <button class="tbtn t-out cat-trans" data-type="trans">工作・交通費<small>先扣交通費 quota</small></button>
+        <button class="tbtn t-out cat-own" data-type="personal">私人花費<small></small></button>
+        <button class="tbtn t-out cat-prod" data-type="prod">用製作費<small></small></button>
+        <button class="tbtn t-out cat-trans" data-type="trans">用交通費<small></small></button>
         <div class="group-label">收入 / Income</div>
-        <button class="tbtn t-in cat-own" data-type="salary">真實薪水<small>進私人可花</small></button>
-        <button class="tbtn t-in cat-prod" data-type="q_prod">製作費 quota<small>公司先撥，只能用在製作</small></button>
-        <button class="tbtn t-in cat-trans" data-type="q_trans">交通費 quota<small>公司先撥，只能用在交通</small></button>
+        <button class="tbtn t-in cat-own" data-type="salary">薪水<small></small></button>
+        <button class="tbtn t-in cat-prod" data-type="q_prod">收到製作費<small></small></button>
+        <button class="tbtn t-in cat-trans" data-type="q_trans">收到交通費<small></small></button>
         <div class="types-rule" aria-hidden="true"></div>
         <div class="group-label settle-head" id="settleLabel"><span>誰欠誰 / Settle</span><span class="settle-hint">會隨記帳改變方向</span></div>
         <p class="settle-empty" id="settleEmpty" hidden>目前沒有人欠誰，製作費和交通費都打平。公司撥的 quota 還沒用完時，這裡會出現「我欠公司」；你自己先墊錢時，會出現「公司欠我」。</p>
@@ -1239,16 +1247,16 @@ $("list").addEventListener("click",ev=>{
 
 /* ---------- 工作結清 ---------- */
 const CATS=[{id:"prod",name:"製作費"},{id:"trans",name:"交通費"}];
-let settleState={}, clearArmed=null;
+let settleState={}, clearArmed=null, lastSettle=null;
 (function buildSettle(){
   for(const c of CATS){
     const g=$("settle_"+c.id);
     for(const k of ["owe","owed"]){
       const box=document.createElement("div");box.className="settle";box.id="s_"+c.id+"_"+k;
-      box.innerHTML='<span class="cap"></span><span class="label"></span><span class="mid">$0</span><span class="sub"></span><button class="clear" hidden></button>';
+      box.innerHTML='<span class="cap"></span><span class="label"><span class="label-t"></span><span class="dl" aria-hidden="true"></span></span><span class="mid">$0</span><span class="sub"></span><button class="clear" hidden></button>';
       box.querySelector(".cap").textContent=c.name+" · "+(k==="owe"?"Owe":"Owed");
-      box.querySelector(".label").textContent=k==="owe"?"我欠公司":"公司欠我";
-      box.querySelector(".sub").textContent=k==="owe"?"我還欠公司："+c.name+" quota 沒用完的部分":"公司還欠我：超出"+c.name+" quota、我自己墊的";
+      box.querySelector(".label-t").textContent=k==="owe"?"我欠公司":"公司欠我";
+      box.querySelector(".sub").textContent=k==="owe"?c.name+"餘額":"我先墊的"+c.name;
       box.querySelector(".clear").onclick=()=>settle(c.id,k);
       g.appendChild(box);
     }
@@ -2189,6 +2197,16 @@ function renderCore(){
     const owe=Math.max(0,w.left), owed=Math.max(0,-w.left);
     for(const [k,v] of [["owe",owe],["owed",owed]]){
       const key=c.id+"_"+k, box=$("s_"+key), btn=box.querySelector(".clear");
+      /* 記完一筆（金額跟上次畫的不一樣）：金額旁邊短暫出現這次的變化，例如「−$3,200」 */
+      if(!quietNotices){
+        const old=lastSettle?lastSettle[key]||0:null, dv=old==null?0:v-old;
+        if(v>=0.005&&Math.abs(dv)>=0.005){
+          const dl=box.querySelector(".dl");dl.textContent=(dv>0?"+":"−")+"$"+fmt(Math.abs(dv));
+          dl.classList.remove("show");void dl.offsetWidth;dl.classList.add("show");
+          clearTimeout(dl._t);dl._t=setTimeout(()=>dl.classList.remove("show"),2600);
+        }
+        (lastSettle=lastSettle||{})[key]=v;
+      }
       settleState[key]=v;
       box.querySelector(".mid").textContent="$"+fmt(v);
       box.classList.toggle(k,v>=0.005);
