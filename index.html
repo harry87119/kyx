@@ -600,6 +600,14 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 /* 手機上輸入框至少 16px，iPhone 點下去才不會自動放大 */
 @media (max-width:720px){input:not(#amount),select,textarea{font-size:16px!important}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}}
+/* 你輸入的字＝綠色（跟點輸入欄時底線同一個顏色），一眼分得出哪些是你填的、哪些是標題和說明 */
+.b-input,.frow input,#amount,#note{color:var(--accent-text)}
+.b-input::placeholder,.frow input::placeholder,#amount::placeholder,#note::placeholder{color:var(--fg-3)}
+/* 設定裡「定額／浮動」是分組標題：大一點，跟輸入的字分開層級 */
+.fx-group .fx-gh{font-size:16px;letter-spacing:.16em;padding-bottom:8px}
+/* 滑到（或點進）輸入欄：底線從左邊長出一條綠色 */
+.b-input,.frow input,.amount-row{background-image:linear-gradient(var(--focus),var(--focus));background-repeat:no-repeat;background-position:left bottom;background-size:0% 2px;transition:border-color var(--dur-fast) var(--ease),background-size 360ms var(--ease-wipe)}
+.b-input:hover,.b-input:focus,.frow input:hover,.frow input:focus,.amount-row:hover,.amount-row:focus-within{background-size:100% 2px}
 </style>
 </head>
 <body>
@@ -2370,13 +2378,12 @@ $("importYes").onclick=()=>{
 
 /* ---------- 分頁（手機）---------- */
 const TABS=["notice","entry","money","list","settings"];
-let curTab="entry";const tabScroll={};
+let curTab="entry";
 const mobileTabs=()=>window.matchMedia&&matchMedia("(max-width:959px)").matches;
 function setTab(t,how){
   if(!TABS.includes(t))t="entry";
   const prev=curTab;
   if(prev==="notice"&&t!=="notice"){markNoticesSeen();render()}   // 離開通知頁：看過了，NEW 拿掉
-  tabScroll[prev]=viewTop();
   curTab=t;
   const dx=TABS.indexOf(t)>TABS.indexOf(prev)?18:TABS.indexOf(t)<TABS.indexOf(prev)?-18:0;
   document.querySelectorAll(".pane").forEach(p=>{const on=p.dataset.pane===t;p.classList.toggle("on",on);if(on)p.style.setProperty("--pane-dx",dx+"px")});
@@ -2386,7 +2393,7 @@ function setTab(t,how){
   if(t==="settings"&&mobileTabs())$("settingsBox").open=true;
   $("endSpace").style.height="0px";
   stay.el=stay.sec=null;                        // 換頁了，「維持原位」從新的一頁重新開始
-  if(mobileTabs()){window.scrollBy(0,(t in tabScroll?tabScroll[t]:topOfPage())-viewTop());updateStick()}
+  if(mobileTabs()&&prev!==t){window.scrollBy(0,topOfPage()-viewTop());updateStick()}   // 換分頁一律從那一頁最上面開始
   stay.y=viewTop();stay.h=pageH();stay.vh=window.innerHeight;
   moveInds(true);
   drawBadges();
