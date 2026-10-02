@@ -487,6 +487,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .fx-row .fx-name{min-width:0;overflow-wrap:anywhere;font-family:var(--font-han-sans);letter-spacing:.04em}
 .fx-row .fx-name small{display:block;margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;color:var(--fg-3)}
 .amt.struck{text-decoration:line-through;color:var(--fg-3)!important}
+.amt.held{color:var(--fg-3)!important;font-size:.86em}   /* 浮動還沒記實際金額：只是預留，不是已經扣掉的錢 */
 .fx-row .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap}
 .fx-gh{display:flex;align-items:baseline;gap:10px;margin-top:18px;padding-bottom:6px;border-bottom:1px solid var(--line-2);font-family:var(--font-han-sans);font-size:13px;font-weight:700;letter-spacing:.14em}
 .fx-gh small{font-weight:400;font-size:11.5px;letter-spacing:.04em;color:var(--fg-3)}
@@ -1377,9 +1378,10 @@ const sidOf=f=>f.sid||f.id;
    再補記之前就進來的薪水（例如 10/2 才開始用，補記 9/7 的薪水）：這時 9/7 之後到期的固定項目（10/1 房租）
    其實已經從這筆薪水付掉了，要扣。所以「真固定」的項目如果是在第一個發薪週期內設定的（設定那天不晚於
    第一筆常規薪水之後預計的下次發薪日），就往前補到「第一筆常規薪水之後第一次到期」的那個月。
-   浮動的（金額會變）不往前補：沒記實際金額的那期不扣。之後才新增的項目（例如新訂閱）也不往前補 */
+   浮動的也一樣往前補，但浮動的不會自動扣：沒記實際金額的那期只是先預留（見 occurrences 的 pend）。
+   之後才新增的項目（例如新訂閱）不往前補 */
 function startMonth(f,anchor){
-  if(f.vary||!anchor)return f.since;
+  if(!anchor)return f.since;
   if(f.sid&&f.sid!==f.id)return f.since;   // 改過金額後的新版本（舊版本停在改之前）：照原本的
   let created=f.from;
   if(!created){const [sy,sm]=f.since.split("-").map(Number);created=addDays(dueDate(sm===1?sy-1:sy,sm===1?12:sm-1,f.day||1),1)}   // 舊資料沒記設定日：當成最早可能的那天
@@ -1427,7 +1429,9 @@ function occurrences(endDate,list,before){
   return rawOcc(endDate,list).map(({f,d})=>{
     const sid=sidOf(f), skipped=!!(f.skip&&f.skip.includes(d)), covered=skipped||!!(f.vary&&cov[sid]&&cov[sid].has(d));
     /* skipped：他在明細把這一期刪掉了（這期不扣），跟「已換成實際金額」一樣金額算 0 */
-    return {id:"fx-"+f.id+"-"+d,fid:f.id,type:"fixed",amount:covered?0:f.amount,est:f.amount,covered,skipped,vary:!!f.vary,sid,note:f.name||"固定支出",date:d,ts:0,virtual:true};
+    /* pend：浮動的、還沒記實際金額。浮動的一定要他自己記實際金額才扣；沒記之前只先預留（到期日過了也一樣），
+       到下次發薪（這個發薪週期結束）都還沒記，就不再預留，變成剩下的錢 */
+    return {id:"fx-"+f.id+"-"+d,fid:f.id,type:"fixed",amount:covered?0:f.amount,est:f.amount,covered,skipped,vary:!!f.vary,pend:!!f.vary&&!covered,sid,note:f.name||"固定支出",date:d,ts:0,virtual:true};
   });
 }
 /* 現在記一筆這一項的實際金額，會取代哪幾期的預估（規則同 coverSet） */
@@ -1456,7 +1460,7 @@ function lastChargedMonth(f){
 /* 設定裡分兩組：定額（每期一樣）、浮動（每期不同，填預估）。一項建好之後不能換組，要換就移除再新增 */
 const FX_GROUPS=[
   {v:0,title:"定額",hint:"每期金額一樣，例如房租、卡費、訂閱。",add:"＋ 新增定額",id:"addFixed",ph:"名稱，例如房租"},
-  {v:1,title:"浮動",hint:"每期金額不一樣，例如水電瓦斯。金額先填預估（抓高一點）；繳了帳單以後，記帳時勾「此筆為固定支出」記實際金額，會取代預估，多退少補。",add:"＋ 新增浮動",id:"addFixedVary",ph:"名稱，例如電費"}
+  {v:1,title:"浮動",hint:"每期金額不一樣，例如水電瓦斯。金額先填預估（抓高一點）：只會先預留、不會自動扣；繳了帳單以後，記帳時勾「此筆為固定支出」記實際金額才扣。到下次發薪都沒記，預留的錢就放回剩下的錢。",add:"＋ 新增浮動",id:"addFixedVary",ph:"名稱，例如電費"}
 ];
 function drawFixedRows(){
   const box=$("fixedRows");box.textContent="";
@@ -1940,8 +1944,9 @@ function quotaAt(day,target){
     const T=TYPES[e.type];if(T&&T.cat)work[T.cat]+=(T.kind==="q"||T.kind==="rb"?1:-1)*e.amount;
   }
   const over=CATS.reduce((s,c)=>s+Math.max(0,-work[c.id]),0);
-  const paid=occurrences(day,null,day).reduce((s,e)=>s+e.amount,0);
-  const reserve=occurrences(target,null,day).filter(e=>e.date>day).reduce((s,e)=>s+e.amount,0);
+  const past=occurrences(day,null,day);
+  const paid=past.filter(e=>!e.pend).reduce((s,e)=>s+e.amount,0);   // 浮動沒記實際金額的不算扣掉
+  const reserve=occurrences(target,null,day).filter(e=>e.date>day).reduce((s,e)=>s+e.amount,0)+past.filter(e=>e.pend&&e.date>=day).reduce((s,e)=>s+e.amount,0);
   const days=Math.max(1,dayDiff(day,target)+1);
   return Math.max(0,(opening+sal-per-fp-over-paid-reserve)/days);
 }
@@ -2106,7 +2111,10 @@ function renderCore(){
   for(const c of CATS){const w=work[c.id];w.left=w.q-w.spend-w.ret+w.rb}
   const overflow=CATS.reduce((s,c)=>s+Math.max(0,-work[c.id].left),0);
   const paidFixed=occurrences(today);
-  const fixedPaid=paidFixed.reduce((s,e)=>s+e.amount,0);
+  const fixedPaid=paidFixed.filter(e=>!e.pend).reduce((s,e)=>s+e.amount,0);   // 只扣定額的；浮動的要記了實際金額才扣（實際金額是一筆 fixpay 紀錄）
+  /* 這個發薪週期（最近一次發薪那天起）到期、還沒記實際金額的浮動：先預留；更早的（上個週期的）不再預留 */
+  const periodStart=baseDay(today);
+  const pendFloat=paidFixed.filter(e=>e.pend&&e.date>=periodStart);
   const spendable=opening+salary-personal-billPaid-overflow-fixedPaid;
 
   /* 手動輸入的下次發薪日已經過了（薪水還沒進來）：先照預設日期算，不讓每天的額度暴增；最上面會問他要再等多久 */
@@ -2123,7 +2131,7 @@ function renderCore(){
   $("pctIn").value=String(pct);
 
   const todaySpent=sum("personal",e=>e.date===today);
-  const upcoming=occurrences(target).filter(e=>e.date>today&&!e.covered);
+  const upcoming=pendFloat.concat(occurrences(target).filter(e=>e.date>today&&!e.covered));
   const reserveAmt=upcoming.reduce((s,e)=>s+e.amount,0);
   const startOfDay=spendable+todaySpent-reserveAmt;
   if(reserveAmt>0){
@@ -2273,35 +2281,35 @@ function renderCore(){
   /* ② 發薪日分配：記常規薪水的那天 */
   if(notes.alloc&&notes.alloc.date===today&&lastSal&&lastSal.id===notes.alloc.sid){
     /* 一條算式，每一行加起來要等於最後一行：薪水 − 固定支出 ± 之前的錢 − 生活費 ＝ 剩下
-       固定支出＝這次薪水之後到期的（已經扣的＋下次發薪日前要繳的） */
-    const sinceFixed=paidFixed.filter(e=>e.date>=lastSal.date&&!e.covered);
-    const fxList=sinceFixed.concat(upcoming), fxAmt=Math.round(fxList.reduce((a,e)=>a+e.amount,0));
-    const byDate={};for(const e of fxList)(byDate[e.date]=byDate[e.date]||[]).push(e.note);
+       固定支出＝這次薪水之後到期的：已經扣的定額＋記了實際金額的浮動＋下次發薪日前要繳的（含還沒記實際金額、先預留的浮動）
+       生活費是預估：從發薪那天算到下次發薪日（補記以前的薪水也一樣，例如 9/7～10/10），這段期間記的私人花費都算在裡面；
+       花得比「每天的額度 × 到今天的天數」多，多的另外列一行 */
+    const sal0=lastSal.date;
+    const sinceFixed=paidFixed.filter(e=>e.date>=sal0&&!e.covered&&!e.pend);
+    const fixpaySince=all.filter(e=>e.type==="fixpay"&&e.date>=sal0&&e.date<=today);
+    const fxList=sinceFixed.concat(fixpaySince.map(e=>({date:e.date,amount:e.amount,note:fxName(e.fx)})),upcoming);
+    const fxAmt=Math.round(fxList.reduce((a,e)=>a+e.amount,0));
+    const byDate={};for(const e of fxList)(byDate[e.date]=byDate[e.date]||[]).includes(e.note)||byDate[e.date].push(e.note);
     const fxDates=Object.keys(byDate).sort().map(d=>mdOf(d)).join("、");
     const salAmt=Math.round(lastSal.amount);
-    /* 讓算式對得起來的另外兩行：這次薪水之後（今天以前）已經花的；剩下的差額是之前留下的（或之前不夠、要先補上的） */
-    const spentSince=Math.round(all.filter(e=>(e.type==="personal"||e.type==="fixpay")&&e.date>=lastSal.date&&e.date<today).reduce((a,e)=>a+e.amount,0));
-    const other=Math.round(startOfDay)-(salAmt-fxAmt), prior=other+spentSince;
-    const over=Math.round(Math.max(0,todaySpent-todayMax));
+    const personalSince=all.filter(e=>e.type==="personal"&&e.date>=sal0&&e.date<=today).reduce((a,e)=>a+e.amount,0);
+    /* 之前留下的錢（或之前不夠、要先補的）：讓算式對得起來的那一行 */
+    const prior=Math.round(spendable+personalSince+fixpaySince.reduce((a,e)=>a+e.amount,0)+sinceFixed.reduce((a,e)=>a+e.amount,0)-salAmt);
+    const totalDays=Math.max(1,dayDiff(sal0,target)+1), livingDays=Math.max(1,dayDiff(sal0,today)+1);
+    const living=Math.round(plan)*totalDays;   // 每天的金額用畫面上看到的整數算，乘起來才對得上
+    const over=Math.round(Math.max(0,personalSince-Math.round(plan)*livingDays));
+    const left=salAmt-fxAmt+prior-living-over;
     const row=(l,v,cls)=>"<span"+(cls?" class=\""+cls+"\"":"")+">"+l+"</span><span class=\"num"+(cls?" "+cls:"")+"\">"+v+"</span>";
     const sgn=v=>(v<0?"− ":"＋ ")+"$"+fmt(Math.abs(v));
     let h="<b>薪水 $"+fmt(salAmt)+" 進來了，錢先分配好：</b><div class=\"alloc\">"
-      +row("薪水（"+mdOf(lastSal.date)+"）","$"+fmt(salAmt))
+      +row("薪水（"+mdOf(sal0)+"）","$"+fmt(salAmt))
       +(fxAmt>0?row("固定支出（"+esc(fxDates)+"）",sgn(-fxAmt)):"")
       +(Math.abs(prior)>=1?row(prior>0?"之前留下的錢":"補之前不夠的錢",sgn(prior)):"")
-      +(spentSince>=1?row("這次薪水之後已經花的",sgn(-spentSince)):"");
-    const base=salAmt-fxAmt+other;   // ＝ 一天開始時能分配的錢
-    if(periodLeft<-0.5){
-      if(todaySpent>0)h+=row("今天已花",sgn(-Math.round(todaySpent)));
-      h+=row("不夠","−$"+fmt(Math.round(todaySpent)-base),"n-sum neg")+"</div>";
-    }else{
-      const living=Math.round(plan)*daysLeft, left=base-living-over;   // 每天的金額用畫面上看到的整數算，乘起來才對得上
-      h+=row("生活費（每天 "+fmt(plan)+" × "+daysLeft+" 天，到 "+tgs+"）",sgn(-living))
-        +(over>0?row("今天多花的",sgn(-over)):"")
-        +(left<0?row("不夠","−$"+fmt(-left),"n-sum neg"):row("剩下","$"+fmt(left),"n-sum"))+"</div>"
-        +(left<0?"照每天 $"+fmt(plan)+" 花撐不到 "+tgs+"。每天要少花一點，或到設定把每日基準調低"+(sug>0.5?"（建議 $"+fmt(sug)+"）":"")+"。"
-         :left>0?"剩下的錢不會算進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）。":"");
-    }
+      +row("生活費（每天 "+fmt(plan)+" × "+totalDays+" 天，"+mdOf(sal0)+" 到 "+tgs+"）",sgn(-living))
+      +(over>0?row("已經多花的（到今天花了 $"+fmt(personalSince)+"）",sgn(-over)):"")
+      +(left<0?row("不夠","−$"+fmt(-left),"n-sum neg"):row("剩下","$"+fmt(left),"n-sum"))+"</div>"
+      +(left<0?"照每天 $"+fmt(plan)+" 花撐不到 "+tgs+"。每天要少花一點，或到設定把每日基準調低"+(sug>0.5?"（建議 $"+fmt(sug)+"）":"")+"。"
+       :left>0?"剩下的錢不會算進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）。":"");
     if(!manual)h+='<label class="n-in">下次發薪日先照每月 '+payday+' 號算（'+tgs+'）。這次不一樣的話請輸入：<span class="n-in-row"><input type="date" class="b-input" data-act="until" aria-label="下次發薪日"><button type="button" class="b-btn b-btn--secondary b-btn--sm" data-act="setUntil">確定</button></span></label>';
     ns.push({key:"alloc-"+lastSal.id,kind:"alloc",html:h});
   }
@@ -2395,7 +2403,7 @@ function renderCore(){
   const tot=f=>full.filter(f).reduce((a,e)=>a+e.amount,0);
   const items=filter==="work"
     ?[["公司撥的","+",tot(e=>(TYPES[e.type]||{}).kind==="q"),"var(--income)"],["工作花費","−",tot(e=>(TYPES[e.type]||{}).kind==="spend"),"var(--expense)"],["結清","",tot(e=>["ret","rb"].includes((TYPES[e.type]||{}).kind)),"var(--fg)"]]
-    :[["收入","+",tot(e=>e.type==="salary"),"var(--income)"],["私人花費","−",tot(e=>e.type==="personal"),"var(--expense)"],["固定支出","−",tot(e=>e.type==="fixed"||e.type==="fixpay"),"var(--expense)"]];
+    :[["收入","+",tot(e=>e.type==="salary"),"var(--income)"],["私人花費","−",tot(e=>e.type==="personal"),"var(--expense)"],["固定支出","−",tot(e=>(e.type==="fixed"&&!e.pend)||e.type==="fixpay"),"var(--expense)"]];
   $("listSum").innerHTML=items.map(([l,sg,v,c])=>'<div class="ls-item"><span class="ls-l">'+l+'</span><span class="ls-v" style="color:'+(v>0?c:"var(--fg-3)")+'">'+(v>0?sg:"")+fmt(v)+'</span></div>').join("");
   full.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
   const list=full.slice(0,shown);
@@ -2433,8 +2441,11 @@ function renderCore(){
       amt.textContent="−"+fmt(e.est);amt.classList.add("struck");
     }else if(e.virtual&&e.vary){
       n.textContent=e.note;
-      dd.textContent=e.covered?"預估，已換成實際金額":"固定支出・預估 · "+T.en;
+      /* 浮動的預估不會自動扣：還沒記實際金額時只是預留（這個發薪週期內），過了就放回剩下的錢 */
+      dd.textContent=e.covered?"預估，已換成實際金額":e.date>=periodStart?"浮動・還沒記實際金額，先預留 · "+T.en:"浮動・沒記實際金額，這期沒扣";
       if(e.covered){amt.textContent="−"+fmt(e.est);amt.classList.add("struck")}
+      else if(e.date>=periodStart){amt.textContent="預留 "+fmt(e.est);amt.classList.add("held")}
+      else{amt.textContent=fmt(e.est);amt.classList.add("struck")}
     }else{n.textContent=e.note||T.name;dd.textContent=(e.virtual?"自動・":"")+T.name+" · "+T.en}
     info.append(n,dd);
     if(e.virtual){
