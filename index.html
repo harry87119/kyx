@@ -21,7 +21,7 @@
 /* 版面：手機單欄；寬螢幕左 7 右 5 兩欄（左：還可花色塊、剩餘資產、明細；右：新增一筆、固定支出、工作帳、設定） */
 :root{
 /* 品牌色（深淺模式共用） */
---gh-red:#f92c16;--gh-vermilion:#ee5522;--gh-gold:#a89379;--gh-turquoise:#03c2b8;--gh-navy:#071729;--gh-blue:#041bca;--gh-blue-hover:#0a22e0;--gh-camel:#b0967a;--gh-ember:#df6a33;--gh-amber:#ffbb22;--gh-lime:#9bba05;--gh-acid:#a8da40;--gh-sky:#1178cb;
+--ok:var(--gh-acid);--gh-red:#f92c16;--gh-vermilion:#ee5522;--gh-gold:#a89379;--gh-turquoise:#03c2b8;--gh-navy:#071729;--gh-blue:#041bca;--gh-blue-hover:#0a22e0;--gh-camel:#b0967a;--gh-ember:#df6a33;--gh-amber:#ffbb22;--gh-lime:#9bba05;--gh-acid:#a8da40;--gh-sky:#1178cb;
 --ink-900:#1b1919;
 /* 字體 */
 --font-display:"Jost","Futura","Avenir Next",system-ui,sans-serif;
@@ -187,7 +187,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .tabbar button.on::before{transform:scaleX(1)}
 .tb-i{position:relative;display:inline-block}
 .tb-badge{position:absolute;top:-9px;right:-17px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--gh-red);color:#fff;font-family:var(--font-display);font-size:10px;font-style:normal;font-weight:600;line-height:16px;text-align:center;animation:pop-in 260ms var(--ease-settle) both}
-.tb-dot{position:absolute;top:-3px;right:-11px;width:7px;height:7px;border-radius:50%;background:var(--gh-turquoise);transition:background var(--dur-base) var(--ease)}
+.tb-dot{position:absolute;top:-3px;right:-11px;width:7px;height:7px;border-radius:50%;background:var(--ok);transition:background var(--dur-base) var(--ease)}
 .tb-dot.tone-low{background:var(--gh-amber)}
 .tb-dot.tone-over{background:var(--gh-red)}
 .tb-dot.new{background:var(--gh-gold);animation:pop-in 260ms var(--ease-settle) both}
@@ -285,7 +285,8 @@ body.typing .to-top{display:none}
 .panel .b-label{color:inherit}
 /* 還可花的三種顏色：充裕＝青綠、偏緊＝琥珀、超支／不夠＝朱紅；色塊內的文字、細線跟著換色 */
 .panel{transition:background var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
-.tone-ok{background:var(--gh-turquoise);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
+/* 還可花「充裕／注意」的綠：跟製作費同一個綠 */
+.tone-ok{background:var(--ok);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
 .tone-low{background:var(--gh-amber);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
 .tone-over{background:var(--gh-red);--fg:#fff;--fg-2:rgba(255,255,255,.85);--fg-3:rgba(255,255,255,.72);--line:rgba(255,255,255,.32);--focus:#fff;--expense:#fff;color:#fff}
 .panel .neg{color:inherit}
