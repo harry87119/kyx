@@ -1068,34 +1068,53 @@ function settle(cat,k){
 function dueDate(y,m,day){const dim=new Date(y,m,0).getDate();return y+"-"+pad(m)+"-"+pad(Math.min(day,dim))}
 /* 同一項固定支出改過金額會分成好幾段設定，sid 把它們串成同一項 */
 const sidOf=f=>f.sid||f.id;
-/* 浮動的固定支出：記了實際金額（fixpay）以後，到繳費那個月為止、還沒被取代的預估扣款都改用實際金額
-   （兩個月一期的帳單也一樣：一次取代兩個月的預估）。before：只看這天以前的實際金額 */
-function coverMonths(before){
-  const m={};
-  for(const e of entries)if(e.type==="fixpay"&&e.fx&&(!before||e.date<before)){const ym=e.date.slice(0,7);if(!m[e.fx]||ym>m[e.fx])m[e.fx]=ym}
-  return m;
-}
-/* 從 since 月份起，每月一筆，到 endDate（含）為止；有 end 的（已停用或改過的舊設定）只算到 end 那個月 */
-function occurrences(endDate,list,before){
-  const out=[], cov=coverMonths(before);
+/* 每一期預估扣款的日期（還沒算實際金額取代） */
+function rawOcc(endDate,list){
+  const out=[];
   for(const f of list||fixed){
     if(!(f.amount>0)||!f.since)continue;
     let [y,m]=f.since.split("-").map(Number);
-    const sid=sidOf(f);
     for(let i=0;i<600;i++){
       const d=dueDate(y,m,f.day||1);
       if(d>endDate||(f.end&&d.slice(0,7)>f.end))break;
-      const covered=!!(f.vary&&cov[sid]&&d.slice(0,7)<=cov[sid]);
-      out.push({id:"fx-"+f.id+"-"+d,type:"fixed",amount:covered?0:f.amount,est:f.amount,covered,vary:!!f.vary,sid,note:f.name||"固定支出",date:d,ts:0,virtual:true});
+      out.push({f,d});
       m++;if(m>12){m=1;y++}
     }
   }
   return out;
 }
-/* 這一項還沒被實際金額取代、到 date 那個月月底為止的預估扣款 */
+/* 浮動的固定支出：每一筆實際金額（fixpay，照日期順序）取代「到繳費那個月為止、還沒被取代」的所有預估
+   （兩個月一期的帳單一次取代兩期）；如果那時候沒有可以取代的（例如繳費日過了才新增這一項、或提早繳下一期），
+   就取代下一期的預估。before：只看這天以前的實際金額。回傳 {sid: Set(被取代的日期)} */
+function coverSet(before){
+  const pays=entries.filter(e=>e.type==="fixpay"&&e.fx&&(!before||e.date<before)).sort((a,b)=>a.date.localeCompare(b.date)||a.ts-b.ts);
+  const out={};
+  if(!pays.length)return out;
+  const horizon=ymd(new Date(parseDate(pays[pays.length-1].date).getTime()+400*86400000));
+  const by={};
+  for(const o of rawOcc(horizon,fixed.filter(f=>f.vary)))(by[sidOf(o.f)]=by[sidOf(o.f)]||[]).push(o.d);
+  for(const e of pays){
+    const ds=(by[e.fx]||[]).slice().sort(), set=out[e.fx]=out[e.fx]||new Set(), ym=e.date.slice(0,7);
+    const pend=ds.filter(d=>d.slice(0,7)<=ym&&!set.has(d));
+    if(pend.length)pend.forEach(d=>set.add(d));
+    else{const nx=ds.find(d=>d.slice(0,7)>ym&&!set.has(d));if(nx)set.add(nx)}
+  }
+  return out;
+}
+/* 從 since 月份起，每月一筆，到 endDate（含）為止；有 end 的（已停用或改過的舊設定）只算到 end 那個月 */
+function occurrences(endDate,list,before){
+  const cov=coverSet(before);
+  return rawOcc(endDate,list).map(({f,d})=>{
+    const sid=sidOf(f), covered=!!(f.vary&&cov[sid]&&cov[sid].has(d));
+    return {id:"fx-"+f.id+"-"+d,type:"fixed",amount:covered?0:f.amount,est:f.amount,covered,vary:!!f.vary,sid,note:f.name||"固定支出",date:d,ts:0,virtual:true};
+  });
+}
+/* 現在記一筆這一項的實際金額，會取代哪幾期的預估（規則同 coverSet） */
 function pendingEst(sid,date){
   const [y,m]=date.split("-").map(Number);
-  return occurrences(ymd(new Date(y,m,0)),fixed.filter(f=>sidOf(f)===sid)).filter(o=>o.vary&&!o.covered);
+  const all=occurrences(ymd(new Date(y,m+13,0)),fixed.filter(f=>sidOf(f)===sid)).filter(o=>o.vary&&!o.covered).sort((a,b)=>a.date.localeCompare(b.date));
+  const ym=date.slice(0,7), pend=all.filter(o=>o.date.slice(0,7)<=ym);
+  return pend.length?pend:all.slice(0,1);
 }
 function fxName(sid){
   const f=fixed.filter(x=>sidOf(x)===sid).sort((a,b)=>(b.since||"").localeCompare(a.since||""))[0];
