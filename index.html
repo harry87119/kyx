@@ -738,6 +738,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
     </details>
   </div>
 </main>
+<div id="endSpace" aria-hidden="true"></div>
 <button type="button" class="to-top" id="toTop" aria-label="回到最上面" title="回到最上面"><span class="tt-arr" aria-hidden="true"></span><span class="tt-l">TOP</span></button>
 
 <script>
@@ -1036,6 +1037,8 @@ $("fxChips").addEventListener("click",ev=>{const c=ev.target.closest(".fx-chip")
 
 /* 一列收起來（高度、間距變 0、淡出）之後再執行 done；減少動態效果時直接執行 */
 function collapseOut(el,done){
+  /* 要收起來的這一列不能當「維持原位」的參考點：改用它上面那一個（沒有就用整個區塊） */
+  stayMark(el.previousElementSibling||el.parentNode);
   if(!el||reduceMotion()||!el.animate){done();return}
   const cs=getComputedStyle(el), h=el.offsetHeight;
   el.style.overflow="hidden";el.style.pointerEvents="none";
@@ -1613,21 +1616,50 @@ function baseDay(today){
    iPhone 的 Safari 沒有內建這個功能，所以自己做 */
 /* 記的是那個元素在「整頁」裡的位置（不是在畫面上的位置）：
    捲動（使用者捲、iOS 開關鍵盤時自己捲）不會改變它，只有上面的內容變高變矮才會，所以只補這種變動，永遠不會跟捲動搶 */
-const stay={el:null,doc:0};
+const stay={el:null,doc:0,sec:null,secDoc:0,y:0,h:0};
 const stayable=el=>el&&el.isConnected&&!el.closest(".topbar,#toTop")&&el.getBoundingClientRect().height>0;
 const docTop=el=>el.getBoundingClientRect().top+window.scrollY;
-function stayMark(el){if(stayable(el)){stay.el=el;stay.doc=docTop(el)}}
+function stayMark(el){
+  if(!stayable(el))return;
+  stay.el=el;stay.doc=docTop(el);
+  /* 明細那一列重畫或刪掉之後就不在了：同時記住它所在的那一區，找不到原本那個時改用這一區 */
+  const sec=el.closest("section,details,.col");stay.sec=sec;stay.secDoc=sec?docTop(sec):0;
+}
 function stayPause(){}   // 舊的暫停機制已經不需要
+/* 底部的隱形空白：頁面變短（例如刪掉明細最後幾筆）時先撐住，畫面就不會被瀏覽器推動；往上捲時慢慢收回 */
+const endSpace=()=>$("endSpace");
+const pageH=()=>document.documentElement.scrollHeight;
+function keepRoom(){
+  const H=pageH();
+  if(stay.h&&H<stay.h-0.5){                 // 頁面變短了：底部空白補回同樣的高度，瀏覽器就不會把畫面往上推
+    const sp=endSpace();sp.style.height=(sp.offsetHeight+stay.h-H)+"px";
+    if(Math.abs(window.scrollY-stay.y)>0.5)window.scrollTo(0,stay.y);
+  }
+  stay.h=pageH();
+}
 function stayFix(){
-  if(!stayable(stay.el))return;
-  const d=docTop(stay.el)-stay.doc;
-  if(Math.abs(d)>0.5)window.scrollBy(0,d);
-  stay.doc=docTop(stay.el);
+  keepRoom();
+  let el=stay.el, ref=stay.doc;
+  if(!stayable(el)){el=stay.sec;ref=stay.secDoc;if(!stayable(el))return}
+  const d=docTop(el)-ref;
+  if(Math.abs(d)>0.5){window.scrollBy(0,d);keepRoom()}
+  if(el===stay.el)stay.doc=docTop(el);else stay.secDoc=docTop(el);
+  if(stay.sec&&stayable(stay.sec))stay.secDoc=docTop(stay.sec);
+  stay.y=window.scrollY;stay.h=pageH();
 }
 document.addEventListener("pointerdown",e=>stayMark(e.target.closest("button,input,select,summary,a,label,li")||e.target),true);
 document.addEventListener("focusin",e=>stayMark(e.target),true);
-/* 捲到別處（記住的東西不在畫面上了）：改記畫面上方看到的元素 */
 window.addEventListener("scroll",()=>{
+  if(stay.h&&pageH()<stay.h-0.5)return;     // 頁面變短被瀏覽器推的，不是使用者捲的：交給 keepRoom 補回去
+  stay.y=window.scrollY;
+  /* 底部空白：視窗下面還有多少就收掉多少，不會把畫面拉動 */
+  const sp=endSpace(), h=sp.offsetHeight;
+  if(h>0){
+    const room=pageH()-window.innerHeight-window.scrollY;
+    if(room>0)sp.style.height=Math.max(0,h-room)+"px";
+  }
+  stay.h=pageH();
+  /* 捲到別處（記住的東西不在畫面上了）：改記畫面上方看到的元素 */
   if(!stayable(stay.el))return;
   const r=stay.el.getBoundingClientRect();
   if(r.bottom<0||r.top>window.innerHeight){
