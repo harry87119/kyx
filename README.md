@@ -34,7 +34,7 @@ repo 裡不放任何個人記帳資料。
 ## 資料格式
 
 - 每筆紀錄：`{id, type, amount, note, date: "YYYY-MM-DD", ts, fx?}`（`fx`：浮動固定支出的實際金額對應哪一項）
-- 設定：`{opening, until, pay, payday, pct, fixed: [{id, sid, name, amount, day, since: "YYYY-MM", end?: "YYYY-MM", vary?: true, from?: "YYYY-MM-DD"}]}`（pay＝手動改過的上次薪水，0＝自動抓；payday＝每月發薪日，預設 10；pct＝生活費比例，預設 35）
+- 設定：`{opening, until, pay, payday, pct, fixed: [{id, sid, name, amount, day, since: "YYYY-MM", end?: "YYYY-MM", vary?: true, from?: "YYYY-MM-DD", skip?: ["YYYY-MM-DD"]}]}`（pay＝手動改過的上次薪水，0＝自動抓；payday＝每月發薪日，預設 10；pct＝生活費比例，預設 35）
 - 瀏覽器裡的 `localStorage`：
   - `kyx-data-v1`：資料快取
   - `kyx-queue-v1`：待送清單

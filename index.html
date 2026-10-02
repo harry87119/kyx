@@ -38,7 +38,7 @@ color-scheme:dark;
 --line:rgba(255,255,255,.16);--line-2:rgba(255,255,255,.24);--line-strong:rgba(255,255,255,.56);
 --invert-bg:#ffffff;--invert-fg:#000000;
 --focus:#03c2b8;--accent-text:#03c2b8;--gold-text:#a89379;
---expense:#f92c16;--income:#03c2b8;
+--expense:#f92c16;--income:#03c2b8;--input-ink:#d8d8d5;
 /* 給程式用的別名 */
 --accent:var(--accent-text);--warn:var(--expense);--muted:var(--fg-3);--ink:var(--fg);
 }
@@ -50,7 +50,7 @@ color-scheme:light;
 --line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
---expense:#d81e0a;--income:#00807a;
+--expense:#f92c16;--income:#00807a;--input-ink:#071729;
 }}
 :root[data-theme="light"]{
 color-scheme:light;
@@ -59,7 +59,7 @@ color-scheme:light;
 --line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
---expense:#d81e0a;--income:#00807a;
+--expense:#f92c16;--income:#00807a;--input-ink:#071729;
 }
 
 /* ===== 基礎 ===== */
@@ -86,7 +86,7 @@ html,body{overflow-anchor:none}
 .b-btn--sm{padding:8px 16px;font-size:11px;letter-spacing:.16em}
 .b-btn--full{display:flex;width:100%}
 .b-btn--primary{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
-.b-btn--primary:hover:not(:disabled){background:var(--gh-vermilion);border-color:var(--gh-vermilion)}
+.b-btn--primary:hover:not(:disabled){background:var(--gh-red);border-color:var(--gh-red);opacity:.86}
 .b-btn--entry{background:var(--gh-blue);border-color:var(--gh-blue);color:#fff}
 .b-btn--entry:hover:not(:disabled){background:var(--gh-blue-hover);border-color:var(--gh-blue-hover)}
 .b-btn--gold{background:var(--gh-gold);border-color:var(--gh-gold);color:#000}
@@ -188,7 +188,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .tb-i{position:relative;display:inline-block}
 .tb-badge{position:absolute;top:-9px;right:-17px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--gh-red);color:#fff;font-family:var(--font-display);font-size:10px;font-style:normal;font-weight:600;line-height:16px;text-align:center;animation:pop-in 260ms var(--ease-settle) both}
 .tb-dot{position:absolute;top:-3px;right:-11px;width:7px;height:7px;border-radius:50%;background:var(--ok);transition:background var(--dur-base) var(--ease)}
-.tb-dot.tone-low{background:var(--gh-amber)}
+.tb-dot.tone-low{background:var(--gh-ember)}
 .tb-dot.tone-over{background:var(--gh-red)}
 .tb-dot.new{background:var(--gh-gold);animation:pop-in 260ms var(--ease-settle) both}
 /* 記帳頁最上面的小摘要：今天還可花・撐到幾號，顏色跟著狀態；點了去「還可花」 */
@@ -287,7 +287,8 @@ body.typing .to-top{display:none}
 .panel{transition:background var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
 /* 還可花「充裕／注意」的綠：跟製作費同一個綠 */
 .tone-ok{background:var(--ok);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
-.tone-low{background:var(--gh-amber);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
+/* 偏緊／緊繃：ember #DF6A33 */
+.tone-low{background:var(--gh-ember);--fg:#000;--fg-2:rgba(0,0,0,.78);--fg-3:rgba(0,0,0,.62);--line:rgba(0,0,0,.24);--focus:#000;--expense:#000;color:#000}
 .tone-over{background:var(--gh-red);--fg:#fff;--fg-2:rgba(255,255,255,.85);--fg-3:rgba(255,255,255,.72);--line:rgba(255,255,255,.32);--focus:#fff;--expense:#fff;color:#fff}
 .panel .neg{color:inherit}
 /* 兩塊的大數字放在同一個高度（標題下面），下面的小字和長條貼齊底部 */
@@ -533,6 +534,8 @@ li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8p
 @keyframes arm-in{0%{transform:scale(.94)}60%{transform:scale(1.04)}100%{transform:none}}
 .del:hover{background:var(--gh-red);color:#fff}
 .del.armed{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
+.del.gold{border-color:var(--gh-gold);color:var(--gold-text)}
+.del.gold:hover,.del.gold.armed{background:var(--gh-gold);border-color:var(--gh-gold);color:#000}
 li.virtual .amt{opacity:.75}
 li.day-sep .num{color:var(--expense)}
 .auto-tag{display:inline-block;padding:6px 10px;color:var(--fg-3);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;line-height:1.3}
@@ -601,11 +604,11 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 /* 手機上輸入框至少 16px，iPhone 點下去才不會自動放大 */
 @media (max-width:720px){input:not(#amount),select,textarea{font-size:16px!important}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}}
-/* 你輸入的字＝綠色（跟點輸入欄時底線同一個顏色），一眼分得出哪些是你填的、哪些是標題和說明 */
-.b-input,.frow input,#amount,#note{color:var(--accent-text)}
+/* 你輸入的字：淺色模式 Navy #071729、深色模式 Gray 300 #D8D8D5，跟標題、說明分開 */
+.b-input,.frow input,#amount,#note{color:var(--input-ink)}
 .b-input::placeholder,.frow input::placeholder,#amount::placeholder,#note::placeholder{color:var(--fg-3)}
 /* 下拉選單（生活費比例）選到的值也是你填的：一樣綠色 */
-.pct-sel{color:var(--accent-text)}
+.pct-sel{color:var(--input-ink)}
 /* 固定支出的每一項之間隔開一點、同一項裡面靠近一點，按「移除」時才分得清是哪一項 */
 .fx-rows{gap:18px}
 @media (max-width:480px){.fx-rows{gap:24px}.frow{row-gap:2px}}
@@ -1208,6 +1211,14 @@ let armed=null;
 $("list").addEventListener("click",ev=>{
   const btn=ev.target.closest(".del");if(!btn)return;
   const id=btn.dataset.id;
+  if(btn.dataset.fid){
+    /* 自動扣款：刪除＝這一期不扣（記在那一項的 skip），恢復＝拿掉 */
+    const f=fixed.find(x=>x.id===btn.dataset.fid), d=btn.dataset.date;if(!f)return;
+    if(btn.dataset.restore){f.skip=(f.skip||[]).filter(x=>x!==d);if(!f.skip.length)delete f.skip;armed=null;persistSettings();render();toast("已恢復 "+mdOf(d)+" "+(f.name||"固定支出")+"，這期照常扣");return}
+    if(armed!==id){armed=id;render();return}
+    armed=null;f.skip=(f.skip||[]).concat(d);persistSettings();render();
+    toast("已刪除 "+mdOf(d)+" "+(f.name||"固定支出")+"，這期不扣（明細裡可以按「恢復」）");return;
+  }
   if(armed!==id){armed=id;render();return}
   armed=null;
   /* 那一列先收起來，再真的刪掉 */
@@ -1314,8 +1325,9 @@ function coverSet(before){
 function occurrences(endDate,list,before){
   const cov=coverSet(before);
   return rawOcc(endDate,list).map(({f,d})=>{
-    const sid=sidOf(f), covered=!!(f.vary&&cov[sid]&&cov[sid].has(d));
-    return {id:"fx-"+f.id+"-"+d,type:"fixed",amount:covered?0:f.amount,est:f.amount,covered,vary:!!f.vary,sid,note:f.name||"固定支出",date:d,ts:0,virtual:true};
+    const sid=sidOf(f), skipped=!!(f.skip&&f.skip.includes(d)), covered=skipped||!!(f.vary&&cov[sid]&&cov[sid].has(d));
+    /* skipped：他在明細把這一期刪掉了（這期不扣），跟「已換成實際金額」一樣金額算 0 */
+    return {id:"fx-"+f.id+"-"+d,fid:f.id,type:"fixed",amount:covered?0:f.amount,est:f.amount,covered,skipped,vary:!!f.vary,sid,note:f.name||"固定支出",date:d,ts:0,virtual:true};
   });
 }
 /* 現在記一筆這一項的實際金額，會取代哪幾期的預估（規則同 coverSet） */
@@ -2258,16 +2270,21 @@ function renderCore(){
     const amt=document.createElement("span");amt.className="amt";amt.style.color=T.sign>0?"var(--income)":"var(--expense)";
     amt.textContent=(T.sign>0?"+":"−")+fmt(e.amount);
     if(e.type==="fixpay"){n.textContent=e.note||fxName(e.fx);dd.textContent=(e.note?fxName(e.fx):"固定支出")+"・實際金額 · "+T.en}
-    else if(e.virtual&&e.vary){
+    else if(e.virtual&&e.skipped){
+      n.textContent=e.note;dd.textContent="自動扣款・已刪除，這期不扣";
+      amt.textContent="−"+fmt(e.est);amt.classList.add("struck");
+    }else if(e.virtual&&e.vary){
       n.textContent=e.note;
       dd.textContent=e.covered?"預估，已換成實際金額":"固定支出・預估 · "+T.en;
       if(e.covered){amt.textContent="−"+fmt(e.est);amt.classList.add("struck")}
-    }else{n.textContent=e.note||T.name;dd.textContent=T.name+" · "+T.en}
+    }else{n.textContent=e.note||T.name;dd.textContent=(e.virtual?"自動・":"")+T.name+" · "+T.en}
     info.append(n,dd);
     if(e.virtual){
+      /* 自動扣款也可以刪（這一期不扣），金色的鈕跟一般紀錄的紅色刪除分開；刪掉的留在明細、可以恢復 */
       li.className="virtual";
-      const tag=document.createElement("span");tag.className="auto-tag";tag.textContent="自動";
-      li.append(dot,info,amt,tag);ul.appendChild(li);continue;
+      const b=document.createElement("button");b.className="del gold"+(armed===e.id?" armed":"");b.dataset.id=e.id;b.dataset.fid=e.fid;b.dataset.date=e.date;
+      if(e.skipped){b.dataset.restore="1";b.textContent="恢復"}else b.textContent=armed===e.id?"確定刪除":"刪除";
+      li.append(dot,info,amt,b);ul.appendChild(li);continue;
     }
     const del=document.createElement("button");del.className="del"+(armed===e.id?" armed":"");del.dataset.id=e.id;
     del.textContent=armed===e.id?"確定刪除":"刪除";
