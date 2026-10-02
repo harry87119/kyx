@@ -973,7 +973,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
    看得到的範圍用 visualViewport 算（不同 iPhone、不同鍵盤、App 裡的頂部列都會不一樣）；打字時按鈕縮矮、頂部列讓開 */
 {
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px)").matches;
-  let pinUntil=0;
+  let pinUntil=0, y0=null, tapBtn=false;
   const place=()=>{
     if(document.activeElement!==$("note")||performance.now()>pinUntil)return;
     const vv=window.visualViewport, top=vv?vv.offsetTop:0, h=vv?vv.height:window.innerHeight;
@@ -985,17 +985,28 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   };
   $("note").addEventListener("focus",()=>{
     if(!small())return;
+    if(!document.body.classList.contains("typing"))y0=window.scrollY;   // 記住打字前的位置，收鍵盤時回到這裡
+    tapBtn=false;
     stayPause(1600);
     document.body.classList.add("typing");
     pinUntil=performance.now()+1500;
     place();setTimeout(place,300);setTimeout(place,700);
   });
   if(window.visualViewport)visualViewport.addEventListener("resize",place);
-  /* 晚一點才恢復，免得按鈕在手指按下去的瞬間變高、按錯 */
+  /* 打字中直接點記帳按鈕：記錄一下，離開備註時按鈕晚一點才長回來，免得手指按下去的瞬間按鈕變高、按錯 */
+  document.addEventListener("pointerdown",e=>{if(document.activeElement===$("note")&&e.target.closest(".tbtn"))tapBtn=true},true);
+  /* 收鍵盤（按完成或點別處）：自己用一個平順的捲動回到打字前的位置，頂部列同時滑回來；
+     不交給 iOS，iOS 會分兩段捲回去，看起來像跳了兩下 */
   $("note").addEventListener("blur",()=>{
     if(!small())return;
-    stayPause(1200);   // 鍵盤收起、按鈕長回來的這段時間不要跟 iOS 搶著捲
-    setTimeout(()=>{if(document.activeElement!==$("note"))document.body.classList.remove("typing")},400);
+    stayPause(1400);
+    const back=()=>{
+      if(document.activeElement===$("note"))return;
+      document.body.classList.remove("typing");
+      if(y0!=null&&window.scrollY>y0+2)window.scrollTo({top:y0,behavior:reduceMotion()?"auto":"smooth"});
+      y0=null;
+    };
+    if(tapBtn)setTimeout(back,400);else back();
   });
 }
 
