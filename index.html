@@ -107,7 +107,7 @@ html,body{overflow-anchor:none}
 /* 目錄：一直展開，橫向一排；手機上可以左右滑 */
 /* 打字時頂部列往上滑走（不改變排版，不會讓頁面跳） */
 .topbar{transition:transform 280ms var(--ease-wipe)}
-body.typing .topbar{transform:translateY(-100%)}
+
 
 .toc{order:10;width:100%;display:flex;gap:28px;overflow-x:auto;scrollbar-width:none;margin:2px 0 -10px;padding-top:4px}
 .toc::-webkit-scrollbar{display:none}
@@ -149,6 +149,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
   .pane{display:none}
   .pane.on{display:flex;gap:48px;animation:pane-in 260ms var(--ease-settle) both}
   .toc{display:none}
+  .topbar{position:relative}
   .mini-sum{display:flex}
   .tabbar{display:grid}
   .notice-empty{padding:24px 0}
@@ -170,8 +171,8 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
   .cmp>:nth-child(6){grid-row:3;grid-column:2}
 }
 @keyframes pane-in{from{opacity:0;transform:translateX(var(--pane-dx,0px))}to{opacity:1;transform:none}}
-/* 分頁列：在頂部列裡（原本目錄的位置），選到的那一個下面一條金線 */
-.tabbar{order:10;width:calc(100% + 16px);margin:0 -8px -10px;grid-template-columns:repeat(5,minmax(0,1fr))}
+/* 分頁列（手機）：KYX記帳 那一列跟著頁面捲走，分頁列一直黏在畫面最上面；選到的那一個下面一條金線 */
+.tabbar{position:sticky;top:0;z-index:41;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 calc(var(--page-margin) - 8px);background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
 .tabbar button{position:relative;height:44px;background:none;border:0;color:var(--fg-3);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease)}
 .tabbar button::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;background:var(--gh-gold);transform:scaleX(0);transition:transform 260ms var(--ease-settle)}
 .tabbar button.on{color:var(--fg)}
@@ -595,14 +596,14 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
     <a href="#sec-list" data-go="sec-list"><span>明細</span><span class="b-label">Recent</span></a>
     <a href="#settingsBox" data-go="settingsBox"><span>設定</span><span class="b-label">Settings</span></a>
   </nav>
-  <nav class="tabbar" id="tabbar" aria-label="分頁">
-    <button type="button" data-tab="notice"><span class="tb-i">通知<i class="tb-badge" id="tbNotice" hidden></i></span></button>
-    <button type="button" data-tab="entry"><span class="tb-i">記帳</span></button>
-    <button type="button" data-tab="money"><span class="tb-i">還可花<i class="tb-dot" id="tbMoney"></i></span></button>
-    <button type="button" data-tab="list"><span class="tb-i">明細<i class="tb-dot new" id="tbList" hidden></i></span></button>
-    <button type="button" data-tab="settings"><span class="tb-i">設定</span></button>
-  </nav>
 </header>
+<nav class="tabbar" id="tabbar" aria-label="分頁">
+  <button type="button" data-tab="notice"><span class="tb-i">通知<i class="tb-badge" id="tbNotice" hidden></i></span></button>
+  <button type="button" data-tab="entry"><span class="tb-i">記帳</span></button>
+  <button type="button" data-tab="money"><span class="tb-i">還可花<i class="tb-dot" id="tbMoney"></i></span></button>
+  <button type="button" data-tab="list"><span class="tb-i">明細<i class="tb-dot new" id="tbList" hidden></i></span></button>
+  <button type="button" data-tab="settings"><span class="tb-i">設定</span></button>
+</nav>
 
 <main class="page">
   <div class="col col-left">
@@ -1047,33 +1048,38 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
 {
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px) and (pointer:coarse)").matches;
   const rowOf={amount:()=>$("amount").closest(".amount-wrap"),note:()=>$("note").closest(".meta")};
-  /* 平順地捲過去（約 0.35 秒，先快後慢）；減少動態效果時直接到 */
+  /* 讓那一欄停在分頁列正下方：目標是「整頁裡的絕對位置」，每一格重新算，iOS 開鍵盤時自己捲也不會疊加、捲過頭 */
   let glideId=0;
-  const glide=dy=>{
-    const y0=window.scrollY, gid=++glideId;
-    if(reduceMotion()){window.scrollTo(0,y0+dy);return}
-    const t0=performance.now(), dur=350;
+  const want=row=>row.getBoundingClientRect().top+window.scrollY-($("tabbar").getBoundingClientRect().height+12);
+  const glide=(row,dur)=>{
+    const gid=++glideId, y0=window.scrollY;
+    const room=()=>{const lack=want(row)-(document.documentElement.scrollHeight-Math.max(window.innerHeight,maxVh));
+      if(lack>0){const sp=$("endSpace");sp.style.height=(sp.offsetHeight+lack+2)+"px"}};
+    room();
+    if(reduceMotion()||!dur){window.scrollTo(0,want(row));return}
+    const t0=performance.now();
     stay.glide=true;
     const step=now=>{
       if(gid!==glideId){stay.glide=false;return}
       const t=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-t,3);
-      window.scrollTo(0,y0+dy*e);
-      if(t<1)requestAnimationFrame(step);else stay.glide=false;
+      window.scrollTo(0,y0+(want(row)-y0)*e);
+      if(t<1)requestAnimationFrame(step);else{stay.glide=false;stayMark(row)}
     };
     requestAnimationFrame(step);
   };
-  window.addEventListener("touchstart",()=>glideId++,{passive:true});   // 手指一碰就停，讓使用者自己捲
+  window.addEventListener("touchstart",e=>{if(!e.target.closest("#amount,#note"))glideId++},{passive:true});   // 手指一碰就停，讓使用者自己捲
   for(const id of ["amount","note"]){
     $(id).addEventListener("focus",()=>{
       if(!small())return;
-      stayPause(1600);
       document.body.classList.add("typing");
-      const top=rowOf[id]().getBoundingClientRect().top-16;   // 上面留一點，標籤（備註 / NOTE）才不會被蓋住
-      /* 用「鍵盤收起來時」的畫面高度算，收鍵盤時才不會因為捲不到而被推 */
-      const lack=window.scrollY+top-(document.documentElement.scrollHeight-Math.max(window.innerHeight,maxVh));
-      if(lack>0){const sp=$("endSpace");sp.style.height=(sp.offsetHeight+lack+2)+"px"}
-      if(Math.abs(top)>4)glide(top);
-      stayMark($(id));
+      const row=rowOf[id]();
+      glide(row,350);
+      /* 鍵盤升起後再對一次位置（iOS 可能自己又捲過） */
+      if(window.visualViewport){
+        const fix=()=>{if(document.activeElement===$(id))glide(row,220)};
+        visualViewport.addEventListener("resize",fix,{once:true});
+        setTimeout(fix,650);
+      }
     });
     $(id).addEventListener("blur",()=>{
       if(!small())return;
