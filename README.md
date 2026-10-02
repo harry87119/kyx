@@ -1,6 +1,6 @@
 # KYX記帳
 
-私人可花和工作 quota 分開算的記帳頁面。網頁放在 GitHub Pages，資料存在使用者自己的 Google 試算表（透過 Apps Script）。
+私人的錢和工作的錢（公司撥的製作費、交通費）分開算的記帳頁面。網頁放在 GitHub Pages，資料存在使用者自己的 Google 試算表（透過 Apps Script）。
 
 - 記帳頁面：<https://harry87119.github.io/kyx/>
 - 使用者設定教學：[給朋友的設定步驟.md](給朋友的設定步驟.md)
