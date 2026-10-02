@@ -184,6 +184,10 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .notice .n-in-row{display:inline-flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
 .notice .n-in input{width:auto;min-width:150px;font-family:var(--font-display);font-size:16px;border-bottom:2px solid var(--gh-gold)}
 
+/* 出現時淡入、微微往上滑（從隱藏變顯示時才會跑） */
+#settleEmpty,#importConfirm,#navNow,#wfExtraRow,#wfOweRow,#wfOwed,#reserve,#more,#unlinkSheet{animation:pop-in 260ms var(--ease-settle) both}
+@keyframes pop-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.toast.say{animation:pop-in 260ms var(--ease-settle) both}
 /* ===== 回到最上面：右下角的方塊，捲下去才出現 ===== */
 .to-top{position:fixed;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:45;width:48px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:var(--bg-header);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--gh-gold);color:var(--gold-text);cursor:pointer;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity var(--dur-base) var(--ease),transform var(--dur-base) var(--ease-settle),background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .to-top.show{opacity:1;transform:none;pointer-events:auto}
@@ -286,9 +290,13 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .fx-check input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
 .fx-check .box{flex:none;width:18px;height:18px;border:1px solid var(--gh-gold);display:grid;place-items:center;transition:background var(--dur-fast) var(--ease)}
 .fx-check input:checked+.box{background:var(--gh-gold)}
-.fx-check input:checked+.box::after{content:"";width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.fx-check .box::after{content:"";width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg) scale(0);transition:transform 200ms var(--ease-settle)}
+.fx-check input:checked+.box::after{transform:translateY(-1px) rotate(45deg) scale(1)}
 .fx-check input:focus-visible+.box{outline:1px solid var(--focus);outline-offset:2px}
-.fx-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:14px;font-size:12.5px;letter-spacing:.06em;color:var(--fg-2)}
+.fx-pick-wrap{display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;transition:grid-template-rows 280ms var(--ease-wipe),opacity 200ms var(--ease),margin-top 280ms var(--ease-wipe)}
+.fx-pick-wrap.open{grid-template-rows:1fr;opacity:1;margin-top:14px}
+.fx-pick-wrap>.fx-pick{min-height:0;overflow:hidden}
+.fx-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:12.5px;letter-spacing:.06em;color:var(--fg-2)}
 .fx-chips{display:flex;flex-wrap:wrap;gap:8px}
 .fx-chip{border:1px solid var(--gh-gold);border-radius:0;background:transparent;color:var(--gold-text);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.06em;padding:7px 12px;cursor:pointer;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .fx-chip:hover{background:var(--gh-gold);color:#000}
@@ -306,7 +314,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
 .group-label{grid-column:1/-1;font-family:var(--font-display);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-3);margin:14px 0 6px;transition:margin 280ms var(--ease-wipe)}
 .group-label:first-child{margin-top:0}
-.tbtn{position:relative;overflow:hidden;border:1px solid transparent;border-radius:0;padding:14px;font-family:var(--font-han-sans);font-size:15px;font-weight:500;letter-spacing:.04em;line-height:1.35;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:96px;justify-content:space-between;min-width:0;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),transform var(--dur-instant) var(--ease),min-height 280ms var(--ease-wipe),padding 280ms var(--ease-wipe),gap 280ms var(--ease-wipe)}
+.tbtn{position:relative;overflow:hidden;border:1px solid transparent;border-radius:0;padding:14px;font-family:var(--font-han-sans);font-size:15px;font-weight:500;letter-spacing:.04em;line-height:1.35;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:96px;justify-content:space-between;min-width:0;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease),transform var(--dur-instant) var(--ease),min-height 280ms var(--ease-wipe),padding 280ms var(--ease-wipe),gap 280ms var(--ease-wipe),opacity 240ms var(--ease)}
 .tbtn small{font-family:var(--font-text);font-weight:400;font-size:11.5px;letter-spacing:.02em;line-height:1.45;opacity:.8;display:block;overflow:hidden;max-height:4.4em;transition:opacity 200ms var(--ease),max-height 280ms var(--ease-wipe)}
 /* 送出動畫：一道色帶從左掃到右再收回（機械式擦入，不彈跳、不縮放） */
 .tbtn.sent small{opacity:1;font-weight:500}
@@ -333,7 +341,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 @keyframes b-fill-text{0%,20%{color:var(--fg)}60%,100%{color:var(--on-cat)}}
 .t-out::before{background:var(--cat);transform-origin:top}
 .tbtn:hover::before,.tbtn:focus-visible::before{transform:scaleY(1)}
-.t-out{transition:color var(--dur-base) var(--ease-wipe),transform var(--dur-instant) var(--ease),min-height 280ms var(--ease-wipe),padding 280ms var(--ease-wipe),gap 280ms var(--ease-wipe)}
+.t-out{transition:color var(--dur-base) var(--ease-wipe),transform var(--dur-instant) var(--ease),min-height 280ms var(--ease-wipe),padding 280ms var(--ease-wipe),gap 280ms var(--ease-wipe),opacity 240ms var(--ease)}
 .t-out:hover,.t-out:focus-visible{color:var(--on-cat)}
 .settle-grid{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px}
 .types-rule{grid-column:1/-1;height:0;border-top:1px solid var(--line-2);margin-top:20px}
@@ -426,7 +434,12 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 @media (max-width:420px){.ls-item{padding:10px}.ls-v{font-size:16px}}
 .filters button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:0 0 12px;font-family:var(--font-han-sans);font-size:14px;letter-spacing:.12em;color:var(--fg-3);transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .filters button:hover{color:var(--fg)}
-.filters button.on{color:var(--fg);border-bottom-color:var(--gh-turquoise)}
+.filters button.on{color:var(--fg)}
+.filters,.views{position:relative}
+.filters button,.views button{border-bottom-color:transparent!important}
+.tab-ind{position:absolute;left:0;bottom:-1px;height:2px;width:0;pointer-events:none;transition:transform 300ms var(--ease-settle),width 300ms var(--ease-settle)}
+.filters .tab-ind{background:var(--gh-turquoise)}
+.views .tab-ind{background:var(--gh-gold)}
 ul{list-style:none;margin:0;padding:0}
 li{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
 li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8px;border-bottom:1px solid var(--line-2);font-family:var(--font-display);font-size:11px;letter-spacing:.14em;color:var(--fg-3)}
@@ -435,7 +448,9 @@ li.day-sep{display:flex;justify-content:space-between;gap:12px;padding:22px 0 8p
 .info .n{font-size:15px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .info .d{margin-top:2px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3)}
 .amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;text-align:right;white-space:nowrap}
-.del{border:1px solid var(--gh-red);background:transparent;color:var(--expense);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:6px 10px;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.del{border:1px solid var(--gh-red);background:transparent;color:var(--expense);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:6px 10px;transition:color var(--dur-base) var(--ease),border-color var(--dur-base) var(--ease),background var(--dur-base) var(--ease)}
+.del.armed,.frow .rm.armed{animation:arm-in 260ms var(--ease-settle)}
+@keyframes arm-in{0%{transform:scale(.94)}60%{transform:scale(1.04)}100%{transform:none}}
 .del:hover{background:var(--gh-red);color:#fff}
 .del.armed{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
 li.virtual .amt{opacity:.75}
@@ -463,7 +478,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .frow .amtIn,.frow .dayIn{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 .frow .day{display:flex;align-items:baseline;gap:6px;white-space:nowrap;font-size:13px;color:var(--fg-2)}
 .frow .day input{width:40px;text-align:center}
-.frow .rm{align-self:end;border:1px solid var(--gh-red);background:transparent;color:var(--expense);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:8px 12px;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.frow .rm{align-self:end;border:1px solid var(--gh-red);background:transparent;color:var(--expense);font-family:var(--font-display);font-size:11px;letter-spacing:.12em;padding:8px 12px;transition:color var(--dur-base) var(--ease),border-color var(--dur-base) var(--ease),background var(--dur-base) var(--ease)}
 .frow .rm:hover{background:var(--gh-red);color:#fff}
 .frow .rm.armed{background:var(--gh-red);border-color:var(--gh-red);color:#fff}
 @media (max-width:480px){.frow{grid-template-columns:minmax(0,1fr) 96px}.frow .day{grid-column:1}}
@@ -618,7 +633,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         </label>
         <label class="fx-check"><input type="checkbox" id="isFixed"><span class="box" aria-hidden="true"></span><span>此筆為<br>固定支出</span></label>
       </div>
-      <div class="fx-pick" id="fxPick" hidden><span class="fx-pick-l">是哪一項</span><span class="fx-chips" id="fxChips"></span><p class="fx-pick-note" id="fxPickNote"></p></div>
+      <div class="fx-pick-wrap" id="fxPickWrap"><div class="fx-pick" id="fxPick"><span class="fx-pick-l">是哪一項</span><span class="fx-chips" id="fxChips"></span><p class="fx-pick-note" id="fxPickNote"></p></div></div>
       <div class="meta">
         <label class="b-field"><span class="b-field__label">備註 / Note</span><input id="note" class="b-input" placeholder="選填" maxlength="60" aria-label="備註"></label>
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
@@ -900,6 +915,7 @@ function parseAmount(v){
 let toastTimer;
 function toast(msg,bad){
   const t=$("toast");t.textContent=msg;t.style.color=bad?"var(--warn)":"var(--accent)";
+  t.classList.remove("say");void t.offsetWidth;t.classList.add("say");
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.textContent="",3000);
 }
 document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
@@ -993,7 +1009,7 @@ function btnSmall(b){
 let fxSel=null;
 function drawFxPick(){
   const on=$("isFixed").checked, items=activeFixed().filter(f=>f.vary);
-  $("fxPick").hidden=!on;
+  $("fxPickWrap").classList.toggle("open",on);$("fxPickWrap").inert=!on;
   if(on&&!items.some(f=>sidOf(f)===fxSel)){
     /* 預設選繳費日離記帳日期最近的那一項 */
     const ds=$("date").value||todayStr(), [y,m]=ds.split("-").map(Number);
@@ -1019,15 +1035,30 @@ $("isFixed").addEventListener("change",drawFxPick);
 $("date").addEventListener("change",()=>{if($("isFixed").checked)drawFxPick()});
 $("fxChips").addEventListener("click",ev=>{const c=ev.target.closest(".fx-chip");if(!c)return;fxSel=c.dataset.sid;drawFxPick()});
 
+/* 一列收起來（高度、間距變 0、淡出）之後再執行 done；減少動態效果時直接執行 */
+function collapseOut(el,done){
+  if(!el||reduceMotion()||!el.animate){done();return}
+  const cs=getComputedStyle(el), h=el.offsetHeight;
+  el.style.overflow="hidden";el.style.pointerEvents="none";
+  const an=el.animate([
+    {height:h+"px",opacity:1,paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom,marginTop:cs.marginTop,marginBottom:cs.marginBottom},
+    {height:"0px",opacity:0,paddingTop:"0px",paddingBottom:"0px",marginTop:"0px",marginBottom:"0px"}
+  ],{duration:260,easing:"cubic-bezier(.76,0,.24,1)",fill:"forwards"});
+  an.onfinish=done;
+}
 /* ---------- 刪除 ---------- */
 let armed=null;
 $("list").addEventListener("click",ev=>{
   const btn=ev.target.closest(".del");if(!btn)return;
   const id=btn.dataset.id;
   if(armed!==id){armed=id;render();return}
-  entries=entries.filter(e=>e.id!==id);
-  commit({action:"delete",id});
-  armed=null;render();toast("已刪除");
+  armed=null;
+  /* 那一列先收起來，再真的刪掉 */
+  collapseOut(btn.closest("li"),()=>{
+    entries=entries.filter(e=>e.id!==id);
+    commit({action:"delete",id});
+    render();toast("已刪除");
+  });
 });
 
 /* ---------- 工作結清 ---------- */
@@ -1177,7 +1208,7 @@ function fixedRow(f,G){
       clearTimeout(rm._t);rm._t=setTimeout(()=>{rm.classList.remove("armed");rm.textContent="移除"},3000);
       return;
     }
-    clearTimeout(rm._t);r.remove();fixedEditTotal();
+    clearTimeout(rm._t);collapseOut(r,()=>{r.remove();fixedEditTotal()});
   };
   return r;
 }
@@ -1262,6 +1293,18 @@ function savedTag(el,msg){
   el.textContent=msg;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");
   clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2600);
 }
+/* 分頁底線：一條底線滑到選到的那一個 */
+function moveInd(box,instant){
+  let ind=box.querySelector(".tab-ind");
+  if(!ind){ind=document.createElement("span");ind.className="tab-ind";ind.setAttribute("aria-hidden","true");box.appendChild(ind);instant=true}
+  const on=box.querySelector("button.on");if(!on)return;
+  if(instant)ind.style.transition="none";
+  ind.style.width=on.offsetWidth+"px";ind.style.transform="translateX("+on.offsetLeft+"px)";
+  if(instant){void ind.offsetWidth;ind.style.transition=""}
+}
+function moveInds(instant){document.querySelectorAll(".filters,.views").forEach(b=>moveInd(b,instant))}
+window.addEventListener("resize",()=>moveInds(true));
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>moveInds(true));
 /* ---------- 篩選 ---------- */
 document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
   filter=b.dataset.f;shown=60;armed=null;
@@ -1817,6 +1860,7 @@ function renderCore(){
   if(!listMonth)listMonth=curMonth;
   if(!listDay)listDay=today;
   document.querySelectorAll(".views button").forEach(x=>x.classList.toggle("on",x.dataset.v===listView));
+  moveInds();
   const wk="日一二三四五六";
   let full;
   if(listView==="month"){
