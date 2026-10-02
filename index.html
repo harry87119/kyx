@@ -99,6 +99,12 @@ html,body{overflow-anchor:none}
 
 /* ===== 頂部列（唯一固定元素） ===== */
 .topbar{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;min-height:64px;padding:calc(env(safe-area-inset-top,0px) + 10px) var(--page-margin) 10px;background:var(--bg-header);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);border-bottom:1px solid var(--line)}
+/* 深淺色切換：只有圖示（月亮／太陽），切換時旋轉淡入 */
+.theme-btn{position:relative;width:36px;height:36px;display:inline-grid;place-items:center;padding:0;border:0;border-radius:50%;background:transparent;color:var(--fg-2,var(--fg));cursor:pointer;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.theme-btn:hover{background:var(--line);color:var(--fg)}
+.theme-btn:focus-visible{outline:2px solid var(--gh-gold);outline-offset:2px}
+.theme-btn svg{grid-area:1/1;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity 240ms var(--ease),transform 320ms var(--ease-settle)}
+.theme-btn[data-mode="dark"] .ic-moon,.theme-btn:not([data-mode="dark"]) .ic-sun{opacity:0;transform:rotate(-60deg) scale(.6)}
 .brand{display:flex;align-items:baseline;gap:12px;min-width:0}
 .brand h1{font-family:var(--font-han-serif);font-weight:900;font-size:22px;line-height:1.12;letter-spacing:.02em;white-space:nowrap}
 .top-right{display:flex;align-items:center;gap:10px;min-width:0}
@@ -179,8 +185,8 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .tabbar button.on{color:var(--fg)}
 .tabbar button.on::before{transform:scaleX(1)}
 .tb-i{position:relative;display:inline-block}
-.tb-badge{position:absolute;top:-9px;right:-17px;min-width:16px;height:16px;padding:0 4px;background:var(--gh-red);color:#fff;font-family:var(--font-display);font-size:10px;font-style:normal;font-weight:600;line-height:16px;text-align:center;animation:pop-in 260ms var(--ease-settle) both}
-.tb-dot{position:absolute;top:-3px;right:-11px;width:7px;height:7px;background:var(--gh-turquoise);transition:background var(--dur-base) var(--ease)}
+.tb-badge{position:absolute;top:-9px;right:-17px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--gh-red);color:#fff;font-family:var(--font-display);font-size:10px;font-style:normal;font-weight:600;line-height:16px;text-align:center;animation:pop-in 260ms var(--ease-settle) both}
+.tb-dot{position:absolute;top:-3px;right:-11px;width:7px;height:7px;border-radius:50%;background:var(--gh-turquoise);transition:background var(--dur-base) var(--ease)}
 .tb-dot.tone-low{background:var(--gh-amber)}
 .tb-dot.tone-over{background:var(--gh-red)}
 .tb-dot.new{background:var(--gh-gold);animation:pop-in 260ms var(--ease-settle) both}
@@ -589,7 +595,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
   <div class="brand"><h1>KYX記帳</h1><span class="b-label">Ledger</span></div>
   <div class="top-right">
     <span class="sync" id="sync">連線中…</span>
-    <button id="themeBtn" type="button" class="b-btn b-btn--secondary b-btn--sm">淺色 Light</button>
+    <button id="themeBtn" type="button" class="theme-btn" aria-label="切換深色／淺色" title="切換深色／淺色"><svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.55 1.55M17.15 17.15l1.55 1.55M5.3 18.7l1.55-1.55M17.15 6.85l1.55-1.55"/></svg></button>
   </div>
   <nav class="toc" id="toc" aria-label="目錄">
     <a href="#sec-entry" data-go="sec-entry"><span>記帳</span><span class="b-label">Entry</span></a>
@@ -2339,7 +2345,7 @@ function effectiveTheme(){
 }
 function drawThemeBtn(){
   const cur=effectiveTheme();
-  $("themeBtn").textContent=cur==="dark"?"淺色 Light":"深色 Dark";
+  $("themeBtn").dataset.mode=cur;   // 深色時顯示太陽（按了變淺色），淺色時顯示月亮
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=cur==="dark"?"#000000":"#eeeeee";
 }
 $("themeBtn").onclick=()=>{
