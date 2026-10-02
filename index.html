@@ -178,6 +178,7 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .notice .alloc .num{text-align:right;padding-left:16px}
 .notice .alloc .n-sum{border-top:1px solid var(--line);padding-top:4px;font-weight:700}
 .notice .n-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;color:var(--gold-text)}
+.notice .n-in-row{display:inline-flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
 .notice .n-in input{width:auto;min-width:150px;font-family:var(--font-display);font-size:16px;border-bottom:2px solid var(--gh-gold)}
 
 /* ===== 回到最上面：右下角的方塊，捲下去才出現 ===== */
@@ -1319,12 +1320,21 @@ function setUntil(v,fromAsk){
   saveNotes();persistSettings();render();
   toast(until?"下次發薪日改成 "+mdOf(until)+"，每天能花 NT$"+fmt(planNow):"已改回照每月發薪日推算");
 }
-$("until").addEventListener("change",()=>setUntil($("until").value));
+/* 手機（觸控）：日曆關掉、離開欄位時才存，日曆開著時選來選去不會一直存；電腦：選好就存 */
+const touchUI=()=>window.matchMedia&&matchMedia("(pointer:coarse)").matches;
+$("until").addEventListener("change",()=>{if(!(touchUI()&&document.activeElement===$("until")))setUntil($("until").value)});
+let untilAtFocus="";
+$("until").addEventListener("focus",()=>{untilAtFocus=$("until").value});
+$("until").addEventListener("blur",()=>{const v=$("until").value;if(touchUI()&&v&&v!==untilAtFocus)setUntil(v)});
 /* 提示區裡的按鈕和日期欄 */
 $("alert").addEventListener("click",ev=>{
   const b=ev.target.closest("[data-act]");if(!b||b.tagName==="INPUT")return;
   const t0=parseDate(todayStr());
-  if(b.dataset.act==="got"){
+  if(b.dataset.act==="setUntil"){
+    const i=b.parentNode.querySelector('input[data-act="until"]');
+    if(!i||!i.value){toast("先選日期，再按「確定」",true);if(i)i.focus();return}
+    setUntil(i.value);
+  }else if(b.dataset.act==="got"){
     $("sec-entry").scrollIntoView({behavior:reduceMotion()?"auto":"smooth",block:"start"});
     $("amount").focus({preventScroll:true});toast("輸入薪水金額，再按「真實薪水」");
   }else if(b.dataset.act==="wait7"||b.dataset.act==="wait14"){
@@ -1332,7 +1342,7 @@ $("alert").addEventListener("click",ev=>{
   }
 });
 $("alert").addEventListener("change",ev=>{
-  const i=ev.target.closest('input[data-act="until"]');if(i&&i.value)setUntil(i.value);
+  /* 日期欄只填值，按「確定」才存：iOS 在日曆還開著時就會送出 change，馬上存會把這個欄位重畫掉、日曆就跳掉了 */
 });
 
 
@@ -1697,7 +1707,7 @@ function render(){
       +(periodLeft<-0.5?"<span class=\"n-sum\">不夠</span><span class=\"num n-sum neg\">−NT$"+fmt(-periodLeft)+"</span></div>"
         :"<span class=\"n-sum\">剩下</span><span class=\"num n-sum\">NT$"+fmt(left)+"</span></div>")
       +(periodLeft>=-0.5&&left>0?"剩下的錢不會算進每天的額度，建議拿去多還卡費（記成私人花費，備註寫「還卡費」）。":"");
-    if(!manual)h+='<label class="n-in">下次發薪日先照每月 '+payday+' 號算（'+tgs+'）。這次不一樣的話請輸入：<input type="date" class="b-input" data-act="until" aria-label="下次發薪日"></label>';
+    if(!manual)h+='<label class="n-in">下次發薪日先照每月 '+payday+' 號算（'+tgs+'）。這次不一樣的話請輸入：<span class="n-in-row"><input type="date" class="b-input" data-act="until" aria-label="下次發薪日"><button type="button" class="b-btn b-btn--secondary b-btn--sm" data-act="setUntil">確定</button></span></label>';
     ns.push({key:"alloc-"+lastSal.id,kind:"alloc",html:h});
   }
   /* ③ 今天超支、④ 錢不夠 */
