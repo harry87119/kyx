@@ -311,15 +311,13 @@ body.typing .to-top{display:none}
 .cmp-l{white-space:nowrap}
 .cmp-l .num,.cmp-v{font-family:var(--font-display);font-variant-numeric:tabular-nums}
 .cmp-v{text-align:right;white-space:nowrap;min-width:3.6em}
-.cmp-bar{position:relative;height:4px;background:var(--line)}
+.cmp-bar{position:relative;height:8px;background:var(--line)}
 .cmp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-reveal) var(--ease-wipe)}
 .cmp-bar.money i{background:var(--tone,var(--fg))}   /* 進度條跟色塊外框同色（綠／琥珀／紅） */
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
 .panel .panel-sub{color:var(--fg-2)}
 .panel .panel-sub .num{color:var(--fg)}
 .runout{font-family:var(--font-han-sans);font-size:13px;letter-spacing:.04em;line-height:1.6;color:var(--fg)!important}
-.meter{height:4px;background:var(--line);margin-top:18px;overflow:hidden}
-.meter i{display:block;height:100%;background:var(--tone,var(--fg));transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-base) var(--ease-wipe)}
 .reserve{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
 
 /* ===== 剩餘資產・下次發薪日：兩塊還可花下面的一條，點箭頭才展開 ===== */
@@ -800,9 +798,9 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
           <div class="panel-top"><span class="b-label">今天還可花 / Today</span><span class="tone-tag" id="todayTag"></span></div>
           <div class="panel-body">
             <div class="big" id="todayLeft">—</div>
-            <div class="panel-foot">
-              <div class="panel-sub" id="todaySub"></div>
-              <div class="meter" id="todayMeter"><i style="width:0%"></i></div>
+            <div class="panel-foot cmp" id="todaySub">
+              <span class="cmp-l">今日額度</span><span class="cmp-bar money" id="todayMeter"><i style="width:0%"></i></span><span class="cmp-v" id="todayMaxV"></span>
+              <span class="cmp-l">已花</span><span></span><span class="cmp-v" id="todaySpentV"></span>
             </div>
           </div>
         </div>
@@ -906,6 +904,8 @@ try{if(localStorage.getItem("kyx-list-view")==="day")listView="day"}catch(e){}
 /* 提示區用：目前撐到的日期（錢不夠時是 null）、目前的每日基準、提示的狀態（只存在這個瀏覽器） */
 let holdNoticeScroll=false, freshTotal=0;
 let endNow=null, planNow=0, noticeReady=false, noticeScrollPending=false, shownNotices=new Set(), quietNotices=false;
+/* 一天至少要 $400 才過得去：今日額度低於這個就算緊繃；「撐到幾號」每天至少照這個金額算 */
+const MIN_DAILY=400;
 const LS_NOTES="kyx-notes-v1";
 let notes={};
 try{notes=JSON.parse(localStorage.getItem(LS_NOTES)||"{}")||{}}catch(e){notes={}}
@@ -2033,8 +2033,8 @@ function renderCore(){
   const saved=Math.max(0,Math.round(startOfDay)-Math.round(plan)*daysLeft-Math.round(Math.max(0,todaySpent-todayMax)));
   const todayRemain=todayMax-todaySpent;
   todayRemainNow=todayRemain;
-  /* 今天：剩下額度一半以上＝充裕、有剩但不到一半＝緊繃、超過額度＝超支（跟右邊那塊用同一組字） */
-  const todayTone=todayRemain<-0.5?"over":(todayMax>0&&todayRemain>=todayMax*0.5?"ok":"low");
+  /* 今天：超過額度＝超支；今日額度不到 MIN_DAILY（一天 $400）＝緊繃；其他照剩下多少：一半以上＝充裕、不到一半＝緊繃（跟右邊那塊用同一組字） */
+  const todayTone=todayRemain<-0.5?"over":(todayMax>=MIN_DAILY&&todayRemain>=todayMax*0.5?"ok":"low");
   setTone("todayPanel","todayTag",todayTone,{ok:"充裕",low:"緊繃",over:"超支"});
 
   $("spendable").textContent=money(spendable);
@@ -2057,7 +2057,8 @@ function renderCore(){
 
   setMoney($("todayLeft"),todayRemain);
   $("todayLeft").classList.toggle("neg",todayRemain<0);
-  $("todaySub").innerHTML="今日額度 <span class='num'>$"+fmt(todayMax)+"</span>，已花 <span class='num'>$"+fmt(todaySpent)+"</span>";
+  $("todayMaxV").textContent="$"+fmt(todayMax);
+  $("todaySpentV").textContent="$"+fmt(todaySpent);
   const periodLeft=spendable-reserveAmt;
   const td=parseDate(target);
   $("periodLabel").textContent=periodLeft<-0.5?"剩餘的錢不夠":"剩餘的錢可以撐到";
@@ -2098,13 +2099,15 @@ function renderCore(){
     runout="到下次發薪日 "+tgs+" 前，錢已經不夠用。";periodTone="over";endNow=null;
   }else{
     const rem=periodLeft-Math.max(0,todayMax-todaySpent);
-    let lastDays=plan>=0.5?Math.max(0,Math.floor(rem/plan+1e-9)):0;
+    /* 每天至少照 MIN_DAILY（$400）算：每日基準比較低時，用 400 算才是真的撐得到的日子 */
+    const rate=Math.max(Math.round(plan),MIN_DAILY);
+    let lastDays=Math.max(0,Math.floor(rem/rate+1e-9));
     /* 撐過下次發薪日的話，之後每月的固定支出也要照日期扣（薪水可能不會準時進來） */
     if(lastDays>0&&ymd(dayAt(lastDays))>target){
       const due={};
       for(const o of occurrences(ymd(dayAt(800))))if(o.date>target&&!o.covered)due[o.date]=(due[o.date]||0)+o.amount;
       let money=rem,k=0;
-      while(k<730){const ds=ymd(dayAt(k+1));money-=due[ds]||0;if(money+1e-9<plan)break;money-=plan;k++}
+      while(k<730){const ds=ymd(dayAt(k+1));money-=due[ds]||0;if(money+1e-9<rate)break;money-=rate;k++}
       lastDays=k;
     }
     const endD=dayAt(lastDays), end=ymd(endD);
@@ -2113,7 +2116,7 @@ function renderCore(){
     setMoney($("periodDaily"),lastDays,"",n=>md(dayAt(n)),"date");
     if(!quietNotices)$("periodWk").textContent="週"+"日一二三四五六"[dayAt(lastDays).getDay()];
     drawCmp(lastDays,Math.max(0,dayDiff(today,target)),tgs,manual);
-    const diff=dayDiff(target,end), pr="照每天 $"+fmt(plan)+" 花，";
+    const diff=dayDiff(target,end), pr="照每天 $"+fmt(rate)+" 花，";
     if(diff===0){runout=pr+"剛好撐到下次發薪日 "+tgs+"。";periodTone="ok"}
     else if(diff>0){runout=pr+"比下次發薪日 "+tgs+" 多撐 "+diff+" 天。";periodTone="ok"}
     else{runout=pr+"比下次發薪日 "+tgs+" 早 "+(-diff)+" 天用完。";periodTone=-diff<=7?"low":"over"}
@@ -2187,7 +2190,6 @@ function renderCore(){
   /* 今天的長條＝今天還剩多少：一開始是滿的，花越多越短，超支就空了（跟「錢能撐幾天」一樣，越長越好） */
   const left=todayMax>0?Math.max(0,Math.min(100,todayRemain/todayMax*100)):0;
   $("todayMeter").querySelector("i").style.width=left+"%";
-  $("todayMeter").classList.toggle("over",todayRemain<0);
 
   const fb=$("flowBody");fb.textContent="";
   let anyDebt=false;
