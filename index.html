@@ -407,14 +407,38 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .fx-chip:hover{background:var(--gh-gold);color:#000}
 .fx-chip.on{background:var(--gh-gold);color:#000}
 /* 備註常用分類：點一下就填進備註，不用打字（也不會把金額的鍵盤關掉）。手機一排可以左右滑，電腦會換行 */
-.note-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:-6px}
-.note-chips:empty{display:none}
-.note-chip{min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:0;background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
-.note-chip:hover{color:var(--fg);border-color:var(--fg-3)}
-.note-chip.on{color:var(--input-ink);border-color:var(--focus)}
-/* 手機正在打備註（文字鍵盤比較高）：分類先收起來，支出那排按鈕才不會被鍵盤蓋住；輸入金額時（數字鍵盤）分類還在 */
-@media (max-width:720px) and (pointer:coarse){body.note-focus .note-chips{display:none}}
-@media (max-width:959px){.note-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:calc(-1 * var(--page-margin));padding-right:var(--page-margin)}.note-chips::-webkit-scrollbar{display:none}}
+/* 標籤：備註左邊一顆按鈕，點了往下展開選項（同時收起鍵盤）；選好就收起來。標籤跟備註分開存 */
+.tag-btn{display:flex;align-items:center;gap:8px;height:44px;min-width:64px;padding:0 2px 0 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--fg-3);font-family:var(--font-han-sans);font-size:16px;letter-spacing:.04em;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.tag-btn.has{color:var(--input-ink)}
+.tag-btn:hover,.tag-btn[aria-expanded="true"]{border-bottom-color:var(--focus)}
+.tag-chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform 280ms var(--ease-wipe)}
+.tag-btn[aria-expanded="true"] .tag-chev{transform:translateY(1px) rotate(225deg)}
+.tag-wrap{grid-column:1/-1;display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;transition:grid-template-rows 280ms var(--ease-wipe),opacity 200ms var(--ease),margin-top 280ms var(--ease-wipe)}
+.tag-wrap.open{grid-template-rows:1fr;opacity:1;margin-top:14px}
+.tag-wrap>.tag-chips{min-height:0;overflow:hidden}
+.tag-chips{display:flex;flex-wrap:wrap;gap:8px}
+.tag-chip{min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:0;background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.tag-chip:hover{color:var(--fg);border-color:var(--fg-3)}
+.tag-chip.on{color:var(--input-ink);border-color:var(--focus)}
+.tag-lbl{display:inline-block;margin-right:8px;padding:0 6px;border:1px solid var(--line-2);font-size:12px;line-height:1.5;letter-spacing:.06em;color:var(--fg-2);vertical-align:1px}
+/* 明細：點一筆就地展開編輯 */
+#list li[data-eid],#list li[data-pend]{cursor:pointer}
+#list li[data-eid]:hover .n,#list li[data-pend]:hover .n{color:var(--input-ink)}
+.edit-wrap{grid-column:1/-1;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows 300ms var(--ease-wipe),opacity 220ms var(--ease)}
+.edit-wrap.open{grid-template-rows:1fr;opacity:1}
+.edit-wrap>.edit{min-height:0;overflow:hidden}
+.edit{display:flex;flex-direction:column;gap:14px;cursor:default}
+.edit>:first-child{margin-top:6px}
+.edit-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.edit .b-input{font-size:16px}
+.edit .e-amt{font-family:var(--font-display);font-size:22px;font-variant-numeric:tabular-nums}
+.edit-hint{font-size:12.5px;color:var(--fg-3);margin:0}
+.edit-acts{display:flex;gap:10px;margin-bottom:4px}
+.snack{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;align-items:center;gap:14px;max-width:min(560px,calc(100vw - 32px));padding:12px 16px;background:var(--fg);color:var(--bg);font-size:14px;letter-spacing:.04em;line-height:1.5;transform:translate(-50%,16px);opacity:0;pointer-events:none;transition:transform 260ms var(--ease-settle),opacity 200ms var(--ease)}
+.snack.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.snack.bad{background:var(--gh-red);color:#fff}
+.snack .undo{flex:none;padding:4px 12px;border:1px solid currentColor;background:transparent;color:inherit;font-family:var(--font-han-sans);font-size:13px;letter-spacing:.1em;cursor:pointer}
+.toast .undo{margin-left:12px;padding:2px 10px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;cursor:pointer}
 .fx-pick-note{flex-basis:100%;margin:0;font-size:12px;line-height:1.6;color:var(--fg-3)}
 .fx-pick-note:empty{display:none}
 .amount-row{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);transition:border-color var(--dur-fast) var(--ease)}
@@ -422,7 +446,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .amount-row .cur{font-family:var(--font-display);font-size:13px;letter-spacing:.16em;color:var(--fg-3)}
 #amount{flex:1;min-width:0;border:0;background:transparent;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:48px;font-weight:400;line-height:1.1;padding:6px 0;outline:none}
 #amount::placeholder{color:var(--fg-3)}
-.meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end}
+.meta{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:14px;row-gap:0;align-items:end}   /* 標籤／備註／日期 */
 .meta .b-input{height:44px;padding-top:0;padding-bottom:0;line-height:44px}
 .meta #date{font-family:var(--font-display);font-variant-numeric:tabular-nums;-webkit-appearance:none;appearance:none;min-width:0}
 .types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
@@ -713,10 +737,11 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       </div>
       <div class="fx-pick-wrap" id="fxPickWrap"><div class="fx-pick" id="fxPick"><span class="fx-pick-l">是哪一項</span><span class="fx-chips" id="fxChips"></span><p class="fx-pick-note" id="fxPickNote"></p></div></div>
       <div class="meta">
+        <div class="b-field tag-field"><span class="b-field__label">標籤 / Tag</span><button type="button" id="tagBtn" class="tag-btn" aria-expanded="false" aria-controls="tagPanel"><span id="tagBtnT">選擇</span><i class="tag-chev" aria-hidden="true"></i></button></div>
         <label class="b-field"><span class="b-field__label">備註 / Note</span><input id="note" class="b-input" placeholder="選填" maxlength="60" aria-label="備註"></label>
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
+        <div class="tag-wrap" id="tagPanel" inert><div class="tag-chips" id="tagChips" role="group" aria-label="標籤"></div></div>
       </div>
-      <div class="note-chips" id="noteChips" role="group" aria-label="備註常用分類"></div>
       <div class="types">
         <div class="group-label">支出 / Expense</div>
         <button class="tbtn t-out cat-own" data-type="personal">私人花費<small></small></button>
@@ -1121,8 +1146,11 @@ async function sync(){
 }
 function applyRemote(d){
   serverV=Number(d.v)||1;lsSet(LS_SERVERV,serverV);
+  const localTags=new Map(entries.filter(e=>e.tag).map(e=>[e.id,e.tag]));
   const o=applyOps(d,queue);
   setData(o);
+  /* 舊版試算表程式（v3 以前）沒有標籤欄，讀回來的紀錄沒有標籤：先用這台記得的 */
+  if(serverV<3)entries.forEach(e=>{if(!e.tag&&localTags.has(e.id))e.tag=localTags.get(e.id)});
   if(serverV>=2){
     applyRemotePrefs(o.notes,o.prefs);
     /* 試算表還沒有每日基準（第一次連上新版程式）：把這台的送上去 */
@@ -1156,6 +1184,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   if(fxMode&&(b.dataset.type!=="personal"||!fxSel))return;
   const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:fxMode?"fixpay":b.dataset.type,amount:Math.round(amt*100)/100,note:$("note").value.trim(),date,ts:Date.now()};
   if(fxMode)e.fx=fxSel;
+  if(curTag&&tagAllowed(e.type))e.tag=curTag;
   const est=fxMode?pendingEst(fxSel,date).reduce((a,o)=>a+o.est,0):0;
   const beforeEnd=endNow, isWork=!!TYPES[e.type].cat, fresh0=freshTotal;
   noticeScrollPending=false;
@@ -1163,7 +1192,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   entries.push(e);
   commit({action:"add",entries:[e]});
   listMonth=e.date.slice(0,7);listDay=e.date;
-  $("amount").value="";$("note").value="";noteSnap="";noteGuard=0;setTimeout(showNoteChips,0);
+  $("amount").value="";$("note").value="";noteSnap="";noteGuard=0;curTag="";drawTagBtn();setTagPanel(false);
   const smallPay=e.type==="salary"&&!mainSalaries().some(x=>x.id===e.id);
   const goPayday=e.type==="salary"&&!smallPay;
   if(goPayday){
@@ -1274,29 +1303,34 @@ function btnSmall(b){
 }
 /* ---------- 此筆為固定支出：浮動的固定支出繳了以後記實際金額 ---------- */
 let fxSel=null;
-/* ---------- 備註常用分類 ---------- */
-const NOTE_PRESETS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","娛樂"];
-/* 他自己常打的備註（最近 90 天私人花費用過兩次以上）排前面，再接預設的，最多 10 個 */
-function noteChipList(){
-  const since=addDays(todayStr(),-90), cnt={};
-  for(const e of entries)if(e.type==="personal"&&e.date>=since){const n=(e.note||"").trim();if(n&&n.length<=8)cnt[n]=(cnt[n]||0)+1}
-  const mine=Object.keys(cnt).filter(n=>cnt[n]>=2).sort((a,b)=>cnt[b]-cnt[a]).slice(0,6);
-  return [...new Set(mine.concat(NOTE_PRESETS))].slice(0,10);
+/* ---------- 標籤 ---------- */
+/* 支出才有標籤（收入不用分類）；標籤跟備註分開存在紀錄的 tag 欄位 */
+const TAGS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","娛樂"];
+const tagAllowed=type=>!!TYPES[type]&&TYPES[type].sign<0&&type!=="fixpay"&&type!=="fixed";
+let curTag="";
+const tagChipsHTML=sel=>TAGS.map(t=>'<button type="button" class="tag-chip'+(t===sel?' on':'')+'" data-tag="'+esc(t)+'" aria-pressed="'+(t===sel)+'">'+esc(t)+'</button>').join("");
+function drawTagBtn(){
+  $("tagBtnT").textContent=curTag||"選擇";
+  $("tagBtn").classList.toggle("has",!!curTag);
+  $("tagChips").querySelectorAll(".tag-chip").forEach(c=>{const on=c.dataset.tag===curTag;c.classList.toggle("on",on);c.setAttribute("aria-pressed",String(on))});
 }
-let noteChipKey="";
-function drawNoteChips(){
-  const list=noteChipList(), k=list.join("|");
-  if(k!==noteChipKey){noteChipKey=k;$("noteChips").innerHTML=list.map(n=>'<button type="button" class="note-chip" data-note="'+esc(n)+'">'+esc(n)+'</button>').join("")}
-  const v=$("note").value.trim();
-  $("noteChips").querySelectorAll(".note-chip").forEach(c=>{const on=c.dataset.note===v;c.classList.toggle("on",on);c.setAttribute("aria-pressed",on?"true":"false")});
+function setTagPanel(open){
+  $("tagPanel").classList.toggle("open",open);$("tagPanel").inert=!open;
+  $("tagBtn").setAttribute("aria-expanded",String(open));
 }
-/* 按下去時不搶走焦點：正在輸入金額時點分類，金額的鍵盤不會被關掉 */
-$("noteChips").addEventListener("pointerdown",e=>{if(e.target.closest(".note-chip"))e.preventDefault()});
-$("noteChips").addEventListener("click",e=>{
-  const c=e.target.closest(".note-chip");if(!c)return;
-  $("note").value=$("note").value.trim()===c.dataset.note?"":c.dataset.note;   // 再點一次同一個＝清掉
-  noteSnap=$("note").value;drawNoteChips();
+$("tagChips").innerHTML=tagChipsHTML("");
+/* 點標籤：先收起鍵盤（正在打金額或備註的話），再展開選項。頁面不捲動，只是下面的內容往下推（有動畫） */
+$("tagBtn").addEventListener("click",()=>{
+  const a=document.activeElement;if(a&&(a.id==="amount"||a.id==="note"))a.blur();
+  setTagPanel(!$("tagPanel").classList.contains("open"));
 });
+$("tagChips").addEventListener("click",e=>{
+  const c=e.target.closest(".tag-chip");if(!c)return;
+  curTag=curTag===c.dataset.tag?"":c.dataset.tag;   // 再點一次同一個＝取消
+  drawTagBtn();setTagPanel(false);
+});
+/* 又開始打字：選項收起來，記帳按鈕才不會被鍵盤蓋住 */
+for(const id of ["amount","note"])$(id).addEventListener("focus",()=>setTagPanel(false));
 /* iPhone 注音：打的字在按「確認」或選字之前還是「組字中」（有底線），這時候跳去點金額，iOS 會把整串沒確認的字丟掉。
    離開時記下看到的字；回來後如果被系統清掉（不是他自己刪的），就補回去（拿掉還沒轉成國字的注音符號） */
 let noteSnap="", noteComposing=false, noteCompEnd=0, noteGuard=0;
@@ -1312,18 +1346,13 @@ $("note").addEventListener("blur",()=>{
 const restoreNote=()=>{
   if(!noteGuard||Date.now()>noteGuard)return;
   const v=$("note").value;
-  if(noteSnap&&v.length<noteSnap.length&&noteSnap.startsWith(stripZhuyin(v))){$("note").value=noteSnap;drawNoteChips()}
+  if(noteSnap&&v.length<noteSnap.length&&noteSnap.startsWith(stripZhuyin(v)))$("note").value=noteSnap;
 };
 $("note").addEventListener("input",e=>{
   if(noteGuard&&(e.inputType==="deleteCompositionText"||e.inputType==="insertCompositionText"&&!e.data||!e.inputType))restoreNote();
   else if(e.inputType&&e.inputType.startsWith("delete"))noteGuard=0;   // 他自己按刪除：不補
-  drawNoteChips();
 });
-$("note").addEventListener("focus",()=>{for(const ms of [0,60,250])setTimeout(restoreNote,ms);document.body.classList.add("note-focus")});
-/* 離開備註時先不要把分類放回來：他常常是打完備註直接按記帳按鈕，這時候版面一動就會按空。
-   等他點金額、或記完這一筆、或換分頁才放回來 */
-const showNoteChips=()=>document.body.classList.remove("note-focus");
-$("amount").addEventListener("focus",showNoteChips);
+$("note").addEventListener("focus",()=>{for(const ms of [0,60,250])setTimeout(restoreNote,ms)});
 document.addEventListener("focusin",e=>{if(e.target.id==="amount")setTimeout(restoreNote,60)});
 function drawFxPick(){
   const on=$("isFixed").checked, items=activeFixed().filter(f=>f.vary);
@@ -1368,6 +1397,87 @@ function collapseOut(el,done){
   ],{duration:260,easing:"cubic-bezier(.76,0,.24,1)",fill:"forwards"});
   an.onfinish=done;
 }
+/* ---------- 明細：就地編輯 ---------- */
+let editKey=null, editDraft=null, editAnim=false;
+function editorEl(e,mode){
+  const d=editDraft, showTags=mode==="edit"&&tagAllowed(e.type);
+  const wrap=document.createElement("div");wrap.className="edit-wrap"+(editAnim?"":" open");
+  wrap.innerHTML='<div class="edit">'
+    +(mode==="fx"?'<p class="edit-hint">記下這一期'+esc(e.note)+'的實際金額（預估 $'+fmt(e.est)+'），會取代預估，預留的錢放回來。</p>':'')
+    +'<div class="edit-row"><label class="b-field"><span class="b-field__label">金額 / Amount</span><input class="b-input e-amt" inputmode="decimal" aria-label="金額"></label>'
+    +'<label class="b-field"><span class="b-field__label">日期 / Date</span><input type="date" class="b-input e-date" aria-label="日期"></label></div>'
+    +(showTags?'<div class="b-field"><span class="b-field__label">標籤 / Tag</span><div class="tag-chips e-tags">'+tagChipsHTML(d.tag)+'</div></div>':'')
+    +'<label class="b-field"><span class="b-field__label">備註 / Note</span><input class="b-input e-note" maxlength="60" placeholder="選填" aria-label="備註"></label>'
+    +'<div class="edit-acts"><button type="button" class="b-btn b-btn--secondary b-btn--sm e-save">'+(mode==="fx"?"記下實際金額":"儲存")+'</button><button type="button" class="b-btn b-btn--secondary b-btn--sm e-cancel">取消</button></div></div>';
+  wrap.querySelector(".e-amt").value=d.amount;wrap.querySelector(".e-date").value=d.date;wrap.querySelector(".e-note").value=d.note;
+  if(editAnim){editAnim=false;requestAnimationFrame(()=>requestAnimationFrame(()=>wrap.classList.add("open")))}
+  return wrap;
+}
+function openEditor(li){
+  if(li.dataset.eid){
+    const e=entries.find(x=>x.id===li.dataset.eid);if(!e)return;
+    editKey=e.id;editDraft={amount:String(e.amount),date:e.date,note:e.note||"",tag:e.tag||""};
+  }else{
+    editKey=li.dataset.pend;editDraft={amount:String(+li.dataset.est),date:todayStr(),note:"",tag:""};
+  }
+  editAnim=true;armed=null;render();
+}
+function closeEditor(){
+  const w=$("list").querySelector(".edit-wrap");
+  editKey=null;editDraft=null;
+  if(w&&!reduceMotion()){w.classList.remove("open");setTimeout(render,300)}else render();
+}
+/* 底部的小提示（明細那頁看不到記帳區的提示），可以按「復原」 */
+let snackTimer;
+function snack(msg,undo,bad){
+  const el=$("snack");el.textContent="";el.classList.toggle("bad",!!bad);
+  const t=document.createElement("span");t.textContent=msg;el.appendChild(t);
+  if(undo){const b=document.createElement("button");b.type="button";b.className="undo";b.textContent="復原";b.onclick=()=>{undo();el.classList.remove("on")};el.appendChild(b)}
+  el.classList.add("on");clearTimeout(snackTimer);snackTimer=setTimeout(()=>el.classList.remove("on"),undo?6000:3200);
+}
+/* 改一筆＝試算表裡刪掉舊的、加回新的（同一個 id），Apps Script 不用改 */
+function putEntry(old,upd){
+  entries=entries.filter(x=>x.id!==old.id).concat(upd?[upd]:[]);
+  commit({action:"delete",id:old.id});
+  if(upd)commit({action:"add",entries:[upd]});
+}
+const endMsg=(a,b)=>a&&b&&a!==b?"錢用完的日期從 "+mdOf(a)+(b>a?" 延後到 ":" 提早到 ")+mdOf(b)+"。":"";
+$("list").addEventListener("input",ev=>{
+  const ed=ev.target.closest(".edit");if(!ed||!editDraft)return;
+  if(ev.target.classList.contains("e-amt"))editDraft.amount=ev.target.value;
+  if(ev.target.classList.contains("e-date"))editDraft.date=ev.target.value;
+  if(ev.target.classList.contains("e-note"))editDraft.note=ev.target.value;
+});
+$("list").addEventListener("click",ev=>{
+  const ed=ev.target.closest(".edit");
+  if(ed){
+    const c=ev.target.closest(".tag-chip");
+    if(c){editDraft.tag=editDraft.tag===c.dataset.tag?"":c.dataset.tag;ed.querySelectorAll(".tag-chip").forEach(x=>{const on=x.dataset.tag===editDraft.tag;x.classList.toggle("on",on);x.setAttribute("aria-pressed",String(on))});return}
+    if(ev.target.closest(".e-cancel")){closeEditor();return}
+    if(!ev.target.closest(".e-save"))return;
+    const amt=parseAmount(editDraft.amount), date=editDraft.date;
+    if(!(amt>0)){snack("金額要大於 0",null,true);return}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){snack("請選日期",null,true);return}
+    const before=endNow, li=ed.closest("li");
+    if(li.dataset.eid){
+      const old=entries.find(x=>x.id===li.dataset.eid);if(!old){closeEditor();return}
+      const upd=Object.assign({},old,{amount:Math.round(amt*100)/100,date,note:editDraft.note.trim()});
+      if(editDraft.tag&&tagAllowed(old.type))upd.tag=editDraft.tag;else delete upd.tag;
+      if(upd.amount===old.amount&&upd.date===old.date&&upd.note===(old.note||"")&&(upd.tag||"")===(old.tag||"")){closeEditor();return}
+      putEntry(old,upd);closeEditor();
+      snack("已修改。"+endMsg(before,endNow),()=>{const cur=entries.find(x=>x.id===old.id);putEntry(cur||upd,old);render();snack("已復原")});
+    }else{
+      const e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:"fixpay",fx:li.dataset.sid,amount:Math.round(amt*100)/100,note:editDraft.note.trim(),date,ts:Date.now()};
+      entries=entries.concat([e]);commit({action:"add",entries:[e]});closeEditor();
+      snack("已記下 "+li.dataset.name+" 實際金額 $"+fmt(e.amount)+"。"+endMsg(before,endNow),()=>{entries=entries.filter(x=>x.id!==e.id);commit({action:"delete",id:e.id});render();snack("已復原")});
+    }
+    return;
+  }
+  if(ev.target.closest(".del,button,a,input"))return;
+  const li=ev.target.closest("li[data-eid],li[data-pend]");if(!li)return;
+  const key=li.dataset.eid||li.dataset.pend;
+  if(editKey===key)closeEditor();else openEditor(li);
+});
 /* ---------- 刪除 ---------- */
 let armed=null;
 $("list").addEventListener("click",ev=>{
@@ -1384,10 +1494,13 @@ $("list").addEventListener("click",ev=>{
   if(armed!==id){armed=id;render();return}
   armed=null;
   /* 那一列先收起來，再真的刪掉 */
+  const gone=entries.find(e=>e.id===id);
+  if(editKey===id){editKey=null;editDraft=null}
   collapseOut(btn.closest("li"),()=>{
     entries=entries.filter(e=>e.id!==id);
     commit({action:"delete",id});
     render();toast("已刪除");
+    if(gone)snack("已刪除"+(gone.note?"「"+gone.note+"」":"")+" $"+fmt(gone.amount)+"。",()=>{entries=entries.concat([gone]);commit({action:"add",entries:[gone]});render();snack("已復原")});
   });
 });
 
@@ -2332,7 +2445,6 @@ function renderCore(){
     for(const [id,v] of [["miniToday",mt],["miniUntil",mu]]){const el=$(id);if(el.textContent!==v){el.textContent=v;if(noticeReady){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}}
   }
   drawFixedSummary(today);
-  drawNoteChips();
   /* ---------- 提示區：條件不成立就自動消失，不能手動關 ---------- */
   const ns=[];
   /* ① 過了下次發薪日還沒有新的常規薪水 */
@@ -2471,6 +2583,8 @@ function renderCore(){
   const list=full.slice(0,shown);
   $("more").hidden=full.length<=shown;
 
+  /* 正在明細裡編輯（游標在編輯欄位裡）：先不重畫明細，免得同步回來時打到一半被洗掉 */
+  if(editKey&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#list .edit"))return;
   const ul=$("list");ul.textContent="";
   if(!list.length){
     const li=document.createElement("div");li.className="empty";
@@ -2509,17 +2623,23 @@ function renderCore(){
       else if(e.date>=periodStart){amt.textContent="預留 "+fmt(e.est);amt.classList.add("held")}
       else{amt.textContent=fmt(e.est);amt.classList.add("struck")}
     }else{n.textContent=e.note||T.name;dd.textContent=(e.virtual?"自動・":"")+T.name+" · "+T.en}
+    if(e.tag){const tg=document.createElement("span");tg.className="tag-lbl";tg.textContent=e.tag;n.prepend(tg)}
     info.append(n,dd);
+    /* 點一筆就地展開編輯；浮動還沒記實際金額的那期，點了可以直接記實際金額 */
+    const pend=e.virtual&&e.vary&&!e.covered&&!e.skipped;
+    if(!e.virtual)li.dataset.eid=e.id;
+    else if(pend){li.dataset.pend=e.id;li.dataset.sid=e.sid;li.dataset.date=e.date;li.dataset.est=e.est;li.dataset.name=e.note}
+    const addEditor=()=>{if(editKey===e.id&&(!e.virtual||pend))li.appendChild(editorEl(e,pend?"fx":"edit"))};
     if(e.virtual){
       /* 自動扣款也可以刪（這一期不扣），金色的鈕跟一般紀錄的紅色刪除分開；刪掉的留在明細、可以恢復 */
       li.className="virtual";
       const b=document.createElement("button");b.className="del gold"+(armed===e.id?" armed":"");b.dataset.id=e.id;b.dataset.fid=e.fid;b.dataset.date=e.date;
       if(e.skipped){b.dataset.restore="1";b.textContent="恢復"}else b.textContent=armed===e.id?"確定刪除":"刪除";
-      li.append(dot,info,amt,b);ul.appendChild(li);continue;
+      li.append(dot,info,amt,b);addEditor();ul.appendChild(li);continue;
     }
     const del=document.createElement("button");del.className="del"+(armed===e.id?" armed":"");del.dataset.id=e.id;
     del.textContent=armed===e.id?"確定刪除":"刪除";
-    li.append(dot,info,amt,del);ul.appendChild(li);
+    li.append(dot,info,amt,del);addEditor();ul.appendChild(li);
   }
 }
 
@@ -2594,7 +2714,7 @@ function parseBackup(o){
     if(!e||!e.id||!TYPES[e.type]||e.type==="fixed")continue;
     const amount=Number(e.amount);
     if(!(amount>0)||!/^\d{4}-\d{2}-\d{2}$/.test(e.date))continue;
-    out.push(Object.assign({id:String(e.id),type:e.type,amount,note:String(e.note||""),date:e.date,ts:Number(e.ts)||0},e.fx?{fx:String(e.fx)}:{}));
+    out.push(Object.assign({id:String(e.id),type:e.type,amount,note:String(e.note||""),date:e.date,ts:Number(e.ts)||0},e.fx?{fx:String(e.fx)}:{},e.tag?{tag:String(e.tag)}:{}));
   }
   return {entries:out,skipped:list.length-out.length,settings:{
     opening:Number(o.opening)||0,
@@ -2644,7 +2764,7 @@ function setTab(t,how){
   if(prev==="notice"&&t!=="notice"){markNoticesSeen();render()}   // 離開通知頁：看過了，NEW 拿掉
   curTab=t;
   if(prev!==t)setHeadFold(false,false);
-  if(prev!==t)showNoteChips();   // 換分頁：標題列、小摘要展開回來
+  if(prev!==t)setTagPanel(false);
   const dx=TABS.indexOf(t)>TABS.indexOf(prev)?18:TABS.indexOf(t)<TABS.indexOf(prev)?-18:0;
   document.querySelectorAll(".pane").forEach(p=>{const on=p.dataset.pane===t;p.classList.toggle("on",on);if(on)p.style.setProperty("--pane-dx",dx+"px")});
   document.querySelectorAll("#tabbar button").forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle("on",on);b.setAttribute("aria-current",on?"page":"false")});
@@ -2731,5 +2851,6 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostnam
 }
 })();
 </script>
+<div class="snack" id="snack" role="status" aria-live="polite"></div>
 </body>
 </html>

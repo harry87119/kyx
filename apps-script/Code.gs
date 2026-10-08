@@ -10,7 +10,16 @@
 
 var SHEET_RECORDS = '紀錄';
 var SHEET_SETTINGS = '設定';
-var HEADERS = ['id', 'date', 'type', 'amount', 'note', 'ts', 'fx'];
+var SHEET_GUIDE = '說明';
+// 最後兩欄：tag＝標籤（早餐、午餐…），類型＝type 的中文名稱（給人和 Claude 看的，網頁不讀）
+var HEADERS = ['id', 'date', 'type', 'amount', 'note', 'ts', 'fx', 'tag', '類型'];
+var TYPE_NAMES = {
+  salary: '真實薪水', personal: '私人花費', fixpay: '固定支出・實際金額',
+  q_prod: '收到製作費', q_trans: '收到交通費', prod: '用製作費', trans: '用交通費',
+  ret_prod: '還公司・製作費', ret_trans: '還公司・交通費', rb_prod: '公司還我・製作費', rb_trans: '公司還我・交通費',
+  quota: '收到製作費（舊版）', advance: '先墊・製作費（舊版）', 'return': '還公司・製作費（舊版）', reimb: '公司還我・製作費（舊版）'
+};
+function typeName_(t) { return TYPE_NAMES[t] || t; }
 var TYPES = ['salary', 'personal', 'fixpay', 'q_prod', 'q_trans', 'prod', 'trans',
   'ret_prod', 'ret_trans', 'rb_prod', 'rb_trans',
   'quota', 'advance', 'return', 'reimb'];
@@ -51,6 +60,7 @@ function doPost(e) {
 function setup() {
   recordsSheet_();
   settingsSheet_();
+  guideSheet_();
 }
 
 /* ---------- 動作 ---------- */
@@ -73,6 +83,7 @@ function readAll_() {
         ts: toNumber_(r[5])
       };
       if (r[6]) item.fx = String(r[6]); // 浮動固定支出的實際金額：對應哪一項
+      if (r[7]) item.tag = String(r[7]); // 標籤
       entries.push(item);
     }
   }
@@ -83,8 +94,9 @@ function readAll_() {
   } catch (err) {
     fixed = [];
   }
+  guideSheet_();
   var out = {
-    v: 2, // 有這個欄位的版本：設定可以只存一部分、會回傳每日基準和通知狀態
+    v: 3, // 2：設定可以只存一部分、回傳每日基準和通知狀態；3：紀錄有標籤欄
     entries: entries,
     opening: toNumber_(s.opening),
     until: s.until ? toDateStr_(s.until) : '',
@@ -113,7 +125,7 @@ function addEntries_(list) {
     var e = validEntry_(list[j]);
     if (existing[e.id]) continue; // 重送時不會重複新增
     existing[e.id] = true;
-    rows.push([e.id, e.date, e.type, e.amount, safeText_(e.note), e.ts, safeText_(e.fx)]);
+    rows.push([e.id, e.date, e.type, e.amount, safeText_(e.note), e.ts, safeText_(e.fx), safeText_(e.tag), typeName_(e.type)]);
   }
   if (rows.length) {
     sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
@@ -179,16 +191,78 @@ function recordsSheet_() {
     // id、date、type、note 設成純文字，避免日期被自動轉換；amount、ts 是數字
     sh.getRange('A:C').setNumberFormat('@');
     sh.getRange('E:E').setNumberFormat('@');
-    sh.getRange('G:G').setNumberFormat('@');
+    sh.getRange('G:I').setNumberFormat('@');
     sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     sh.setFrozenRows(1);
   }
-  // 舊版建立的工作表少了後面的欄位（例如 fx），補上標題
+  // 舊版建立的工作表少了後面的欄位（例如 fx、tag、類型），補上標題；舊紀錄的「類型」也一次補上中文名稱
   var head = sh.getRange(1, 1, 1, HEADERS.length).getValues()[0];
   if (String(head[HEADERS.length - 1]) !== HEADERS[HEADERS.length - 1]) {
     sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    sh.getRange('G:G').setNumberFormat('@');
+    sh.getRange('G:I').setNumberFormat('@');
+    var last = sh.getLastRow();
+    if (last >= 2) {
+      var types = sh.getRange(2, 3, last - 1, 1).getValues();
+      sh.getRange(2, HEADERS.length, last - 1, 1).setValues(types.map(function (t) { return [t[0] ? typeName_(String(t[0])) : '']; }));
+    }
   }
+  return sh;
+}
+
+/* 「說明」工作表：給人和 Claude（Google 試算表裡的 Claude 側欄）看的，寫清楚每一欄和計算規則。
+   版本號（A1）不一樣才重寫，平常不會動 */
+var GUIDE_VERSION = 'KYX記帳・試算表說明（v1）';
+function guideSheet_() {
+  var ss = spreadsheet_();
+  var sh = ss.getSheetByName(SHEET_GUIDE);
+  if (sh && String(sh.getRange(1, 1, 1, 1).getValues()[0][0]) === GUIDE_VERSION) return sh;
+  if (!sh) sh = ss.insertSheet(SHEET_GUIDE);
+  var rows = [
+    [GUIDE_VERSION, ''],
+    ['這份試算表是「KYX記帳」網頁的資料庫，網頁每次同步都會讀寫「紀錄」和「設定」這兩頁。', ''],
+    ['重要：請不要修改、排序或刪除「紀錄」和「設定」這兩頁', '格式改錯，網頁會算錯或讀不到。記帳、改帳、刪帳請用網頁。要統計、畫圖、做報表，請另外開新的工作表（例如用公式讀「紀錄」）。'],
+    ['', ''],
+    ['「紀錄」每一欄', ''],
+    ['id', '每一筆的編號（網頁產生，不能重複、不能改）'],
+    ['date', '日期 YYYY-MM-DD'],
+    ['type', '類型代號（見下面），網頁看這一欄'],
+    ['amount', '金額（新台幣，一律是正數；收入或支出看類型）'],
+    ['note', '備註'],
+    ['ts', '記帳當下的時間（毫秒），同一天裡排先後用'],
+    ['fx', '只有「固定支出・實際金額」才有：是哪一項浮動固定支出（對應「設定」fixed 裡的 sid 或 id）'],
+    ['tag', '標籤：早餐、午餐、晚餐、飲料、點心、日用品、交通、娛樂（只有支出才有，可以空白）'],
+    ['類型', 'type 的中文名稱，只是方便看；網頁不讀這一欄'],
+    ['', ''],
+    ['類型代號', ''],
+    ['salary', '真實薪水（收入）。金額至少是前一筆常規薪水一半的才算「常規薪水」，更小的是小筆收入'],
+    ['personal', '私人花費（支出）'],
+    ['fixpay', '固定支出・實際金額（支出）：浮動的固定支出（水電瓦斯等）繳了以後記的實際金額，會取代那幾期的預估'],
+    ['q_prod / q_trans', '收到製作費／收到交通費：公司先撥的工作用錢，不是自己的錢'],
+    ['prod / trans', '用製作費／用交通費：工作上的花費，先從公司撥的錢扣'],
+    ['ret_prod / ret_trans', '還公司：把公司撥的、沒用完的錢還回去'],
+    ['rb_prod / rb_trans', '公司還我：自己先墊的工作花費，公司還回來'],
+    ['quota / advance / return / reimb', '舊版的類型，一律當成製作費那一組'],
+    ['', ''],
+    ['計算規則（網頁怎麼算）', ''],
+    ['自己的錢', '薪水 − 私人花費 − 固定支出實際金額 − 已到期的定額固定支出 − 公司欠我的（自己先墊的工作花費）。公司撥的錢沒用完的部分是「我欠公司」，不算自己的錢'],
+    ['定額固定支出', '每期金額一樣（房租等），到了繳費日自動扣，不用記'],
+    ['浮動固定支出', '每期金額不一樣（水電瓦斯等），填預估。不會自動扣：要記了實際金額（fixpay）才扣；沒記之前先預留，到下次發薪都沒記，那期就不再預留'],
+    ['每日基準', '每天預計花多少（設定 daily，預設 500）。「錢可以撐到哪一天」照這個金額一天一天扣'],
+    ['下次發薪日', '設定 until；空白時照每月發薪日（payday）推算'],
+    ['', ''],
+    ['「設定」每一列', ''],
+    ['opening', '起始結餘（固定 0）'],
+    ['until', '下次發薪日（手動填的，空白＝照每月發薪日推算）'],
+    ['pay', '手動改過的上次薪水（0＝自動抓最近一筆常規薪水）'],
+    ['payday', '每月發薪日（1～31）'],
+    ['pct', '生活費比例（%），用來算建議基準'],
+    ['daily', '每日基準（每天預計花多少）'],
+    ['fixed', '每月固定支出（JSON）：name 名稱、amount 金額、day 每月幾號、since 從哪個月開始、end 到哪個月、vary 浮動、skip 跳過的那幾期'],
+    ['notes / prefs', '網頁的通知狀態和偏好（深淺色等），不用理它']
+  ];
+  while (rows.length < 60) rows.push(['', '']);
+  sh.getRange(1, 1, rows.length, 2).setValues(rows);
+  try { sh.setColumnWidth(1, 220); sh.setColumnWidth(2, 720); } catch (err) {}
   return sh;
 }
 
@@ -296,7 +370,8 @@ function validEntry_(e) {
     amount: amount,
     note: String(e.note || '').slice(0, 200),
     ts: Number(e.ts) || Date.now(),
-    fx: String(e.fx || '').slice(0, 40)
+    fx: String(e.fx || '').slice(0, 40),
+    tag: String(e.tag || '').slice(0, 20)
   };
 }
 
