@@ -418,7 +418,19 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .tag-btn[aria-expanded="true"] .tag-chev{transform:translateY(1px) rotate(225deg)}
 .tag-wrap{grid-column:1/-1;display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;transition:grid-template-rows 280ms var(--ease-wipe),opacity 200ms var(--ease),margin-top 280ms var(--ease-wipe)}
 .tag-wrap.open{grid-template-rows:1fr;opacity:1;margin-top:14px}
-.tag-wrap>.tag-chips{min-height:0;overflow:hidden}
+.tag-wrap>.tag-in{min-height:0;overflow:hidden}
+.tag-wrap.open.sorting>.tag-in{overflow:visible}
+/* 排序：一顆安靜的文字鈕放在最後；排序中標籤可以拖（手指底下不捲動頁面） */
+.tag-sort{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 6px;border:0;background:transparent;color:var(--gold-text);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.1em;cursor:pointer;transition:color var(--dur-fast) var(--ease)}
+.tag-sort:hover{color:var(--gh-gold)}
+.ts-ico{width:12px;height:14px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:square}
+.sorting .tag-sort{color:var(--accent-text)}
+.sorting .tag-chip{position:relative;padding-left:24px;border-color:var(--fg-3);color:var(--fg);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.sorting .tag-chip::before{content:"";position:absolute;left:10px;top:50%;width:6px;height:10px;margin-top:-5px;background:radial-gradient(circle,currentColor 1px,transparent 1.3px) 0 0/3px 3.4px;opacity:.55}
+.sorting .tag-chip.on{color:var(--fg)}
+.sorting .tag-chip.drag{z-index:2;cursor:grabbing;background:var(--bg-raised);border-color:var(--focus);box-shadow:0 6px 18px rgba(0,0,0,.28);scale:1.06;transition:none}
+.tag-hint{margin:0;font-size:12.5px;letter-spacing:.04em;color:var(--fg-3);line-height:1.6}
+.tag-hint:not(:empty){margin-top:10px}
 .tag-chips{display:flex;flex-wrap:wrap;gap:8px}
 .tag-chip{min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:0;background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .tag-chip:hover{color:var(--fg);border-color:var(--fg-3)}
@@ -572,6 +584,32 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .ln-now:hover{color:var(--gh-gold)}
 .swap{animation:l-swap 260ms var(--ease-settle) both}
 @keyframes l-swap{from{opacity:.2;transform:translate(var(--dx,0),4px)}to{opacity:1;transform:none}}
+/* 明細最下面：標籤統計（一個顏色的長條，最多的在上面，每列都直接寫百分比和金額） */
+.tstat{margin-top:40px;padding-top:22px;border-top:1px solid var(--line-2)}
+.ts-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ts-h{margin:0;font-family:var(--font-han-sans);font-size:17px;font-weight:700;letter-spacing:.1em}
+.ts-h .b-label{margin-left:6px;font-weight:400}
+.ts-sub{font-size:12.5px;letter-spacing:.06em;color:var(--fg-3)}
+.ts-sub .num{font-family:var(--font-display);font-variant-numeric:tabular-nums;color:var(--fg-2)}
+.ts-hero{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:18px 0 16px}
+.ts-hero:empty{display:none}
+.ts-big{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:48px;font-weight:400;line-height:1;letter-spacing:-.01em;color:var(--fg)}
+.ts-cap{font-size:14px;letter-spacing:.04em;color:var(--fg-2)}
+.ts-cap b{margin:0 2px;font-weight:700;color:var(--fg)}
+.ts-rows{display:flex;flex-direction:column}
+.ts-row{display:grid;grid-template-columns:5em minmax(0,1fr) 3.2em minmax(5.4em,auto);align-items:center;gap:14px;padding:11px 8px;margin:0 -8px;border-bottom:1px solid var(--line);transition:background var(--dur-fast) var(--ease)}
+.ts-row:hover{background:var(--bg-card)}
+.ts-name{font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-row.none .ts-name{color:var(--fg-3)}
+.ts-bar{position:relative;height:8px}
+.ts-bar i{position:absolute;left:0;top:0;bottom:0;width:0;min-width:2px;background:var(--focus);transition:width var(--dur-reveal) var(--ease-wipe)}
+.ts-row.none .ts-bar i{background:repeating-linear-gradient(135deg,var(--fg-3) 0 2px,transparent 2px 5px)}   /* 沒標籤：斜線，跟有標籤的分得出來 */
+.ts-pct{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:15px;text-align:right;color:var(--fg)}
+.ts-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:13px;text-align:right;color:var(--fg-3);white-space:nowrap}
+.ts-note{margin:12px 0 0;font-size:12.5px;letter-spacing:.04em;line-height:1.6;color:var(--fg-3)}
+.ts-note:empty{display:none}
+@media (max-width:420px){.ts-row{grid-template-columns:4.6em minmax(0,1fr) 3em auto;gap:10px}.ts-big{font-size:40px}}
+@media (prefers-reduced-motion:reduce){.ts-bar i{transition:none}}
 /* 這個月／這一天的小計 */
 .list-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin-bottom:6px}
 .ls-item{background:var(--bg-card);padding:12px 14px;min-width:0}
@@ -743,7 +781,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <div class="b-field tag-field"><span class="b-field__label">標籤 / Tag</span><button type="button" id="tagBtn" class="tag-btn" aria-expanded="false" aria-controls="tagPanel"><span id="tagBtnT">選擇</span><i class="tag-chev" aria-hidden="true"></i></button></div>
         <label class="b-field"><span class="b-field__label">備註 / Note</span><input id="note" class="b-input" placeholder="選填" maxlength="60" aria-label="備註"></label>
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
-        <div class="tag-wrap" id="tagPanel" inert><div class="tag-chips" id="tagChips" role="group" aria-label="標籤"></div></div>
+        <div class="tag-wrap" id="tagPanel" inert><div class="tag-in"><div class="tag-chips" id="tagChips" role="group" aria-label="標籤"></div><p class="tag-hint" id="tagHint" aria-live="polite"></p></div></div>
       </div>
       <div class="types">
         <div class="group-label">支出 / Expense</div>
@@ -797,6 +835,12 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       <div class="list-sum" id="listSum"></div>
       <ul id="list"></ul>
       <button id="more" class="more b-btn b-btn--secondary b-btn--full" hidden>顯示更早的紀錄</button>
+      <section class="tstat" id="tagStats" aria-labelledby="tsH" hidden>
+        <div class="ts-head"><h3 class="ts-h" id="tsH">花在哪裡 <span class="b-label">By Tag</span></h3><span class="ts-sub" id="tsSub"></span></div>
+        <div class="ts-hero" id="tsHero"></div>
+        <div class="ts-rows" id="tsRows" role="list"></div>
+        <p class="ts-note" id="tsNote"></p>
+      </section>
     </section>
     </div>
     <div class="pane" data-pane="settings">
@@ -1049,7 +1093,7 @@ const LATEST_SERVER_V=3, LS_SHEETLINK="kyx-sheetlink-v1";
 let sheetLink=lsGet(LS_SHEETLINK)||"";
 let serverV=Number(lsGet(LS_SERVERV))||0, prefsTimer=null, lastPrefs="";
 const syncedNotes=()=>{const n=Object.assign({},notes);return n};
-const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView}};
+const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView,tagOrder}};
 const prefsKey=()=>JSON.stringify([syncedNotes(),prefsObj()]);
 function syncPrefs(){
   if(!cfg||serverV<2)return;
@@ -1081,6 +1125,7 @@ function applyRemotePrefs(rn,rp){
       try{localStorage.setItem("kyx-list-view",listView)}catch(e){}
       document.querySelectorAll(".views button").forEach(b=>b.classList.toggle("on",b.dataset.v===listView));
     }
+    if(Array.isArray(rp.tagOrder)&&!tagSorting)setTagOrder(rp.tagOrder,true);
   }
   lastPrefs=prefsKey();
   /* 這台有、試算表還沒有的（例如第一次連上新版程式）：送上去 */
@@ -1312,29 +1357,114 @@ function btnSmall(b){
 let fxSel=null;
 /* ---------- 標籤 ---------- */
 /* 支出才有標籤（收入不用分類）；標籤跟備註分開存在紀錄的 tag 欄位 */
-const TAGS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","娛樂"];
+const TAGS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","娛樂","旅遊","美容美妝","服飾"];
 const tagAllowed=type=>!!TYPES[type]&&TYPES[type].sign<0&&type!=="fixpay"&&type!=="fixed";
 let curTag="";
-const tagChipsHTML=sel=>TAGS.map(t=>'<button type="button" class="tag-chip'+(t===sel?' on':'')+'" data-tag="'+esc(t)+'" aria-pressed="'+(t===sel)+'">'+esc(t)+'</button>').join("");
+/* 標籤的順序可以自己排（在標籤選項裡按「排序」，拖曳調整）；存在這台、也跟著偏好同步到試算表。
+   之後新增的標籤自動排在最後面 */
+const LS_TAGORDER="kyx-tag-order-v1";
+const normTagOrder=o=>{const a=Array.isArray(o)?o.filter((t,i)=>TAGS.includes(t)&&o.indexOf(t)===i):[];return a.concat(TAGS.filter(t=>!a.includes(t)))};
+let tagOrder=normTagOrder(lsGet(LS_TAGORDER));
+function setTagOrder(o,fromRemote){
+  const n=normTagOrder(o);if(n.join()===tagOrder.join())return false;
+  tagOrder=n;lsSet(LS_TAGORDER,tagOrder);
+  if(!tagSorting)drawTagChips();
+  if(!fromRemote&&typeof syncPrefs==="function")syncPrefs();
+  return true;
+}
+const tagChipsHTML=sel=>tagOrder.map(t=>'<button type="button" class="tag-chip'+(t===sel?' on':'')+'" data-tag="'+esc(t)+'" aria-pressed="'+(t===sel)+'">'+esc(t)+'</button>').join("");
+let tagSorting=false;
+function drawTagChips(){
+  $("tagChips").innerHTML=tagChipsHTML(curTag)+'<button type="button" class="tag-sort" id="tagSort" aria-pressed="false"><svg class="ts-ico" viewBox="0 0 12 14" aria-hidden="true"><path d="M3.5 12.5V2M1 4.5l2.5-2.5L6 4.5M8.5 1.5V12M6 9.5l2.5 2.5L11 9.5"/></svg><span>排序</span></button>';
+}
 function drawTagBtn(){
   $("tagBtnT").textContent=curTag||"選擇";
   $("tagBtn").classList.toggle("has",!!curTag);
   $("tagChips").querySelectorAll(".tag-chip").forEach(c=>{const on=c.dataset.tag===curTag;c.classList.toggle("on",on);c.setAttribute("aria-pressed",String(on))});
 }
+function setTagSorting(on){
+  if(tagSorting===on)return;
+  tagSorting=on;
+  const box=$("tagChips");
+  $("tagPanel").classList.toggle("sorting",on);
+  const b=$("tagSort");b.setAttribute("aria-pressed",String(on));b.querySelector("span").textContent=on?"完成":"排序";
+  $("tagHint").textContent=on?"按住標籤拖到想要的位置，好了按「完成」。":"";
+  box.querySelectorAll(".tag-chip").forEach(c=>{c.setAttribute("aria-pressed",String(!on&&c.dataset.tag===curTag));if(on)c.setAttribute("aria-label",c.dataset.tag+"，可以拖曳，或用左右鍵移動");else c.removeAttribute("aria-label")});
+  if(!on){
+    const o=[...box.querySelectorAll(".tag-chip")].map(c=>c.dataset.tag);
+    setTagOrder(o);
+  }
+}
 function setTagPanel(open){
+  if(!open)setTagSorting(false);
   $("tagPanel").classList.toggle("open",open);$("tagPanel").inert=!open;
   $("tagBtn").setAttribute("aria-expanded",String(open));
 }
-$("tagChips").innerHTML=tagChipsHTML("");
+drawTagChips();
 /* 點標籤：先收起鍵盤（正在打金額或備註的話），再展開選項。頁面不捲動，只是下面的內容往下推（有動畫） */
 $("tagBtn").addEventListener("click",()=>{
   const a=document.activeElement;if(a&&(a.id==="amount"||a.id==="note"))a.blur();
   setTagPanel(!$("tagPanel").classList.contains("open"));
 });
 $("tagChips").addEventListener("click",e=>{
-  const c=e.target.closest(".tag-chip");if(!c)return;
+  if(e.target.closest(".tag-sort")){setTagSorting(!tagSorting);return}
+  const c=e.target.closest(".tag-chip");if(!c||tagSorting)return;
   curTag=curTag===c.dataset.tag?"":c.dataset.tag;   // 再點一次同一個＝取消
   drawTagBtn();setTagPanel(false);
+});
+/* 排序：拖曳（手指或滑鼠）。其他標籤用動畫滑到新位置；拖的那顆跟著手指走 */
+function flipChips(box,move){
+  const cs=[...box.querySelectorAll(".tag-chip:not(.drag)")];
+  const before=new Map(cs.map(c=>[c,c.getBoundingClientRect()]));
+  move();
+  for(const c of cs){
+    const a=before.get(c), b=c.getBoundingClientRect(), dx=a.left-b.left, dy=a.top-b.top;
+    if(dx||dy)c.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"none"}],{duration:220,easing:"cubic-bezier(.16,1,.3,1)"});
+  }
+}
+let tagDrag=null;
+$("tagChips").addEventListener("pointerdown",e=>{
+  const c=e.target.closest(".tag-chip");if(!tagSorting||!c||e.button>0)return;
+  e.preventDefault();
+  const r=c.getBoundingClientRect();
+  tagDrag={c,id:e.pointerId,ox:e.clientX-r.left,oy:e.clientY-r.top,sx:e.clientX,sy:e.clientY};
+  c.setPointerCapture(e.pointerId);c.classList.add("drag");
+});
+$("tagChips").addEventListener("pointermove",e=>{
+  if(!tagDrag||e.pointerId!==tagDrag.id)return;
+  const {c}=tagDrag, box=$("tagChips");
+  /* 先放回原位量位置，再找手指底下的標籤，決定插到它前面還是後面 */
+  c.style.transform="";
+  const others=[...box.querySelectorAll(".tag-chip:not(.drag)")];
+  let tgt=null;
+  for(const o of others){const r=o.getBoundingClientRect();if(e.clientX>=r.left-4&&e.clientX<=r.right+4&&e.clientY>=r.top-4&&e.clientY<=r.bottom+4){tgt=o;break}}
+  if(tgt){
+    const r=tgt.getBoundingClientRect(), after=e.clientX>r.left+r.width/2;
+    const ref=after?tgt.nextElementSibling:tgt;
+    if(ref!==c&&ref!==c.nextElementSibling)flipChips(box,()=>box.insertBefore(c,ref));
+  }
+  const r=c.getBoundingClientRect();
+  c.style.transform="translate("+(e.clientX-tagDrag.ox-r.left)+"px,"+(e.clientY-tagDrag.oy-r.top)+"px)";
+});
+function endTagDrag(e){
+  if(!tagDrag||e.pointerId!==tagDrag.id)return;
+  const {c}=tagDrag;tagDrag=null;
+  const r0=c.getBoundingClientRect();c.style.transform="";c.classList.remove("drag");
+  const r1=c.getBoundingClientRect();
+  c.animate([{transform:"translate("+(r0.left-r1.left)+"px,"+(r0.top-r1.top)+"px)"},{transform:"none"}],{duration:200,easing:"cubic-bezier(.16,1,.3,1)"});
+}
+$("tagChips").addEventListener("pointerup",endTagDrag);
+$("tagChips").addEventListener("pointercancel",endTagDrag);
+/* 用鍵盤也能排：排序中，左右（或上下）鍵把標籤往前／往後移一格 */
+$("tagChips").addEventListener("keydown",e=>{
+  const c=e.target.closest(".tag-chip");if(!tagSorting||!c)return;
+  const k=e.key, back=k==="ArrowLeft"||k==="ArrowUp", fwd=k==="ArrowRight"||k==="ArrowDown";
+  if(!back&&!fwd)return;
+  e.preventDefault();
+  const box=$("tagChips"), ref=back?c.previousElementSibling:c.nextElementSibling;
+  if(!ref||!ref.classList.contains("tag-chip"))return;
+  flipChips(box,()=>back?box.insertBefore(c,ref):box.insertBefore(ref,c));
+  c.focus();
 });
 /* 又開始打字：選項收起來，記帳按鈕才不會被鍵盤蓋住 */
 for(const id of ["amount","note"])$(id).addEventListener("focus",()=>setTagPanel(false));
@@ -2610,6 +2740,7 @@ function renderCore(){
     ?[["公司撥的","+",tot(e=>(TYPES[e.type]||{}).kind==="q"),"var(--income)"],["工作花費","−",tot(e=>(TYPES[e.type]||{}).kind==="spend"),"var(--expense)"],["結清","",tot(e=>["ret","rb"].includes((TYPES[e.type]||{}).kind)),"var(--fg)"]]
     :[["收入","+",tot(e=>e.type==="salary"),"var(--income)"],["私人花費","−",tot(e=>e.type==="personal"),"var(--expense)"],["固定支出","−",tot(e=>(e.type==="fixed"&&!e.pend)||e.type==="fixpay"),"var(--expense)"]];
   $("listSum").innerHTML=items.map(([l,sg,v,c])=>'<div class="ls-item"><span class="ls-l">'+l+'</span><span class="ls-v" style="color:'+(v>0?c:"var(--fg-3)")+'">'+(v>0?sg:"")+fmt(v)+'</span></div>').join("");
+  drawTagStats(full);
   full.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
   const list=full.slice(0,shown);
   $("more").hidden=full.length<=shown;
@@ -2672,6 +2803,54 @@ function renderCore(){
     del.textContent=armed===e.id?"確定刪除":"刪除";
     li.append(dot,info,amt,del);addEditor();ul.appendChild(li);
   }
+}
+
+/* ---------- 明細最下面：各標籤占花費的比例（跟著上面看的月份／那一天、全部／私人／工作） ---------- */
+function drawTagStats(full){
+  const sp=full.filter(e=>!e.virtual&&(e.type==="personal"||(TYPES[e.type]||{}).kind==="spend"));
+  const total=sp.reduce((a,e)=>a+e.amount,0);
+  const box=$("tagStats");
+  box.hidden=!total;if(!total)return;
+  const by=new Map();
+  for(const e of sp){const k=e.tag||"";const g=by.get(k)||{n:0,v:0};g.n++;g.v+=e.amount;by.set(k,g)}
+  /* 由多到少；沒標籤的固定排最後 */
+  const rows=[...by].filter(([k])=>k).sort((a,b)=>b[1].v-a[1].v||tagOrder.indexOf(a[0])-tagOrder.indexOf(b[0]));
+  const untag=by.get("");
+  if(untag)rows.push(["",untag]);
+  const tagged=total-(untag?untag.v:0);
+  const when=listView==="month"?"這個月":"這天", what=filter==="work"?"工作花費":filter==="personal"?"私人花費":"花費";
+  const pct=v=>{const p=v/total*100;return p>0&&p<1?"<1%":Math.round(p)+"%"};
+  $("tsSub").innerHTML=when+what+' <span class="num">$'+fmt(total)+'</span>';
+  if(!tagged){
+    $("tsHero").innerHTML="";$("tsRows").innerHTML="";
+    $("tsNote").textContent=when+"的"+what+"還沒有標籤。記帳時點備註左邊的「標籤」，這裡就會畫出每一類占多少。";
+    return;
+  }
+  const top=rows[0];
+  $("tsHero").innerHTML='<span class="ts-big num">'+esc(pct(top[1].v))+'</span><span class="ts-cap">最多花在<b>'+esc(top[0])+'</b>（'+top[1].n+' 筆，$'+fmt(top[1].v)+'）</span>';
+  $("tsNote").textContent=untag&&untag.v<total?"「沒標籤」是記帳時沒選標籤的花費；在上面的明細點一筆就能補上。":"";
+  /* 長條的長度以最多的那一類為滿，百分比是占全部花費 */
+  const max=Math.max(...rows.map(r=>r[1].v));
+  const wrap=$("tsRows"), old=new Map([...wrap.children].map(el=>[el.dataset.k,el]));
+  rows.forEach(([k,g],i)=>{
+    let el=old.get(k);
+    if(el)old.delete(k);
+    else{
+      el=document.createElement("div");el.className="ts-row"+(k?"":" none");el.dataset.k=k;el.setAttribute("role","listitem");
+      el.innerHTML='<span class="ts-name"></span><span class="ts-bar"><i></i></span><span class="ts-pct num"></span><span class="ts-amt num"></span>';
+    }
+    const name=k||"沒標籤";
+    el.querySelector(".ts-name").textContent=name;
+    el.querySelector(".ts-pct").textContent=pct(g.v);
+    el.querySelector(".ts-amt").textContent="$"+fmt(g.v);
+    el.title=name+"："+g.n+" 筆，$"+fmt(g.v)+"，占"+what+" "+pct(g.v);
+    el.setAttribute("aria-label",el.title);
+    const w=(g.v/max*100).toFixed(2)+"%", bar=el.querySelector(".ts-bar i");
+    if(wrap.children[i]!==el)wrap.insertBefore(el,wrap.children[i]||null);
+    if(!bar.style.width){bar.style.width="0%";requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.width=w}))}
+    else bar.style.width=w;
+  });
+  for(const el of old.values())el.remove();
 }
 
 /* ---------- 連結 Google 試算表 ---------- */
