@@ -106,6 +106,7 @@ function readAll_() {
     pct: toNumber_(s.pct)
   };
   if (s.daily != null && s.daily !== '') out.daily = toNumber_(s.daily);
+  try { out.sheetUrl = spreadsheet_().getUrl(); } catch (err) {} // 網頁上「打開我的試算表」用
   out.notes = parseObj_(s.notes);
   out.prefs = parseObj_(s.prefs);
   return out;

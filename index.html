@@ -267,6 +267,9 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 @keyframes n-flash{0%,30%{background:color-mix(in srgb,var(--bar) 28%,var(--bg-raised))}100%{background:var(--bg-raised)}}
 .notice b{font-weight:700}
 .notice .n-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.notice a.b-btn{text-decoration:none}
+.notice .n-steps{margin:8px 0 0;padding-left:1.4em;line-height:1.7}
+.notice .n-steps li{display:list-item;padding:0;border:0}
 .notice .alloc{display:grid;grid-template-columns:1fr auto;gap:2px 0;margin:8px 0 2px;font-size:13.5px}
 .notice .alloc .num{text-align:right;padding-left:16px}
 .notice .alloc .n-sum{border-top:1px solid var(--line);padding-top:4px;font-weight:700}
@@ -1041,6 +1044,9 @@ function persistSettings(){commit({action:"saveSettings",settings:settingsObj()}
 /* 通知狀態（看過哪些、當天的提醒）和偏好（深淺色、明細用月／日檢視）也存到試算表，手機和電腦一樣。
    只有新版的試算表程式（v2，設定可以只存一部分）才送；舊版會把沒送的設定清掉，所以不送 */
 const LS_SERVERV="kyx-serverv-v1";
+/* 最新的試算表程式版本：試算表回報的版本比這個舊，通知裡就提醒更新（附「複製新版程式碼」）。改了 Code.gs、需要朋友更新時，這裡跟 Code.gs 的 v 一起加 1 */
+const LATEST_SERVER_V=3, LS_SHEETLINK="kyx-sheetlink-v1";
+let sheetLink=lsGet(LS_SHEETLINK)||"";
 let serverV=Number(lsGet(LS_SERVERV))||0, prefsTimer=null, lastPrefs="";
 const syncedNotes=()=>{const n=Object.assign({},notes);return n};
 const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView}};
@@ -1146,6 +1152,7 @@ async function sync(){
 }
 function applyRemote(d){
   serverV=Number(d.v)||1;lsSet(LS_SERVERV,serverV);
+  if(typeof d.sheetUrl==="string"&&/^https:\/\/docs\.google\.com\//.test(d.sheetUrl)&&d.sheetUrl!==sheetLink){sheetLink=d.sheetUrl;lsSet(LS_SHEETLINK,sheetLink)}
   const localTags=new Map(entries.filter(e=>e.tag).map(e=>[e.id,e.tag]));
   const o=applyOps(d,queue);
   setData(o);
@@ -1892,6 +1899,21 @@ $("until").addEventListener("change",()=>{if(!(touchUI()&&document.activeElement
 let untilAtFocus="";
 $("until").addEventListener("focus",()=>{untilAtFocus=$("until").value});
 $("until").addEventListener("blur",()=>{const v=$("until").value;if(touchUI()&&v&&v!==untilAtFocus)setUntil(v)});
+/* 複製新版的試算表程式碼：程式碼就放在網站上（apps-script/Code.gs），讀不到時改用 GitHub 上的那份；不能複製（瀏覽器不允許）就打開那個檔案讓他自己全選複製 */
+const CODE_RAW="https://raw.githubusercontent.com/harry87119/kyx/main/apps-script/Code.gs";
+async function copyServerCode(btn){
+  let code="";
+  for(const u of ["apps-script/Code.gs",CODE_RAW]){try{const r=await fetch(u,{cache:"no-store"});if(r.ok){code=await r.text();if(code.includes("KYX記帳"))break;code=""}}catch(e){}}
+  try{
+    if(!code)throw 0;
+    await navigator.clipboard.writeText(code);
+    btn.textContent="已複製 ✓";setTimeout(()=>{btn.textContent="複製新版程式碼"},2500);
+    toast("已複製新版程式碼，到 Apps Script 全選、貼上");
+  }catch(e){
+    window.open(code?URL.createObjectURL(new Blob([code],{type:"text/plain;charset=utf-8"})):CODE_RAW,"_blank","noopener");
+    toast("瀏覽器不讓網頁直接複製：已經打開程式碼，請全選、複製",true);
+  }
+}
 /* 提示區裡的按鈕和日期欄 */
 $("alert").addEventListener("click",ev=>{
   const b=ev.target.closest("[data-act]");if(!b||b.tagName==="INPUT")return;
@@ -1904,6 +1926,10 @@ $("alert").addEventListener("click",ev=>{
     if(mobileTabs())setTab("entry");
     $("sec-entry").scrollIntoView({behavior:reduceMotion()?"auto":"smooth",block:"start"});
     $("amount").focus({preventScroll:true});toast("輸入薪水金額，再按「真實薪水」");
+  }else if(b.dataset.act==="copyCode"){
+    copyServerCode(b);
+  }else if(b.dataset.act==="srvLater"){
+    notes.srvLater=ymd(new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+7));saveNotes();render();toast("7 天後再提醒");
   }else if(b.dataset.act==="wait7"||b.dataset.act==="wait14"){
     setUntil(ymd(new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+(b.dataset.act==="wait7"?7:14))),true);
   }
@@ -2449,6 +2475,11 @@ function renderCore(){
   const ns=[];
   /* ① 過了下次發薪日還沒有新的常規薪水 */
   const paydayRaw=until?until:(lastSal?expectedPayday(lastSal.date):null);
+  /* ⓪ 試算表程式是舊版：提醒更新（要用電腦）。按「之後再說」7 天內不再出現 */
+  if(cfg&&serverV>=1&&serverV<LATEST_SERVER_V&&!(notes.srvLater&&notes.srvLater>today))ns.push({key:"srv-"+LATEST_SERVER_V,kind:"ask",html:
+    "<b>試算表的程式有新版，請更新一次（要用電腦）</b>更新之後，標籤、每日基準、看過的通知才會在手機和電腦之間同步，試算表也會多一頁「說明」。"
+    +'<ol class="n-steps"><li>按「複製新版程式碼」。</li><li>'+(sheetLink?"按「打開我的試算表」，":"打開記帳用的 Google 試算表，")+'點上方「擴充功能」→「Apps Script」，在程式碼裡全選、貼上（蓋掉舊的），按 Ctrl＋S 存檔。</li><li>右上角「部署」→「管理部署作業」→ 鉛筆圖示 →「版本」選「新版本」→「部署」。</li><li>回到這裡重新整理，這則提醒就會消失。</li></ol>'
+    +'<div class="n-actions"><button class="b-btn b-btn--secondary b-btn--sm" data-act="copyCode">複製新版程式碼</button>'+(sheetLink?'<a class="b-btn b-btn--secondary b-btn--sm" data-act="openSheet" href="'+esc(sheetLink)+'" target="_blank" rel="noopener">打開我的試算表</a>':'')+'<button class="b-btn b-btn--secondary b-btn--sm" data-act="srvLater">之後再說</button></div>'});
   if(paydayRaw&&paydayRaw<today)ns.push({key:"late-"+paydayRaw,kind:"ask",html:
     "<b>預計 "+mdOf(paydayRaw)+" 的薪水進來了嗎？</b>還沒進來的話，延後下次發薪日，每天能花的會跟著變少。"
     +'<div class="n-actions"><button class="b-btn b-btn--secondary b-btn--sm" data-act="got">已經進來，去記一筆</button><button class="b-btn b-btn--secondary b-btn--sm" data-act="wait7">還沒，再等一週</button><button class="b-btn b-btn--secondary b-btn--sm" data-act="wait14">還沒，再等兩週</button></div>'});
