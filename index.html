@@ -418,7 +418,30 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .tag-btn[aria-expanded="true"] .tag-chev{transform:translateY(1px) rotate(225deg)}
 .tag-wrap{grid-column:1/-1;display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;transition:grid-template-rows 280ms var(--ease-wipe),opacity 200ms var(--ease),margin-top 280ms var(--ease-wipe)}
 .tag-wrap.open{grid-template-rows:1fr;opacity:1;margin-top:14px}
-.tag-wrap>.tag-chips{min-height:0;overflow:hidden}
+.tag-wrap>.tag-in{min-height:0;overflow:hidden}
+/* 選項右邊固定一顆方鈕「＋」（金色外框、跟標籤用一條細線隔開；標籤怎麼換行都不會動到它） */
+.tag-body{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+.tag-tools{align-self:stretch;display:flex;flex-direction:column;gap:8px;padding-left:12px;border-left:1px solid var(--line)}
+.tag-tool{position:relative;width:40px;height:40px;display:grid;place-items:center;padding:0;background:transparent;border:1px solid var(--gh-gold);color:var(--gold-text);cursor:pointer;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.tag-tool:hover,.tag-tool[aria-expanded="true"]{background:var(--gh-gold);color:#000}
+.tag-tool svg{grid-area:1/1;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:square;transition:transform 320ms var(--ease-settle)}
+.tag-tool[aria-expanded="true"] .tt-plus{transform:rotate(135deg)}   /* ＋ 轉成 × */
+.tag-new{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px dashed var(--focus);animation:tn-in 260ms var(--ease-settle) both}
+.tag-new input{width:6.5em;padding:0;border:0;outline:0;background:transparent;color:var(--input-ink);font-family:var(--font-han-sans);font-size:16px;letter-spacing:.06em}
+.tag-new input::placeholder{color:var(--fg-3)}
+@keyframes tn-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+.tag-chip.flash{animation:tc-flash 600ms var(--ease) both}
+@keyframes tc-flash{0%,40%{border-color:var(--gh-amber);color:var(--fg)}100%{}}
+/* 按「＋」的時候，自己新增的標籤右邊出現紅色 ×，按了刪掉 */
+.tag-x{display:none}
+.adding .tag-chip.mine{position:relative;padding-right:30px}
+.adding .tag-x{display:block;position:absolute;right:0;top:0;bottom:0;width:28px;cursor:pointer;animation:tn-in 220ms var(--ease-settle) both}
+.adding .tag-x::before,.adding .tag-x::after{content:"";position:absolute;left:9px;top:50%;width:10px;height:1.4px;background:var(--expense)}
+.adding .tag-x::before{transform:rotate(45deg)}
+.adding .tag-x::after{transform:rotate(-45deg)}
+@media (prefers-reduced-motion:reduce){.tag-tool svg{transition:none}.tag-new,.adding .tag-x{animation:none}}
+.tag-hint{margin:0;font-size:12.5px;letter-spacing:.04em;color:var(--fg-3);line-height:1.6}
+.tag-hint:not(:empty){margin-top:10px}
 .tag-chips{display:flex;flex-wrap:wrap;gap:8px}
 .tag-chip{min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:0;background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .tag-chip:hover{color:var(--fg);border-color:var(--fg-3)}
@@ -572,6 +595,61 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .ln-now:hover{color:var(--gh-gold)}
 .swap{animation:l-swap 260ms var(--ease-settle) both}
 @keyframes l-swap{from{opacity:.2;transform:translate(var(--dx,0),4px)}to{opacity:1;transform:none}}
+/* 明細最下面：標籤統計（一個顏色的長條，最多的在上面，每列都直接寫百分比和金額） */
+.tstat{margin-top:40px;padding-top:22px;border-top:1px solid var(--line-2)}
+.ts-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ts-h{margin:0;font-family:var(--font-han-sans);font-size:17px;font-weight:700;letter-spacing:.1em}
+.ts-h .b-label{margin-left:6px;font-weight:400}
+.ts-sub{font-size:12.5px;letter-spacing:.06em;color:var(--fg-3)}
+.ts-sub .num{font-family:var(--font-display);font-variant-numeric:tabular-nums;color:var(--fg-2)}
+.ts-hero{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:18px 0 16px}
+.ts-hero:empty{display:none}
+.ts-big{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:48px;font-weight:400;line-height:1;letter-spacing:-.01em;color:var(--fg)}
+.ts-cap{font-size:14px;letter-spacing:.04em;color:var(--fg-2)}
+.ts-cap b{margin:0 2px;font-weight:700;color:var(--fg)}
+.ts-rows{display:flex;flex-direction:column}
+.ts-row{display:grid;grid-template-columns:5em minmax(0,1fr) 3.2em 5.4em;align-items:center;gap:14px;width:calc(100% + 16px);padding:11px 8px;margin:0 -8px;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--fg);font:inherit;text-align:left;cursor:pointer;transition:background var(--dur-fast) var(--ease)}
+.ts-row:hover{background:var(--bg-card)}
+.ts-row:active{background:var(--bg-card-hover)}
+.ts-name{font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-row.none .ts-name{color:var(--fg-3)}
+.ts-bar{position:relative;height:8px}
+.ts-bar i{position:absolute;left:0;top:0;bottom:0;width:0;min-width:2px;background-color:var(--focus);transition:width 1200ms cubic-bezier(.16,1,.3,1)}
+/* 最多的那一條：長的時候前端一點亮光（像拖著光往前跑），長完一道光從左掃到右，再微微發光一下 */
+.ts-row.lead .ts-bar i{background-image:linear-gradient(100deg,transparent 0 38%,rgba(255,255,255,.62) 50%,transparent 62% 100%);background-size:260% 100%;background-repeat:no-repeat;background-position:160% 0;animation:ts-sheen 900ms 1050ms cubic-bezier(.4,0,.2,1) both,ts-glow 1400ms 1050ms ease-out both}
+.ts-row.lead .ts-bar i::after{content:"";position:absolute;right:-1px;top:-3px;bottom:-3px;width:3px;background:#fff;box-shadow:0 0 8px 2px var(--focus),0 0 18px 4px color-mix(in srgb,var(--focus) 55%,transparent);animation:ts-head 1250ms ease-out both}
+@keyframes ts-sheen{from{background-position:160% 0}to{background-position:-60% 0}}
+@keyframes ts-glow{0%{box-shadow:0 0 0 0 transparent}35%{box-shadow:0 0 16px 1px color-mix(in srgb,var(--focus) 60%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes ts-head{0%{opacity:0}12%{opacity:1}70%{opacity:1}100%{opacity:0}}
+.ts-row.lead .ts-name{animation:ts-name 900ms 900ms ease both}
+@keyframes ts-name{0%{color:var(--fg)}40%{color:var(--accent-text)}100%{color:var(--fg)}}
+.ts-row.none .ts-bar i{background:repeating-linear-gradient(135deg,var(--fg-3) 0 2px,transparent 2px 5px)}   /* 沒標籤：斜線，跟有標籤的分得出來 */
+.ts-pct{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:15px;text-align:right;color:var(--fg)}
+.ts-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:13px;text-align:right;color:var(--fg-3);white-space:nowrap}
+.ts-note{margin:12px 0 0;font-size:12.5px;letter-spacing:.04em;line-height:1.6;color:var(--fg-3)}
+.ts-note:empty{display:none}
+@media (max-width:420px){.ts-row{grid-template-columns:4.6em minmax(0,1fr) 3em auto;gap:10px}.ts-big{font-size:40px}}
+@media (prefers-reduced-motion:reduce){.ts-bar i{transition:none}.ts-row.lead .ts-bar i,.ts-row.lead .ts-bar i::after,.ts-row.lead .ts-name{animation:none}.ts-row.lead .ts-bar i::after{display:none}}
+/* 明細：用標籤篩選、排序（兩顆在小計下面，左右各一；點了往下展開選項） */
+.list-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0 0}
+.lt-btn{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:60%;min-height:38px;padding:0 12px;border:1px solid var(--line-2);background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:13.5px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.lt-btn:hover,.lt-btn[aria-expanded="true"]{color:var(--fg);border-color:var(--fg-3)}
+.lt-btn.on{color:var(--input-ink);border-color:var(--focus)}
+.lt-v{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lt-ico{flex:none;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linejoin:round;stroke-linecap:square}
+.lt-btn[aria-expanded="true"] .tag-chev{transform:translateY(1px) rotate(225deg)}
+.lt-wrap{display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;transition:grid-template-rows 280ms var(--ease-wipe),opacity 200ms var(--ease),margin-top 280ms var(--ease-wipe)}
+.lt-wrap.open{grid-template-rows:1fr;opacity:1;margin-top:12px}
+.lt-in{min-height:0;overflow:hidden}
+.lt-chip .lt-n{margin-left:8px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:.04em;color:var(--fg-3)}
+.lt-chip.zero:not(.on){opacity:.45}
+.lt-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0 0;font-size:12px;letter-spacing:.04em;color:var(--fg-3)}
+.lt-clear{flex:none;background:none;border:0;padding:4px 0;font-family:var(--font-han-sans);font-size:12.5px;letter-spacing:.1em;color:var(--gold-text);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.lt-clear:hover{color:var(--gh-gold)}
+.lt-result{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 0;padding:10px 14px;background:var(--bg-card);border-left:3px solid var(--focus);font-size:13.5px;letter-spacing:.04em}
+.lt-result[hidden]{display:none}
+.lt-result .num{font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.d-date{margin-right:8px;color:var(--fg-2);letter-spacing:.06em}
 /* 這個月／這一天的小計 */
 .list-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin-bottom:6px}
 .ls-item{background:var(--bg-card);padding:12px 14px;min-width:0}
@@ -743,7 +821,16 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <div class="b-field tag-field"><span class="b-field__label">標籤 / Tag</span><button type="button" id="tagBtn" class="tag-btn" aria-expanded="false" aria-controls="tagPanel"><span id="tagBtnT">選擇</span><i class="tag-chev" aria-hidden="true"></i></button></div>
         <label class="b-field"><span class="b-field__label">備註 / Note</span><input id="note" class="b-input" placeholder="選填" maxlength="60" aria-label="備註"></label>
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
-        <div class="tag-wrap" id="tagPanel" inert><div class="tag-chips" id="tagChips" role="group" aria-label="標籤"></div></div>
+        <div class="tag-wrap" id="tagPanel" inert><div class="tag-in">
+          <div class="tag-body">
+            <div class="tag-chips" id="tagChips" role="group" aria-label="標籤"></div>
+            <div class="tag-tools">
+              
+              <button type="button" class="tag-tool" id="tagAdd" aria-expanded="false" aria-label="新增標籤" title="新增"><svg class="tt-plus" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11"/></svg></button>
+            </div>
+          </div>
+          <p class="tag-hint" id="tagHint" aria-live="polite"></p>
+        </div></div>
       </div>
       <div class="types">
         <div class="group-label">支出 / Expense</div>
@@ -795,8 +882,26 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <button type="button" class="ln-btn" id="navNext" aria-label="下一個"><span class="ln-arr next" aria-hidden="true"></span></button>
       </div>
       <div class="list-sum" id="listSum"></div>
+      <div class="list-tools" id="listTools">
+        <button type="button" class="lt-btn" id="ltTagBtn" aria-expanded="false" aria-controls="ltTagPane"><svg class="lt-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5V8.5z"/></svg><span class="lt-v" id="ltTagV">全部標籤</span><i class="tag-chev" aria-hidden="true"></i></button>
+        <button type="button" class="lt-btn" id="ltSortBtn" aria-expanded="false" aria-controls="ltSortPane"><svg class="lt-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 13V3M2 6l3-3 3 3M11 3v10M8 10l3 3 3-3"/></svg><span class="lt-v" id="ltSortV">最新</span><i class="tag-chev" aria-hidden="true"></i></button>
+      </div>
+      <div class="lt-wrap" id="ltTagPane" inert><div class="lt-in">
+        <div class="tag-chips" id="ltTagChips" role="group" aria-label="用標籤篩選（可以選好幾個）"></div>
+        <p class="lt-foot"><span>可以選好幾個。只會列出有選的標籤的花費。</span><button type="button" class="lt-clear" id="ltClear">清除</button></p>
+      </div></div>
+      <div class="lt-wrap" id="ltSortPane" inert><div class="lt-in">
+        <div class="tag-chips" id="ltSortChips" role="radiogroup" aria-label="排序"></div>
+      </div></div>
+      <p class="lt-result" id="ltResult" hidden><span id="ltResT"></span><button type="button" class="lt-clear" id="ltResClear">清除篩選</button></p>
       <ul id="list"></ul>
       <button id="more" class="more b-btn b-btn--secondary b-btn--full" hidden>顯示更早的紀錄</button>
+      <section class="tstat" id="tagStats" aria-labelledby="tsH" hidden>
+        <div class="ts-head"><h3 class="ts-h" id="tsH">花在哪裡 <span class="b-label">By Tag</span></h3><span class="ts-sub" id="tsSub"></span></div>
+        <div class="ts-hero" id="tsHero"></div>
+        <div class="ts-rows" id="tsRows"></div>
+        <p class="ts-note" id="tsNote"></p>
+      </section>
     </section>
     </div>
     <div class="pane" data-pane="settings">
@@ -976,6 +1081,9 @@ let entries=[];
 let opening=0, until="", fixed=[], pay=0, payday=10, pct=35, daily=500;
 let cfg=null, queue=[], loaded=false;
 let filter="all", shown=60, todayRemainNow=0;
+/* 明細：用標籤篩選（這次打開有效，不存）、排序（存起來，也同步） */
+const SORTS=[["new","最新"],["old","最舊"],["big","金額高→低"],["small","金額低→高"]], LS_LISTSORT="kyx-list-sort-v1";
+let tagFilter=new Set(), ltOpen=null, listSort=(v=>SORTS.some(x=>x[0]===v)?v:"new")(lsGet(LS_LISTSORT));
 /* 明細的檢視方式（月／日）記在這個瀏覽器；看哪個月、哪一天每次打開都回到現在 */
 let listView="month", listMonth="", listDay="", navPrevKey=null, navNextKey=null;
 try{if(localStorage.getItem("kyx-list-view")==="day")listView="day"}catch(e){}
@@ -1049,7 +1157,7 @@ const LATEST_SERVER_V=3, LS_SHEETLINK="kyx-sheetlink-v1";
 let sheetLink=lsGet(LS_SHEETLINK)||"";
 let serverV=Number(lsGet(LS_SERVERV))||0, prefsTimer=null, lastPrefs="";
 const syncedNotes=()=>{const n=Object.assign({},notes);return n};
-const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView}};
+const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView,listSort,tagOrder,tagCustom}};
 const prefsKey=()=>JSON.stringify([syncedNotes(),prefsObj()]);
 function syncPrefs(){
   if(!cfg||serverV<2)return;
@@ -1081,6 +1189,9 @@ function applyRemotePrefs(rn,rp){
       try{localStorage.setItem("kyx-list-view",listView)}catch(e){}
       document.querySelectorAll(".views button").forEach(b=>b.classList.toggle("on",b.dataset.v===listView));
     }
+    if(Array.isArray(rp.tagCustom)&&!tagAdding)setTagCustom(rp.tagCustom,true);
+    if(Array.isArray(rp.tagOrder))setTagOrder(rp.tagOrder,true);
+    if(SORTS.some(x=>x[0]===rp.listSort)&&rp.listSort!==listSort){listSort=rp.listSort;lsSet(LS_LISTSORT,listSort)}
   }
   lastPrefs=prefsKey();
   /* 這台有、試算表還沒有的（例如第一次連上新版程式）：送上去 */
@@ -1272,24 +1383,24 @@ function setHeadFold(on,animate){
 }
 {
   const small=()=>window.matchMedia&&matchMedia("(max-width:720px) and (pointer:coarse)").matches;
-  for(const id of ["amount","note"]){
-    $(id).addEventListener("focus",()=>{
-      if(!small())return;
-      document.body.classList.add("typing");
-      /* 只有在記帳頁最上面時才收：已經往下捲了，標題本來就不在畫面上，收起來反而會讓內容跳一下 */
-      if(curTab==="entry"&&viewTop()<=topOfPage()+8)setHeadFold(true,true);
-    });
-    $(id).addEventListener("blur",()=>{
-      if(!small())return;
-      setTimeout(()=>{if(!["amount","note"].includes(document.activeElement&&document.activeElement.id))document.body.classList.remove("typing")},60);
-    });
-  }
+  /* 金額、備註、新增標籤的名字（標籤選項裡的「＋」） */
+  const TYPING=["amount","note","tagNewIn"];
+  document.addEventListener("focusin",e=>{
+    if(!TYPING.includes(e.target.id)||!small())return;
+    document.body.classList.add("typing");
+    /* 只有在記帳頁最上面時才收：已經往下捲了，標題本來就不在畫面上，收起來反而會讓內容跳一下 */
+    if(curTab==="entry"&&viewTop()<=topOfPage()+8)setHeadFold(true,true);
+  });
+  document.addEventListener("focusout",e=>{
+    if(!TYPING.includes(e.target.id)||!small())return;
+    setTimeout(()=>{if(!TYPING.includes(document.activeElement&&document.activeElement.id))document.body.classList.remove("typing")},60);
+  });
   /* 收起來以後，在最上面往下拉：展開 */
   let y0=null;
   window.addEventListener("touchstart",e=>{y0=headFold.on&&e.touches.length===1?e.touches[0].clientY:null},{passive:true});
   window.addEventListener("touchmove",e=>{
     if(y0==null||!headFold.on)return;
-    const a=document.activeElement;if(a&&(a.id==="amount"||a.id==="note"))return;
+    const a=document.activeElement;if(a&&(a.id==="amount"||a.id==="note"||a.id==="tagNewIn"))return;
     if(viewTop()<=topOfPage()+1&&e.touches[0].clientY-y0>40){y0=null;setHeadFold(false,true)}
   },{passive:true});
   if(window.matchMedia)matchMedia("(max-width:959px)").addEventListener("change",e=>{if(!e.matches)setHeadFold(false,false)});
@@ -1312,27 +1423,164 @@ function btnSmall(b){
 let fxSel=null;
 /* ---------- 標籤 ---------- */
 /* 支出才有標籤（收入不用分類）；標籤跟備註分開存在紀錄的 tag 欄位 */
-const TAGS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","娛樂"];
+const TAGS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","娛樂","旅遊","美容美妝","服飾"];
 const tagAllowed=type=>!!TYPES[type]&&TYPES[type].sign<0&&type!=="fixpay"&&type!=="fixed";
 let curTag="";
-const tagChipsHTML=sel=>TAGS.map(t=>'<button type="button" class="tag-chip'+(t===sel?' on':'')+'" data-tag="'+esc(t)+'" aria-pressed="'+(t===sel)+'">'+esc(t)+'</button>').join("");
+/* 自己新增的標籤（選項右邊的「＋」），按「＋」的時候自己新增的旁邊有 × 可以刪；內建的不能刪。
+   存在這台、也跟著偏好同步到試算表。順序：內建的照原本，自己新增的排在後面（tagOrder 也同步，留給之後用） */
+const LS_TAGORDER="kyx-tag-order-v1", LS_TAGCUSTOM="kyx-tag-custom-v1", TAG_MAX=8;
+const cleanTag=t=>String(t==null?"":t).replace(/\s+/g," ").trim().slice(0,TAG_MAX);
+const normTagCustom=l=>(Array.isArray(l)?l:[]).map(cleanTag).filter((t,i,a)=>t&&!TAGS.includes(t)&&a.indexOf(t)===i);
+let tagCustom=normTagCustom(lsGet(LS_TAGCUSTOM));
+const allTags=()=>TAGS.concat(tagCustom);
+const normTagOrder=o=>{const all=allTags(), a=Array.isArray(o)?o.filter((t,i)=>all.includes(t)&&o.indexOf(t)===i):[];return a.concat(all.filter(t=>!a.includes(t)))};
+let tagOrder=normTagOrder(lsGet(LS_TAGORDER));
+let tagAdding=false;
+function setTagOrder(o,fromRemote){
+  const n=normTagOrder(o);if(n.join()===tagOrder.join())return false;
+  tagOrder=n;lsSet(LS_TAGORDER,tagOrder);
+  drawTagChips();
+  if(!fromRemote&&typeof syncPrefs==="function")syncPrefs();
+  if(fromRemote&&typeof render==="function")render();
+  return true;
+}
+function setTagCustom(l,fromRemote){
+  const n=normTagCustom(l);if(n.join()===tagCustom.join())return false;
+  tagCustom=n;lsSet(LS_TAGCUSTOM,tagCustom);
+  tagOrder=normTagOrder(tagOrder);lsSet(LS_TAGORDER,tagOrder);
+  drawTagChips();
+  if(curTag&&!allTags().includes(curTag)){curTag="";drawTagBtn()}
+  if(!fromRemote&&typeof syncPrefs==="function")syncPrefs();
+  if(typeof render==="function")render();
+  return true;
+}
+const chipHTML=(t,sel)=>{const mine=tagCustom.includes(t);return '<button type="button" class="tag-chip'+(t===sel?' on':'')+(mine?' mine':'')+'" data-tag="'+esc(t)+'" aria-pressed="'+(t===sel)+'">'+esc(t)+(mine?'<span class="tag-x" aria-hidden="true"></span>':'')+'</button>'};
+/* 明細編輯也用：那一筆的標籤後來被刪掉了，照樣顯示在最後 */
+const tagChipsHTML=sel=>{const l=tagOrder.slice();if(sel&&!l.includes(sel))l.push(sel);return l.map(t=>chipHTML(t,sel)).join("")};
+function drawTagChips(){
+  const box=$("tagChips");
+  /* 只換標籤，正在打的新標籤欄位留著（不會失去游標） */
+  box.querySelectorAll(".tag-chip").forEach(c=>c.remove());
+  box.insertAdjacentHTML("afterbegin",tagOrder.map(t=>chipHTML(t,curTag)).join(""));
+  if(tagAdding)box.querySelectorAll(".tag-chip.mine").forEach(c=>c.setAttribute("aria-label",c.dataset.tag+"（自己新增的，按 Delete 刪除）"));
+}
 function drawTagBtn(){
   $("tagBtnT").textContent=curTag||"選擇";
   $("tagBtn").classList.toggle("has",!!curTag);
   $("tagChips").querySelectorAll(".tag-chip").forEach(c=>{const on=c.dataset.tag===curTag;c.classList.toggle("on",on);c.setAttribute("aria-pressed",String(on))});
 }
+const tagHint=()=>{$("tagHint").textContent=tagAdding?"最多 "+TAG_MAX+" 個字，打好按「完成」或 Enter。"+(tagCustom.length?"自己新增的標籤按 × 可以刪掉。":""):""};
+function setTagAdding(on){
+  if(tagAdding===on)return;
+  tagAdding=on;
+  $("tagPanel").classList.toggle("adding",on);
+  $("tagAdd").setAttribute("aria-expanded",String(on));
+  $("tagAdd").setAttribute("aria-label",on?"取消新增":"新增標籤");$("tagAdd").title=on?"取消":"新增";
+  const old=$("tagNewIn");
+  if(on&&!old){
+    const lab=document.createElement("label");lab.className="tag-new";
+    lab.innerHTML='<input id="tagNewIn" maxlength="'+TAG_MAX+'" placeholder="新標籤" enterkeyhint="done" autocomplete="off" aria-label="新標籤的名字">';
+    $("tagChips").appendChild(lab);
+    lab.firstChild.focus({preventScroll:true});
+  }else if(!on&&old){
+    const lab=old.parentNode;
+    if(document.activeElement===old)old.blur();
+    lab.remove();
+  }
+  drawTagChips();tagHint();
+}
 function setTagPanel(open){
+  if(!open)setTagAdding(false);
   $("tagPanel").classList.toggle("open",open);$("tagPanel").inert=!open;
   $("tagBtn").setAttribute("aria-expanded",String(open));
 }
-$("tagChips").innerHTML=tagChipsHTML("");
+/* 新增：名字整理過（空白、太長），跟現有的重複就讓那一顆閃一下 */
+function addTag(raw){
+  const t=cleanTag(raw);
+  if(!t)return false;
+  const box=$("tagChips");
+  if(allTags().includes(t)){
+    const c=box.querySelector('.tag-chip[data-tag="'+CSS.escape(t)+'"]');
+    if(c){c.classList.remove("flash");void c.offsetWidth;c.classList.add("flash")}
+    return false;
+  }
+  tagCustom=tagCustom.concat(t);lsSet(LS_TAGCUSTOM,tagCustom);
+  tagOrder=tagOrder.concat(t);lsSet(LS_TAGORDER,tagOrder);
+  curTag=t;   // 新增的直接選起來
+  drawTagChips();drawTagBtn();
+  const c=box.querySelector('.tag-chip[data-tag="'+CSS.escape(t)+'"]');
+  if(c&&!reduceMotion())c.animate([{transform:"scale(.6)",opacity:0},{transform:"scale(1.08)",opacity:1,offset:.6},{transform:"none",opacity:1}],{duration:420,easing:"cubic-bezier(.16,1,.3,1)"});
+  syncPrefs();render();
+  return true;
+}
+/* 刪掉之後其他標籤用動畫補位 */
+function flipChips(box,move){
+  const cs=[...box.querySelectorAll(".tag-chip,.tag-new")];
+  const before=new Map(cs.map(c=>[c,c.getBoundingClientRect()]));
+  move();
+  if(reduceMotion())return;
+  for(const c of cs){
+    if(!c.isConnected)continue;
+    const a=before.get(c), b=c.getBoundingClientRect(), dx=a.left-b.left, dy=a.top-b.top;
+    if(dx||dy)c.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"none"}],{duration:220,easing:"cubic-bezier(.16,1,.3,1)"});
+  }
+}
+function removeTag(t){
+  const box=$("tagChips"), c=box.querySelector('.tag-chip[data-tag="'+CSS.escape(t)+'"]');
+  const at=tagOrder.indexOf(t);
+  const go=()=>{
+    tagOrder=tagOrder.filter(x=>x!==t);lsSet(LS_TAGORDER,tagOrder);
+    tagCustom=tagCustom.filter(x=>x!==t);lsSet(LS_TAGCUSTOM,tagCustom);
+    if(curTag===t){curTag="";drawTagBtn()}
+    flipChips(box,()=>{if(c)c.remove()});
+    tagHint();syncPrefs();render();
+    snack("已刪除標籤「"+t+"」。用過這個標籤的紀錄不會變。",()=>{
+      tagCustom=tagCustom.concat(t);lsSet(LS_TAGCUSTOM,tagCustom);
+      const o=tagOrder.filter(x=>x!==t);o.splice(Math.min(at,o.length),0,t);
+      tagOrder=normTagOrder(o);lsSet(LS_TAGORDER,tagOrder);
+      drawTagChips();tagHint();syncPrefs();render();
+    });
+  };
+  if(c&&!reduceMotion())c.animate([{transform:"none",opacity:1},{transform:"scale(.4)",opacity:0}],{duration:180,easing:"cubic-bezier(.4,0,1,1)",fill:"forwards"}).onfinish=go;
+  else go();
+}
+drawTagChips();
 /* 點標籤：先收起鍵盤（正在打金額或備註的話），再展開選項。頁面不捲動，只是下面的內容往下推（有動畫） */
 $("tagBtn").addEventListener("click",()=>{
   const a=document.activeElement;if(a&&(a.id==="amount"||a.id==="note"))a.blur();
   setTagPanel(!$("tagPanel").classList.contains("open"));
 });
+/* 右邊固定一顆「＋」：打字時轉成 ×（取消） */
+let tagAddTap=false;
+/* 按著 ×（還沒放開）時輸入欄已經失去游標：記下來，離開欄位時就不要新增 */
+$("tagAdd").addEventListener("pointerdown",()=>{tagAddTap=true});
+$("tagAdd").addEventListener("pointercancel",()=>{tagAddTap=false});
+$("tagAdd").addEventListener("click",()=>{tagAddTap=false;setTagAdding(!tagAdding)});
+$("tagChips").addEventListener("keydown",e=>{
+  if(e.target.id==="tagNewIn"){
+    if(e.key==="Enter"&&!e.isComposing){e.preventDefault();const v=e.target.value;if(!cleanTag(v)||addTag(v))setTagAdding(false)}
+    else if(e.key==="Escape"){e.preventDefault();setTagAdding(false)}
+    return;
+  }
+  const c=e.target.closest(".tag-chip.mine");
+  if(tagAdding&&c&&(e.key==="Delete"||e.key==="Backspace")){e.preventDefault();removeTag(c.dataset.tag)}
+});
+/* 點別的地方（或 iPhone 鍵盤上的「完成」）：有打字就新增，沒打就收起來；按 × 是取消，不新增 */
+$("tagChips").addEventListener("focusout",e=>{
+  if(e.target.id!=="tagNewIn")return;
+  const v=e.target.value;
+  setTimeout(()=>{
+    if(!tagAdding||document.activeElement===e.target)return;
+    if(tagAddTap)return;
+    if(cleanTag(v)&&!addTag(v))return;
+    if(!$("tagChips").contains(document.activeElement))setTagAdding(false);
+  },0);
+});
+$("tagChips").addEventListener("pointerdown",e=>{if(tagAdding&&e.target.closest(".tag-x"))e.preventDefault()});   // 按 × 不要讓輸入欄失去游標
 $("tagChips").addEventListener("click",e=>{
+  if(e.target.closest(".tag-new"))return;
   const c=e.target.closest(".tag-chip");if(!c)return;
+  if(tagAdding&&e.target.closest(".tag-x")){removeTag(c.dataset.tag);return}
   curTag=curTag===c.dataset.tag?"":c.dataset.tag;   // 再點一次同一個＝取消
   drawTagBtn();setTagPanel(false);
 });
@@ -2610,7 +2858,20 @@ function renderCore(){
     ?[["公司撥的","+",tot(e=>(TYPES[e.type]||{}).kind==="q"),"var(--income)"],["工作花費","−",tot(e=>(TYPES[e.type]||{}).kind==="spend"),"var(--expense)"],["結清","",tot(e=>["ret","rb"].includes((TYPES[e.type]||{}).kind)),"var(--fg)"]]
     :[["收入","+",tot(e=>e.type==="salary"),"var(--income)"],["私人花費","−",tot(e=>e.type==="personal"),"var(--expense)"],["固定支出","−",tot(e=>(e.type==="fixed"&&!e.pend)||e.type==="fixpay"),"var(--expense)"]];
   $("listSum").innerHTML=items.map(([l,sg,v,c])=>'<div class="ls-item"><span class="ls-l">'+l+'</span><span class="ls-v" style="color:'+(v>0?c:"var(--fg-3)")+'">'+(v>0?sg:"")+fmt(v)+'</span></div>').join("");
-  full.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+  drawTagStats(full);
+  /* 用標籤篩選（小計和統計不受影響）、排序 */
+  drawListTools(full);
+  if(tagFilter.size){
+    full=full.filter(e=>!e.virtual&&tagAllowed(e.type)&&tagFilter.has(e.tag||""));
+    const names=[...tagFilter].map(t=>t||"沒標籤");
+    $("ltResT").innerHTML=esc(names.length>2?names.slice(0,2).join("、")+" 等 "+names.length+" 個":names.join("、"))+'：<span class="num">'+full.length+'</span> 筆，共 <span class="num">$'+fmt(full.reduce((a,e)=>a+e.amount,0))+'</span>';
+  }
+  $("ltResult").hidden=!tagFilter.size;
+  const byAmt=listSort==="big"||listSort==="small", amtOf=e=>e.virtual&&e.vary?(e.est||0):e.amount;
+  full.sort(listSort==="old"?(a,b)=>a.date.localeCompare(b.date)||a.ts-b.ts
+    :listSort==="big"?(a,b)=>amtOf(b)-amtOf(a)||b.date.localeCompare(a.date)||b.ts-a.ts
+    :listSort==="small"?(a,b)=>amtOf(a)-amtOf(b)||b.date.localeCompare(a.date)||b.ts-a.ts
+    :(a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
   const list=full.slice(0,shown);
   $("more").hidden=full.length<=shown;
 
@@ -2619,12 +2880,13 @@ function renderCore(){
   const ul=$("list");ul.textContent="";
   if(!list.length){
     const li=document.createElement("div");li.className="empty";
-    li.textContent=cfg&&!loaded?"讀取中…":(!all.length?"還沒有紀錄。在「記帳」輸入金額，再點一個類型就記好了。":listView==="month"?"這個月還沒有紀錄。":"這天沒有紀錄。");
+    li.textContent=cfg&&!loaded?"讀取中…":(!all.length?"還沒有紀錄。在「記帳」輸入金額，再點一個類型就記好了。":tagFilter.size?(listView==="month"?"這個月":"這天")+"沒有這些標籤的花費。":listView==="month"?"這個月還沒有紀錄。":"這天沒有紀錄。");
     ul.appendChild(li);return;
   }
   let lastDate=null, lastYear=today.slice(0,4);
   for(const e of list){
-    if(listView==="month"&&e.date!==lastDate){
+    /* 照金額排的時候不分日期，日期寫在每一列裡 */
+    if(listView==="month"&&!byAmt&&e.date!==lastDate){
       lastDate=e.date;
       const d=parseDate(e.date);
       const daySpent=all.filter(x=>x.date===e.date&&x.type==="personal").reduce((s,x)=>s+x.amount,0);
@@ -2655,6 +2917,7 @@ function renderCore(){
       else{amt.textContent=fmt(e.est);amt.classList.add("struck")}
     }else{n.textContent=e.note||T.name;dd.textContent=(e.virtual?"自動・":"")+T.name+" · "+T.en}
     if(e.tag){const tg=document.createElement("span");tg.className="tag-lbl";tg.textContent=e.tag;n.prepend(tg)}
+    if(byAmt&&listView==="month"){const dt=document.createElement("span");dt.className="d-date";dt.textContent=mdOf(e.date);dd.prepend(dt)}
     info.append(n,dd);
     /* 點一筆就地展開編輯；浮動還沒記實際金額的那期，點了可以直接記實際金額 */
     const pend=e.virtual&&e.vary&&!e.covered&&!e.skipped;
@@ -2673,6 +2936,140 @@ function renderCore(){
     li.append(dot,info,amt,del);addEditor();ul.appendChild(li);
   }
 }
+
+/* ---------- 明細：用標籤篩選（可以選好幾個）、排序 ---------- */
+function drawListTools(fl){
+  const cnt=new Map();
+  for(const e of fl)if(!e.virtual&&tagAllowed(e.type)){const k=e.tag||"";cnt.set(k,(cnt.get(k)||0)+1)}
+  /* 標籤被刪掉了、但紀錄還用著：照樣可以篩 */
+  const extra=[...new Set(entries.map(e=>e.tag).filter(t=>t&&!tagOrder.includes(t)))];
+  const keys=tagOrder.concat(extra,[""]);
+  const box=$("ltTagChips"), a=document.activeElement, fk=a&&box.contains(a)?a.dataset.tag:null;
+  box.innerHTML=keys.map(k=>{const n=cnt.get(k)||0, on=tagFilter.has(k);return '<button type="button" class="tag-chip lt-chip'+(on?" on":"")+(n?"":" zero")+'" data-tag="'+esc(k)+'" aria-pressed="'+on+'">'+esc(k||"沒標籤")+'<span class="lt-n">'+n+'</span></button>'}).join("");
+  if(fk!=null){const c=box.querySelector('[data-tag="'+CSS.escape(fk)+'"]');if(c)c.focus({preventScroll:true})}
+  const sb=$("ltSortChips"), sk=a&&sb.contains(a)?a.dataset.sort:null;
+  sb.innerHTML=SORTS.map(([k,l])=>'<button type="button" class="tag-chip'+(k===listSort?" on":"")+'" role="radio" data-sort="'+k+'" aria-checked="'+(k===listSort)+'">'+l+'</button>').join("");
+  if(sk){const c=sb.querySelector('[data-sort="'+sk+'"]');if(c)c.focus({preventScroll:true})}
+  const names=[...tagFilter].map(t=>t||"沒標籤");
+  $("ltTagV").textContent=!names.length?"全部標籤":names.length===1?names[0]:names[0]+" 等 "+names.length+" 個";
+  $("ltTagBtn").classList.toggle("on",!!names.length);
+  $("ltSortV").textContent=SORTS.find(x=>x[0]===listSort)[1];
+  $("ltSortBtn").classList.toggle("on",listSort!=="new");
+}
+function setLtOpen(w){
+  ltOpen=w;
+  for(const [pane,btn,key] of [["ltTagPane","ltTagBtn","tag"],["ltSortPane","ltSortBtn","sort"]]){
+    const on=ltOpen===key;$(pane).classList.toggle("open",on);$(pane).inert=!on;$(btn).setAttribute("aria-expanded",String(on));
+  }
+}
+function listFade(){const el=$("list");el.style.setProperty("--dx","0px");el.classList.remove("swap");void el.offsetWidth;el.classList.add("swap")}
+function setTagFilter(set){tagFilter=set;shown=60;armed=null;render();listFade()}
+$("ltTagBtn").onclick=()=>setLtOpen(ltOpen==="tag"?null:"tag");
+$("ltSortBtn").onclick=()=>setLtOpen(ltOpen==="sort"?null:"sort");
+$("ltTagChips").addEventListener("click",e=>{
+  const c=e.target.closest(".tag-chip");if(!c)return;
+  const s=new Set(tagFilter), k=c.dataset.tag;
+  if(s.has(k))s.delete(k);else s.add(k);
+  setTagFilter(s);
+});
+$("ltClear").onclick=$("ltResClear").onclick=()=>{if(tagFilter.size)setTagFilter(new Set())};
+$("ltSortChips").addEventListener("click",e=>{
+  const c=e.target.closest("[data-sort]");if(!c)return;
+  if(listSort!==c.dataset.sort){listSort=c.dataset.sort;lsSet(LS_LISTSORT,listSort);syncPrefs();shown=60;armed=null;render();listFade()}
+  setLtOpen(null);
+});
+
+/* ---------- 明細最下面：各標籤占花費的比例（跟著上面看的月份／那一天、全部／私人／工作） ---------- */
+/* 捲到看得到的時候才播：長條由左往右長出來（一條接一條），百分比跟著跳；最多的那條長的時候前端有一點光，長完一道光掃過去 */
+let tsKey="", tsNeed=false, tsVisible=false, tsRaf=0;
+function drawTagStats(full){
+  const sp=full.filter(e=>!e.virtual&&(e.type==="personal"||(TYPES[e.type]||{}).kind==="spend"));
+  const total=sp.reduce((a,e)=>a+e.amount,0);
+  const box=$("tagStats");
+  box.hidden=!total;if(!total){tsKey="";return}
+  const by=new Map();
+  for(const e of sp){const k=e.tag||"";const g=by.get(k)||{n:0,v:0};g.n++;g.v+=e.amount;by.set(k,g)}
+  /* 由多到少；沒標籤的固定排最後 */
+  const rows=[...by].filter(([k])=>k).sort((a,b)=>b[1].v-a[1].v||tagOrder.indexOf(a[0])-tagOrder.indexOf(b[0]));
+  const untag=by.get("");
+  if(untag)rows.push(["",untag]);
+  const tagged=total-(untag?untag.v:0);
+  const when=listView==="month"?"這個月":"這天", what=filter==="work"?"工作花費":filter==="personal"?"私人花費":"花費";
+  const pctN=v=>v/total*100, pct=v=>{const p=pctN(v);return p>0&&p<1?"<1%":Math.round(p)+"%"};
+  $("tsSub").innerHTML=when+what+' <span class="num">$'+fmt(total)+'</span>';
+  if(!tagged){
+    $("tsHero").innerHTML="";$("tsRows").innerHTML="";tsKey="";
+    $("tsNote").textContent=when+"的"+what+"還沒有標籤。記帳時點備註左邊的「標籤」，這裡就會畫出每一類占多少。";
+    return;
+  }
+  /* 換了月份／日子／全部私人工作＝重新播一次；同一期資料變了＝長條直接伸縮 */
+  const key=listView+"|"+(listView==="month"?listMonth:listDay)+"|"+filter;
+  if(key!==tsKey){tsKey=key;tsNeed=true}
+  const top=rows[0];
+  $("tsHero").innerHTML='<span class="ts-big num" data-p="'+pctN(top[1].v)+'" data-pct="'+esc(pct(top[1].v))+'">'+(tsNeed?"0%":esc(pct(top[1].v)))+'</span><span class="ts-cap">最多花在<b>'+esc(top[0])+'</b>（'+top[1].n+' 筆，$'+fmt(top[1].v)+'）</span>';
+  $("tsNote").textContent=(untag&&untag.v<total?"「沒標籤」是記帳時沒選標籤的花費；在上面的明細點一筆就能補上。":"")+"點一類，上面的明細就只列那一類。";
+  /* 長條的長度以最多的那一類為滿，百分比是占全部花費 */
+  const max=Math.max(...rows.map(r=>r[1].v));
+  const wrap=$("tsRows"), old=new Map([...wrap.children].map(el=>[el.dataset.k,el]));
+  rows.forEach(([k,g],i)=>{
+    let el=old.get(k);
+    if(el)old.delete(k);
+    else{
+      el=document.createElement("button");el.type="button";el.className="ts-row"+(k?"":" none");el.dataset.k=k;
+      el.innerHTML='<span class="ts-name"></span><span class="ts-bar"><i></i></span><span class="ts-pct num"></span><span class="ts-amt num"></span>';
+    }
+    const name=k||"沒標籤";
+    el.dataset.p=pctN(g.v);el.dataset.pct=pct(g.v);
+    el.querySelector(".ts-name").textContent=name;
+    if(!tsNeed)el.querySelector(".ts-pct").textContent=pct(g.v);
+    el.querySelector(".ts-amt").textContent="$"+fmt(g.v);
+    el.title=name+"："+g.n+" 筆，$"+fmt(g.v)+"，占"+what+" "+pct(g.v);
+    el.setAttribute("aria-label",el.title+"。點一下，明細只列"+name);
+    const w=(g.v/max*100).toFixed(2)+"%", bar=el.querySelector(".ts-bar i");
+    bar.dataset.w=w;
+    if(wrap.children[i]!==el)wrap.insertBefore(el,wrap.children[i]||null);
+    if(tsNeed){bar.style.transition="none";bar.style.width="0%";el.querySelector(".ts-pct").textContent="0%"}
+    else if(!bar.style.width){bar.style.width="0%";requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.width=w}))}
+    else bar.style.width=w;
+  });
+  for(const el of old.values())el.remove();
+  if(tsNeed&&tsVisible)requestAnimationFrame(playTagStats);
+}
+function playTagStats(){
+  if(!tsNeed)return;
+  tsNeed=false;cancelAnimationFrame(tsRaf);
+  const rows=[...$("tsRows").children], big=$("tsHero").querySelector(".ts-big");
+  const bar=r=>r.querySelector(".ts-bar i");
+  rows.forEach(r=>{bar(r).style.transition="none";bar(r).style.width="0%";r.classList.remove("lead")});
+  void $("tsRows").offsetWidth;
+  if(reduceMotion()){
+    rows.forEach(r=>{bar(r).style.transition="";bar(r).style.width=bar(r).dataset.w;r.querySelector(".ts-pct").textContent=r.dataset.pct});
+    if(big)big.textContent=big.dataset.pct;
+    return;
+  }
+  const DUR=1200, delays=rows.map((r,i)=>i?220+i*70:0);
+  rows.forEach((r,i)=>{const b=bar(r);b.style.transition="";b.style.transitionDelay=delays[i]+"ms";b.style.width=b.dataset.w});
+  if(rows[0]){void rows[0].offsetWidth;rows[0].classList.add("lead")}
+  const t0=performance.now(), ease=t=>1-Math.pow(1-t,4);
+  const step=now=>{
+    let done=true;
+    rows.forEach((r,i)=>{const t=Math.min(1,Math.max(0,(now-t0-delays[i])/DUR));if(t<1)done=false;const el=r.querySelector(".ts-pct");el.textContent=t>=1?r.dataset.pct:Math.round(+r.dataset.p*ease(t))+"%"});
+    if(big){const t=Math.min(1,(now-t0)/DUR);big.textContent=t>=1?big.dataset.pct:Math.round(+big.dataset.p*ease(t))+"%"}
+    if(!done)tsRaf=requestAnimationFrame(step);
+    else rows.forEach(r=>{bar(r).style.transitionDelay=""});
+  };
+  tsRaf=requestAnimationFrame(step);
+}
+if("IntersectionObserver" in window){
+  new IntersectionObserver(es=>{for(const e of es){tsVisible=e.isIntersecting;if(tsVisible&&tsNeed)playTagStats()}},{threshold:.2}).observe($("tagStats"));
+}else tsVisible=true;
+/* 點一類：明細只列那一類，捲回明細上面 */
+$("tsRows").addEventListener("click",e=>{
+  const r=e.target.closest(".ts-row");if(!r)return;
+  setLtOpen(null);setTagFilter(new Set([r.dataset.k]));
+  const el=$("listTools"), cover=Math.max(...[document.querySelector(".topbar"),$("tabbar")].filter(x=>x&&getComputedStyle(x).position==="sticky"&&x.offsetHeight).map(x=>x.getBoundingClientRect().bottom),0);
+  window.scrollTo({top:Math.max(0,docY(el)-cover-12),behavior:reduceMotion()?"auto":"smooth"});
+});
 
 /* ---------- 連結 Google 試算表 ---------- */
 let unlinkArmed=false;
