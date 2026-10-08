@@ -406,6 +406,15 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .fx-chip{border:1px solid var(--gh-gold);border-radius:0;background:transparent;color:var(--gold-text);font-family:var(--font-han-sans);font-size:13px;letter-spacing:.06em;padding:7px 12px;cursor:pointer;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .fx-chip:hover{background:var(--gh-gold);color:#000}
 .fx-chip.on{background:var(--gh-gold);color:#000}
+/* 備註常用分類：點一下就填進備註，不用打字（也不會把金額的鍵盤關掉）。手機一排可以左右滑，電腦會換行 */
+.note-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:-6px}
+.note-chips:empty{display:none}
+.note-chip{min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:0;background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+.note-chip:hover{color:var(--fg);border-color:var(--fg-3)}
+.note-chip.on{color:var(--input-ink);border-color:var(--focus)}
+/* 手機正在打備註（文字鍵盤比較高）：分類先收起來，支出那排按鈕才不會被鍵盤蓋住；輸入金額時（數字鍵盤）分類還在 */
+@media (max-width:720px) and (pointer:coarse){body.note-focus .note-chips{display:none}}
+@media (max-width:959px){.note-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:calc(-1 * var(--page-margin));padding-right:var(--page-margin)}.note-chips::-webkit-scrollbar{display:none}}
 .fx-pick-note{flex-basis:100%;margin:0;font-size:12px;line-height:1.6;color:var(--fg-3)}
 .fx-pick-note:empty{display:none}
 .amount-row{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);transition:border-color var(--dur-fast) var(--ease)}
@@ -707,6 +716,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <label class="b-field"><span class="b-field__label">備註 / Note</span><input id="note" class="b-input" placeholder="選填" maxlength="60" aria-label="備註"></label>
         <label class="b-field"><span class="b-field__label">日期 / Date</span><input id="date" type="date" class="b-input" aria-label="日期"></label>
       </div>
+      <div class="note-chips" id="noteChips" role="group" aria-label="備註常用分類"></div>
       <div class="types">
         <div class="group-label">支出 / Expense</div>
         <button class="tbtn t-out cat-own" data-type="personal">私人花費<small></small></button>
@@ -1153,7 +1163,7 @@ document.querySelectorAll(".tbtn").forEach(b=>b.addEventListener("click",()=>{
   entries.push(e);
   commit({action:"add",entries:[e]});
   listMonth=e.date.slice(0,7);listDay=e.date;
-  $("amount").value="";$("note").value="";
+  $("amount").value="";$("note").value="";noteSnap="";noteGuard=0;setTimeout(showNoteChips,0);
   const smallPay=e.type==="salary"&&!mainSalaries().some(x=>x.id===e.id);
   const goPayday=e.type==="salary"&&!smallPay;
   if(goPayday){
@@ -1264,6 +1274,57 @@ function btnSmall(b){
 }
 /* ---------- 此筆為固定支出：浮動的固定支出繳了以後記實際金額 ---------- */
 let fxSel=null;
+/* ---------- 備註常用分類 ---------- */
+const NOTE_PRESETS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","娛樂"];
+/* 他自己常打的備註（最近 90 天私人花費用過兩次以上）排前面，再接預設的，最多 10 個 */
+function noteChipList(){
+  const since=addDays(todayStr(),-90), cnt={};
+  for(const e of entries)if(e.type==="personal"&&e.date>=since){const n=(e.note||"").trim();if(n&&n.length<=8)cnt[n]=(cnt[n]||0)+1}
+  const mine=Object.keys(cnt).filter(n=>cnt[n]>=2).sort((a,b)=>cnt[b]-cnt[a]).slice(0,6);
+  return [...new Set(mine.concat(NOTE_PRESETS))].slice(0,10);
+}
+let noteChipKey="";
+function drawNoteChips(){
+  const list=noteChipList(), k=list.join("|");
+  if(k!==noteChipKey){noteChipKey=k;$("noteChips").innerHTML=list.map(n=>'<button type="button" class="note-chip" data-note="'+esc(n)+'">'+esc(n)+'</button>').join("")}
+  const v=$("note").value.trim();
+  $("noteChips").querySelectorAll(".note-chip").forEach(c=>{const on=c.dataset.note===v;c.classList.toggle("on",on);c.setAttribute("aria-pressed",on?"true":"false")});
+}
+/* 按下去時不搶走焦點：正在輸入金額時點分類，金額的鍵盤不會被關掉 */
+$("noteChips").addEventListener("pointerdown",e=>{if(e.target.closest(".note-chip"))e.preventDefault()});
+$("noteChips").addEventListener("click",e=>{
+  const c=e.target.closest(".note-chip");if(!c)return;
+  $("note").value=$("note").value.trim()===c.dataset.note?"":c.dataset.note;   // 再點一次同一個＝清掉
+  noteSnap=$("note").value;drawNoteChips();
+});
+/* iPhone 注音：打的字在按「確認」或選字之前還是「組字中」（有底線），這時候跳去點金額，iOS 會把整串沒確認的字丟掉。
+   離開時記下看到的字；回來後如果被系統清掉（不是他自己刪的），就補回去（拿掉還沒轉成國字的注音符號） */
+let noteSnap="", noteComposing=false, noteCompEnd=0, noteGuard=0;
+const stripZhuyin=t=>t.replace(/[\u3100-\u312F\u31A0-\u31BFˊˇˋ˙]/g,"");
+$("note").addEventListener("compositionstart",()=>{noteComposing=true});
+$("note").addEventListener("compositionend",()=>{noteComposing=false;noteCompEnd=Date.now()});
+$("note").addEventListener("blur",()=>{
+  const mid=noteComposing||Date.now()-noteCompEnd<300;   // 有的瀏覽器離開前會先結束組字，剛結束也算
+  noteSnap=mid?stripZhuyin($("note").value):$("note").value;
+  noteGuard=mid?Date.now()+60000:0;   // 組字中離開：接下來被清掉的話要補回
+  noteComposing=false;
+});
+const restoreNote=()=>{
+  if(!noteGuard||Date.now()>noteGuard)return;
+  const v=$("note").value;
+  if(noteSnap&&v.length<noteSnap.length&&noteSnap.startsWith(stripZhuyin(v))){$("note").value=noteSnap;drawNoteChips()}
+};
+$("note").addEventListener("input",e=>{
+  if(noteGuard&&(e.inputType==="deleteCompositionText"||e.inputType==="insertCompositionText"&&!e.data||!e.inputType))restoreNote();
+  else if(e.inputType&&e.inputType.startsWith("delete"))noteGuard=0;   // 他自己按刪除：不補
+  drawNoteChips();
+});
+$("note").addEventListener("focus",()=>{for(const ms of [0,60,250])setTimeout(restoreNote,ms);document.body.classList.add("note-focus")});
+/* 離開備註時先不要把分類放回來：他常常是打完備註直接按記帳按鈕，這時候版面一動就會按空。
+   等他點金額、或記完這一筆、或換分頁才放回來 */
+const showNoteChips=()=>document.body.classList.remove("note-focus");
+$("amount").addEventListener("focus",showNoteChips);
+document.addEventListener("focusin",e=>{if(e.target.id==="amount")setTimeout(restoreNote,60)});
 function drawFxPick(){
   const on=$("isFixed").checked, items=activeFixed().filter(f=>f.vary);
   $("fxPickWrap").classList.toggle("open",on);$("fxPickWrap").inert=!on;
@@ -2271,6 +2332,7 @@ function renderCore(){
     for(const [id,v] of [["miniToday",mt],["miniUntil",mu]]){const el=$(id);if(el.textContent!==v){el.textContent=v;if(noticeReady){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}}
   }
   drawFixedSummary(today);
+  drawNoteChips();
   /* ---------- 提示區：條件不成立就自動消失，不能手動關 ---------- */
   const ns=[];
   /* ① 過了下次發薪日還沒有新的常規薪水 */
@@ -2581,7 +2643,8 @@ function setTab(t,how){
   const prev=curTab;
   if(prev==="notice"&&t!=="notice"){markNoticesSeen();render()}   // 離開通知頁：看過了，NEW 拿掉
   curTab=t;
-  if(prev!==t)setHeadFold(false,false);   // 換分頁：標題列、小摘要展開回來
+  if(prev!==t)setHeadFold(false,false);
+  if(prev!==t)showNoteChips();   // 換分頁：標題列、小摘要展開回來
   const dx=TABS.indexOf(t)>TABS.indexOf(prev)?18:TABS.indexOf(t)<TABS.indexOf(prev)?-18:0;
   document.querySelectorAll(".pane").forEach(p=>{const on=p.dataset.pane===t;p.classList.toggle("on",on);if(on)p.style.setProperty("--pane-dx",dx+"px")});
   document.querySelectorAll("#tabbar button").forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle("on",on);b.setAttribute("aria-current",on?"page":"false")});
