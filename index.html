@@ -36,7 +36,7 @@
 color-scheme:dark;
 --bg:#000000;--bg-raised:#111111;--bg-card:rgba(255,255,255,.04);--bg-card-hover:rgba(255,255,255,.08);--bg-header:rgba(0,0,0,.80);
 --fg:#ffffff;--fg-2:#bdbdba;--fg-3:#888884;
---line:rgba(255,255,255,.16);--line-2:rgba(255,255,255,.24);--line-strong:rgba(255,255,255,.56);
+--line:rgba(255,255,255,.16);--line-2:rgba(255,255,255,.24);--line-strong:rgba(255,255,255,.56);--bar-track:rgba(255,255,255,.30);
 --invert-bg:#ffffff;--invert-fg:#000000;
 --focus:#03c2b8;--accent-text:#03c2b8;--gold-text:#a89379;
 --expense:#f92c16;--income:#03c2b8;--input-ink:#03c2b8;
@@ -48,7 +48,7 @@ color-scheme:dark;
 color-scheme:light;
 --bg:#eeeeee;--bg-raised:#e4e4e1;--bg-card:rgba(0,0,0,.04);--bg-card-hover:rgba(0,0,0,.07);--bg-header:rgba(238,238,238,.85);
 --fg:#000000;--fg-2:#2b2b28;--fg-3:#5a5a57;
---line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
+--line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;--bar-track:rgba(0,0,0,.24);
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
 --expense:#f92c16;--income:#00807a;--input-ink:#00807a;
@@ -57,7 +57,7 @@ color-scheme:light;
 color-scheme:light;
 --bg:#eeeeee;--bg-raised:#e4e4e1;--bg-card:rgba(0,0,0,.04);--bg-card-hover:rgba(0,0,0,.07);--bg-header:rgba(238,238,238,.85);
 --fg:#000000;--fg-2:#2b2b28;--fg-3:#5a5a57;
---line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;
+--line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;--bar-track:rgba(0,0,0,.24);
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
 --expense:#f92c16;--income:#00807a;--input-ink:#00807a;
@@ -595,41 +595,85 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .ln-now:hover{color:var(--gh-gold)}
 .swap{animation:l-swap 260ms var(--ease-settle) both}
 @keyframes l-swap{from{opacity:.2;transform:translate(var(--dx,0),4px)}to{opacity:1;transform:none}}
-/* 明細最下面：標籤統計（一個顏色的長條，最多的在上面，每列都直接寫百分比和金額） */
-.tstat{margin-top:40px;padding-top:22px;border-top:1px solid var(--line-2)}
-.ts-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.ts-h{margin:0;font-family:var(--font-han-sans);font-size:17px;font-weight:700;letter-spacing:.1em}
-.ts-h .b-label{margin-left:6px;font-weight:400}
-.ts-sub{font-size:12.5px;letter-spacing:.06em;color:var(--fg-3)}
-.ts-sub .num{font-family:var(--font-display);font-variant-numeric:tabular-nums;color:var(--fg-2)}
-.ts-hero{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:18px 0 16px}
-.ts-hero:empty{display:none}
-.ts-big{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:48px;font-weight:400;line-height:1;letter-spacing:-.01em;color:var(--fg)}
-.ts-cap{font-size:14px;letter-spacing:.04em;color:var(--fg-2)}
-.ts-cap b{margin:0 2px;font-weight:700;color:var(--fg)}
-.ts-rows{display:flex;flex-direction:column}
-.ts-row{display:grid;grid-template-columns:5em minmax(0,1fr) 3.2em 5.4em;align-items:center;gap:14px;width:calc(100% + 16px);padding:11px 8px;margin:0 -8px;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--fg);font:inherit;text-align:left;cursor:pointer;transition:background var(--dur-fast) var(--ease)}
-.ts-row:hover{background:var(--bg-card)}
-.ts-row:active{background:var(--bg-card-hover)}
-.ts-name{font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ts-row.none .ts-name{color:var(--fg-3)}
-.ts-bar{position:relative;height:8px}
-.ts-bar i{position:absolute;left:0;top:0;bottom:0;width:0;min-width:2px;background-color:var(--focus);transition:width 1200ms cubic-bezier(.16,1,.3,1)}
-/* 最多的那一條：長的時候前端一點亮光（像拖著光往前跑），長完一道光從左掃到右，再微微發光一下 */
-.ts-row.lead .ts-bar i{background-image:linear-gradient(100deg,transparent 0 38%,rgba(255,255,255,.62) 50%,transparent 62% 100%);background-size:260% 100%;background-repeat:no-repeat;background-position:160% 0;animation:ts-sheen 900ms 1050ms cubic-bezier(.4,0,.2,1) both,ts-glow 1400ms 1050ms ease-out both}
-.ts-row.lead .ts-bar i::after{content:"";position:absolute;right:-1px;top:-3px;bottom:-3px;width:3px;background:#fff;box-shadow:0 0 8px 2px var(--focus),0 0 18px 4px color-mix(in srgb,var(--focus) 55%,transparent);animation:ts-head 1250ms ease-out both}
-@keyframes ts-sheen{from{background-position:160% 0}to{background-position:-60% 0}}
-@keyframes ts-glow{0%{box-shadow:0 0 0 0 transparent}35%{box-shadow:0 0 16px 1px color-mix(in srgb,var(--focus) 60%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
-@keyframes ts-head{0%{opacity:0}12%{opacity:1}70%{opacity:1}100%{opacity:0}}
-.ts-row.lead .ts-name{animation:ts-name 900ms 900ms ease both}
-@keyframes ts-name{0%{color:var(--fg)}40%{color:var(--accent-text)}100%{color:var(--fg)}}
-.ts-row.none .ts-bar i{background:repeating-linear-gradient(135deg,var(--fg-3) 0 2px,transparent 2px 5px)}   /* 沒標籤：斜線，跟有標籤的分得出來 */
-.ts-pct{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:15px;text-align:right;color:var(--fg)}
-.ts-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:13px;text-align:right;color:var(--fg-3);white-space:nowrap}
-.ts-note{margin:12px 0 0;font-size:12.5px;letter-spacing:.04em;line-height:1.6;color:var(--fg-3)}
-.ts-note:empty{display:none}
-@media (max-width:420px){.ts-row{grid-template-columns:4.6em minmax(0,1fr) 3em auto;gap:10px}.ts-big{font-size:40px}}
-@media (prefers-reduced-motion:reduce){.ts-bar i{transition:none}.ts-row.lead .ts-bar i,.ts-row.lead .ts-bar i::after,.ts-row.lead .ts-name{animation:none}.ts-row.lead .ts-bar i::after{display:none}}
+/* ===== 明細：花在哪裡（照 Claude Design 交接稿 where.css；token 對應到網站的） ===== */
+.kw{
+--kw-fg:var(--fg);--kw-fg-2:var(--fg-2);--kw-fg-3:var(--fg-3);--kw-line:var(--line);--kw-bar:var(--bar-track);
+--kw-focus:var(--focus);--kw-reveal:#03c2b8;
+--kw-num:var(--font-display);--kw-han:var(--font-han-sans);--kw-title:var(--font-han-serif);
+--kw-ease:cubic-bezier(.22,.61,.36,1);--kw-wipe:cubic-bezier(.76,0,.24,1);--kw-settle:cubic-bezier(.16,1,.3,1);
+padding-top:28px;color:var(--kw-fg)}
+.kw *,.kw *::before,.kw *::after{box-sizing:border-box}
+.kw :where(h3,p){margin:0}
+.kw :where(button){font:inherit;color:inherit;background:none;border:0;border-radius:0;padding:0;margin:0;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+.kw :focus-visible{outline:2px solid var(--kw-focus);outline-offset:2px}
+.kw .num{font-family:var(--kw-num);font-variant-numeric:tabular-nums lining-nums}
+/* 標題列 */
+.kw__head{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.kw__line,.kw__more,.kw-row{white-space:nowrap}
+.kw__name{white-space:normal}
+.kw__head h3{font-family:var(--kw-title);font-size:20px;font-weight:700;line-height:1.2;letter-spacing:.04em}
+.kw__head em{font-style:normal;font-family:var(--kw-num);font-size:10px;font-weight:500;letter-spacing:.22em;color:var(--kw-fg-3)}
+.kw__total{margin-left:auto;font-family:var(--kw-han);font-size:12px;letter-spacing:.06em;color:var(--kw-fg-3)}
+.kw__total .num{font-size:14px;color:var(--kw-fg-2)}
+/* 大數字＋名稱 */
+.kw__hero{margin-top:14px}
+.kw__num{display:flex;align-items:flex-start;height:96px;font-family:var(--kw-num);font-variant-numeric:tabular-nums lining-nums;font-size:96px;font-weight:300;line-height:1;letter-spacing:-.02em}
+.kw-odo{display:inline-block;height:1em;overflow:hidden}
+.kw-odo>span{display:block;transform:translateY(calc(var(--to) * -1em))}
+.kw-odo>span>i{display:block;height:1em;font-style:normal}
+.kw__sign{display:inline-block;overflow:hidden;height:1em;margin:.22em 0 0 .1em;font-size:.4em;line-height:1}
+.kw__sign>span{display:block}
+.kw__line{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin-top:8px}
+.kw__lead{font-family:var(--kw-han);font-size:14px;letter-spacing:.08em;color:var(--kw-fg-2)}
+.kw__mask{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.06em}
+.kw__name{display:inline-block;font-family:var(--kw-title);font-size:28px;font-weight:700;line-height:1.2;letter-spacing:.04em}
+.kw__meta{font-family:var(--kw-num);font-variant-numeric:tabular-nums lining-nums;font-size:14px;letter-spacing:.02em;color:var(--kw-fg-3)}
+.kw__meta small{font-family:var(--kw-han);font-size:12px}
+/* 長條列 */
+.kw__bars{margin-top:18px;border-top:1px solid var(--kw-line)}
+.kw-row{display:grid;grid-template-columns:72px minmax(0,1fr) 40px 52px;align-items:center;column-gap:10px;width:100%;min-height:44px;border-bottom:1px solid var(--kw-line)}
+.kw-row__name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-family:var(--kw-han);font-size:14px;letter-spacing:.06em;color:var(--kw-fg-2);transition:color 140ms var(--kw-ease)}
+.kw-row__bar{display:flex;align-items:center;height:10px}
+.kw-row__fill{position:relative;width:var(--w);height:6px;background:var(--kw-bar);transform-origin:left;transition:width 420ms var(--kw-ease),background-color 240ms var(--kw-ease)}
+.kw-row__pct{font-family:var(--kw-num);font-variant-numeric:tabular-nums lining-nums;font-size:14px;text-align:right;color:var(--kw-fg)}
+.kw-row__amt{font-family:var(--kw-num);font-variant-numeric:tabular-nums lining-nums;font-size:13px;text-align:right;color:var(--kw-fg-3)}
+.kw-row[data-top] .kw-row__name{color:var(--kw-fg);font-weight:500}
+.kw-row[data-top] .kw-row__fill{height:10px;background:var(--kw-reveal)}
+.kw-row[data-top] .kw-row__fill::after{content:"";position:absolute;inset:0;background:var(--kw-fg);transition:background-color 240ms var(--kw-ease)}
+.kw-row[data-none] .kw-row__fill{background:transparent;box-shadow:inset 0 0 0 1px var(--kw-fg-3)}
+.kw__bars[data-sel] .kw-row .kw-row__name{color:var(--kw-fg-3);font-weight:400}
+.kw__bars[data-sel] .kw-row[aria-pressed="true"] .kw-row__name{color:var(--kw-fg);font-weight:500}
+.kw-row[aria-pressed="true"] .kw-row__fill,.kw-row[aria-pressed="true"] .kw-row__fill::after{background-color:var(--kw-focus)}
+@media (hover:hover){.kw-row:hover .kw-row__name{color:var(--kw-fg)}}
+/* 看全部（前 5 類以外收起來） */
+.kw__rest{display:grid;grid-template-rows:0fr;transition:grid-template-rows 200ms var(--kw-wipe)}
+.kw__rest[data-open]{grid-template-rows:1fr;transition-duration:240ms}
+.kw__rest>div{min-height:0;overflow:hidden}
+.kw__more{display:flex;align-items:center;gap:8px;width:100%;height:44px;border-bottom:1px solid var(--kw-line);font-family:var(--kw-han);font-size:14px;letter-spacing:.08em;color:var(--kw-fg-2)}
+.kw__chev{width:8px;height:8px;margin-left:2px;border-right:1.5px solid var(--kw-fg-3);border-bottom:1.5px solid var(--kw-fg-3);transform:translateY(-2px) rotate(45deg);transition:transform 240ms var(--kw-wipe)}
+.kw__more[aria-expanded="true"] .kw__chev{transform:translateY(2px) rotate(-135deg)}
+@media (hover:hover){.kw__more:hover{color:var(--kw-fg)}}
+.kw__note{margin-top:14px;font-family:var(--kw-han);font-size:12px;line-height:1.6;letter-spacing:.04em;color:var(--kw-fg-3);text-wrap:pretty}
+.kw__empty{padding:32px 0;border-bottom:1px solid var(--kw-line);font-family:var(--kw-han);font-size:14px;color:var(--kw-fg-3)}
+/* 揭曉動畫：idle＝還沒進畫面（起始）、play＝播放（播完停在最終）、done＝直接顯示最終 */
+.kw[data-state="idle"] .kw-odo>span{transform:translateY(0)}
+.kw[data-state="idle"] .kw__sign>span,.kw[data-state="idle"] .kw__name{transform:translateY(105%)}
+.kw[data-state="idle"] .kw-row__fill{transform:scaleX(0)}
+.kw[data-state="idle"] .kw-row[data-top] .kw-row__fill::after{clip-path:inset(0 100% 0 0)}
+.kw[data-state="idle"] .kw-row__pct,.kw[data-state="idle"] .kw-row__amt{opacity:0}
+.kw[data-state="play"] .kw-odo>span{animation:kw-roll var(--t) var(--kw-settle) both}
+.kw[data-state="play"] .kw__sign>span{animation:kw-up 240ms var(--kw-settle) 700ms both}
+.kw[data-state="play"] .kw__name{animation:kw-up 420ms var(--kw-settle) 900ms both}
+.kw[data-state="play"] .kw-row__fill{animation:kw-grow 700ms var(--kw-wipe) var(--d) both}
+.kw[data-state="play"] .kw-row[data-top] .kw-row__fill{animation-duration:900ms}
+.kw[data-state="play"] .kw-row[data-top] .kw-row__fill::after{animation:kw-lock 420ms var(--kw-wipe) 900ms both}
+.kw[data-state="play"] .kw-row__pct,.kw[data-state="play"] .kw-row__amt{animation:kw-fade 240ms var(--kw-ease) var(--d2) both}
+@keyframes kw-roll{from{transform:translateY(0)}to{transform:translateY(calc(var(--to) * -1em))}}
+@keyframes kw-up{from{transform:translateY(105%)}to{transform:none}}
+@keyframes kw-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes kw-lock{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes kw-fade{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.kw *,.kw *::before,.kw *::after{animation-duration:1ms!important;animation-delay:0ms!important;transition-duration:1ms!important}}
 /* 明細：用標籤篩選、排序（兩顆在小計下面，左右各一；點了往下展開選項） */
 .list-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0 0}
 .lt-btn{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:60%;min-height:38px;padding:0 12px;border:1px solid var(--line-2);background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:13.5px;letter-spacing:.08em;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
@@ -882,6 +926,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
         <button type="button" class="ln-btn" id="navNext" aria-label="下一個"><span class="ln-arr next" aria-hidden="true"></span></button>
       </div>
       <div class="list-sum" id="listSum"></div>
+      <section class="kw" id="tagStats" aria-label="花在哪裡（各標籤占花費的比例）"></section>
       <div class="list-tools" id="listTools">
         <button type="button" class="lt-btn" id="ltTagBtn" aria-expanded="false" aria-controls="ltTagPane"><svg class="lt-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5V8.5z"/></svg><span class="lt-v" id="ltTagV">全部標籤</span><i class="tag-chev" aria-hidden="true"></i></button>
         <button type="button" class="lt-btn" id="ltSortBtn" aria-expanded="false" aria-controls="ltSortPane"><svg class="lt-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 13V3M2 6l3-3 3 3M11 3v10M8 10l3 3 3-3"/></svg><span class="lt-v" id="ltSortV">最新</span><i class="tag-chev" aria-hidden="true"></i></button>
@@ -896,12 +941,6 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       <p class="lt-result" id="ltResult" hidden><span id="ltResT"></span><button type="button" class="lt-clear" id="ltResClear">清除篩選</button></p>
       <ul id="list"></ul>
       <button id="more" class="more b-btn b-btn--secondary b-btn--full" hidden>顯示更早的紀錄</button>
-      <section class="tstat" id="tagStats" aria-labelledby="tsH" hidden>
-        <div class="ts-head"><h3 class="ts-h" id="tsH">花在哪裡 <span class="b-label">By Tag</span></h3><span class="ts-sub" id="tsSub"></span></div>
-        <div class="ts-hero" id="tsHero"></div>
-        <div class="ts-rows" id="tsRows"></div>
-        <p class="ts-note" id="tsNote"></p>
-      </section>
     </section>
     </div>
     <div class="pane" data-pane="settings">
@@ -2858,7 +2897,7 @@ function renderCore(){
     ?[["公司撥的","+",tot(e=>(TYPES[e.type]||{}).kind==="q"),"var(--income)"],["工作花費","−",tot(e=>(TYPES[e.type]||{}).kind==="spend"),"var(--expense)"],["結清","",tot(e=>["ret","rb"].includes((TYPES[e.type]||{}).kind)),"var(--fg)"]]
     :[["收入","+",tot(e=>e.type==="salary"),"var(--income)"],["私人花費","−",tot(e=>e.type==="personal"),"var(--expense)"],["固定支出","−",tot(e=>(e.type==="fixed"&&!e.pend)||e.type==="fixpay"),"var(--expense)"]];
   $("listSum").innerHTML=items.map(([l,sg,v,c])=>'<div class="ls-item"><span class="ls-l">'+l+'</span><span class="ls-v" style="color:'+(v>0?c:"var(--fg-3)")+'">'+(v>0?sg:"")+fmt(v)+'</span></div>').join("");
-  drawTagStats(full);
+  drawTagStats(pool,curMonth);
   /* 用標籤篩選（小計和統計不受影響）、排序 */
   drawListTools(full);
   if(tagFilter.size){
@@ -2979,97 +3018,104 @@ $("ltSortChips").addEventListener("click",e=>{
   setLtOpen(null);
 });
 
-/* ---------- 明細最下面：各標籤占花費的比例（跟著上面看的月份／那一天、全部／私人／工作） ---------- */
-/* 捲到看得到的時候才播：長條由左往右長出來（一條接一條），百分比跟著跳；最多的那條長的時候前端有一點光，長完一道光掃過去 */
-let tsKey="", tsNeed=false, tsVisible=false, tsRaf=0;
-function drawTagStats(full){
-  const sp=full.filter(e=>!e.virtual&&(e.type==="personal"||(TYPES[e.type]||{}).kind==="spend"));
-  const total=sp.reduce((a,e)=>a+e.amount,0);
-  const box=$("tagStats");
-  box.hidden=!total;if(!total){tsKey="";return}
-  const by=new Map();
-  for(const e of sp){const k=e.tag||"";const g=by.get(k)||{n:0,v:0};g.n++;g.v+=e.amount;by.set(k,g)}
-  /* 由多到少；沒標籤的固定排最後 */
-  const rows=[...by].filter(([k])=>k).sort((a,b)=>b[1].v-a[1].v||tagOrder.indexOf(a[0])-tagOrder.indexOf(b[0]));
-  const untag=by.get("");
-  if(untag)rows.push(["",untag]);
-  const tagged=total-(untag?untag.v:0);
-  const when=listView==="month"?"這個月":"這天", what=filter==="work"?"工作花費":filter==="personal"?"私人花費":"花費";
-  const pctN=v=>v/total*100, pct=v=>{const p=pctN(v);return p>0&&p<1?"<1%":Math.round(p)+"%"};
-  $("tsSub").innerHTML=when+what+' <span class="num">$'+fmt(total)+'</span>';
-  if(!tagged){
-    $("tsHero").innerHTML="";$("tsRows").innerHTML="";tsKey="";
-    $("tsNote").textContent=when+"的"+what+"還沒有標籤。記帳時點備註左邊的「標籤」，這裡就會畫出每一類占多少。";
-    return;
+/* ---------- 明細：花在哪裡（照 Claude Design 交接稿 where.js） ----------
+   永遠算整個月（不受標籤篩選、「日」檢視影響），跟著月份和全部／私人／工作；只算花費（不含收入、固定支出）。
+   最多那一類：大數字像機械計數器一位一位轉到定位、長條先青綠擦入再被字色蓋上「定格」、名稱從遮罩下升起。
+   進到畫面上方 60% 才播；換月份／全部私人工作、最多那類換人或 % 變了＝下次進畫面重播；其他小變動只更新數字。
+   點一類＝明細只列那一類（等於篩選只選這個標籤），再點一次取消 */
+const KW_NONE="__none", KW_SHOW=5;
+function kwStats(list){
+  const total=list.reduce((s,e)=>s+e.amount,0), map={};
+  list.forEach(e=>{const k=e.tag||KW_NONE;(map[k]=map[k]||{name:k,amount:0,count:0});map[k].amount+=e.amount;map[k].count++});
+  const rows=Object.values(map).filter(r=>r.amount>0);
+  rows.sort((a,b)=>(a.name===KW_NONE)-(b.name===KW_NONE)||b.amount-a.amount);   // 金額大到小，沒標籤固定最後
+  const max=rows.reduce((m,r)=>Math.max(m,r.amount),0)||1;
+  rows.forEach(r=>{r.pct=total?Math.round(r.amount/total*100):0;r.w=r.amount/max});
+  return {total,rows,top:rows.find(r=>r.name!==KW_NONE)||null};
+}
+/* 每一位數是一條數字帶；最後一位多轉一整圈 */
+function kwOdometer(n){
+  const s=String(n);
+  return s.split("").map((ch,i)=>{
+    const d=+ch, last=i===s.length-1, strip=[];
+    if(last)for(let j=0;j<10;j++)strip.push(j);
+    for(let j=0;j<=d;j++)strip.push(j);
+    return '<span class="kw-odo"><span style="--to:'+(strip.length-1)+';--t:'+(last?900:700)+'ms">'+strip.map(x=>'<i>'+x+'</i>').join("")+'</span></span>';
+  }).join("");
+}
+function kwRow(r,isTop,delay,sel){
+  return '<button type="button" class="kw-row" data-name="'+esc(r.name)+'"'+(isTop?' data-top':'')+(r.name===KW_NONE?' data-none':'')+
+    ' aria-pressed="'+(sel===r.name)+'" aria-label="'+esc((r.name===KW_NONE?"沒標籤":r.name)+"："+r.count+" 筆，$"+fmt(r.amount)+"，占 "+r.pct+"%")+'" style="--w:'+(r.w*100).toFixed(2)+'%;--d:'+delay+'ms;--d2:'+(isTop?1320:delay+520)+'ms">'+
+    '<span class="kw-row__name">'+(r.name===KW_NONE?'沒標籤':esc(r.name))+'</span>'+
+    '<span class="kw-row__bar"><span class="kw-row__fill"></span></span>'+
+    '<span class="kw-row__pct">'+r.pct+'%</span>'+
+    '<span class="kw-row__amt">'+fmt(r.amount)+'</span></button>';
+}
+function kwMount(el,opts){
+  let st=null, key="", sel=null, all=false, pending=true, visible=false, label="這個月";
+  el.dataset.state="idle";
+  function html(){
+    const top=st.top;let k=0;
+    const row=r=>{const isTop=top&&r.name===top.name;return kwRow(r,isTop,isTop?0:300+(k++)*60,sel)};
+    const selIdx=sel?st.rows.findIndex(r=>r.name===sel):-1, open=all||selIdx>=KW_SHOW, rest=st.rows.length-KW_SHOW;
+    return '<div class="kw__head"><h3>花在哪裡</h3><em>BY TAG</em><p class="kw__total">'+label+'花費 <span class="num">$'+fmt(st.total)+'</span></p></div>'+
+      (top?'<div class="kw__hero"><div class="kw__num" role="img" aria-label="'+top.pct+'%">'+kwOdometer(top.pct)+'<span class="kw__sign"><span>%</span></span></div>'+
+        '<p class="kw__line"><span class="kw__lead">最多花在</span><span class="kw__mask"><span class="kw__name">'+esc(top.name)+'</span></span>'+
+        '<span class="kw__meta">'+top.count+' <small>筆</small> · $'+fmt(top.amount)+'</span></p></div>':'')+
+      (st.rows.length?'<div class="kw__bars"'+(sel?' data-sel':'')+'>'+st.rows.slice(0,KW_SHOW).map(row).join("")+
+        (rest>0?'<div class="kw__rest"'+(open?' data-open':'')+'><div>'+st.rows.slice(KW_SHOW).map(row).join("")+'</div></div>'+
+          (selIdx>=KW_SHOW?'':'<button type="button" class="kw__more" aria-expanded="'+open+'"><span>'+(open?'收起':'看全部 '+st.rows.length+' 類')+'</span><i class="kw__chev"></i></button>'):'')+
+        '</div>':'<p class="kw__empty">'+label+'還沒有花費。</p>')+
+      (st.rows.length?'<p class="kw__note">點一類，下面的明細就只列那一類；再點一次取消。「沒標籤」可以在明細點一筆補上。</p>':'');
   }
-  /* 換了月份／日子／全部私人工作＝重新播一次；同一期資料變了＝長條直接伸縮 */
-  const key=listView+"|"+(listView==="month"?listMonth:listDay)+"|"+filter;
-  if(key!==tsKey){tsKey=key;tsNeed=true}
-  const top=rows[0];
-  $("tsHero").innerHTML='<span class="ts-big num" data-p="'+pctN(top[1].v)+'" data-pct="'+esc(pct(top[1].v))+'">'+(tsNeed?"0%":esc(pct(top[1].v)))+'</span><span class="ts-cap">最多花在<b>'+esc(top[0])+'</b>（'+top[1].n+' 筆，$'+fmt(top[1].v)+'）</span>';
-  $("tsNote").textContent=(untag&&untag.v<total?"「沒標籤」是記帳時沒選標籤的花費；在上面的明細點一筆就能補上。":"")+"點一類，上面的明細就只列那一類。";
-  /* 長條的長度以最多的那一類為滿，百分比是占全部花費 */
-  const max=Math.max(...rows.map(r=>r[1].v));
-  const wrap=$("tsRows"), old=new Map([...wrap.children].map(el=>[el.dataset.k,el]));
-  rows.forEach(([k,g],i)=>{
-    let el=old.get(k);
-    if(el)old.delete(k);
-    else{
-      el=document.createElement("button");el.type="button";el.className="ts-row"+(k?"":" none");el.dataset.k=k;
-      el.innerHTML='<span class="ts-name"></span><span class="ts-bar"><i></i></span><span class="ts-pct num"></span><span class="ts-amt num"></span>';
-    }
-    const name=k||"沒標籤";
-    el.dataset.p=pctN(g.v);el.dataset.pct=pct(g.v);
-    el.querySelector(".ts-name").textContent=name;
-    if(!tsNeed)el.querySelector(".ts-pct").textContent=pct(g.v);
-    el.querySelector(".ts-amt").textContent="$"+fmt(g.v);
-    el.title=name+"："+g.n+" 筆，$"+fmt(g.v)+"，占"+what+" "+pct(g.v);
-    el.setAttribute("aria-label",el.title+"。點一下，明細只列"+name);
-    const w=(g.v/max*100).toFixed(2)+"%", bar=el.querySelector(".ts-bar i");
-    bar.dataset.w=w;
-    if(wrap.children[i]!==el)wrap.insertBefore(el,wrap.children[i]||null);
-    if(tsNeed){bar.style.transition="none";bar.style.width="0%";el.querySelector(".ts-pct").textContent="0%"}
-    else if(!bar.style.width){bar.style.width="0%";requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.width=w}))}
-    else bar.style.width=w;
+  function play(){pending=false;el.dataset.state="idle";void el.offsetWidth;el.dataset.state="play"}   // 先回起始、強制 reflow，動畫才會從頭播
+  /* 資料小變動（同一批類別）：只更新數字和寬度，長條 420ms 過渡、不重播 */
+  function patch(){
+    const btns=el.querySelectorAll(".kw-row");
+    if(btns.length!==st.rows.length)return false;
+    for(let i=0;i<btns.length;i++)if(btns[i].dataset.name!==st.rows[i].name)return false;
+    st.rows.forEach((r,i)=>{const b=btns[i];b.style.setProperty("--w",(r.w*100).toFixed(2)+"%");b.querySelector(".kw-row__pct").textContent=r.pct+"%";b.querySelector(".kw-row__amt").textContent=fmt(r.amount)});
+    el.querySelector(".kw__total .num").textContent="$"+fmt(st.total);
+    const meta=el.querySelector(".kw__meta");if(meta&&st.top)meta.innerHTML=st.top.count+' <small>筆</small> · $'+fmt(st.top.amount);
+    return true;
+  }
+  const redraw=()=>{const s=el.dataset.state;el.innerHTML=html();el.dataset.state=s==="play"?"done":s};
+  function update(d){
+    st=kwStats(d.entries);label=d.label||"這個月";
+    const nk=[d.period,st.top?st.top.name:"",st.top?st.top.pct:""].join("|");
+    if(nk===key&&patch())return;
+    const changed=nk!==key;key=nk;
+    if(changed){pending=true;el.dataset.state="idle"}
+    else if(el.dataset.state==="play")el.dataset.state="done";   // 重畫但不重播
+    el.innerHTML=html();
+    if(changed&&visible)play();
+  }
+  function select(name){if(name===sel)return;sel=name;if(st)redraw()}
+  el.addEventListener("click",e=>{
+    if(e.target.closest(".kw__more")){all=!all;redraw();return}
+    const b=e.target.closest(".kw-row");if(!b)return;
+    select(sel===b.dataset.name?null:b.dataset.name);
+    if(opts.onPick)opts.onPick(sel);
   });
-  for(const el of old.values())el.remove();
-  if(tsNeed&&tsVisible)requestAnimationFrame(playTagStats);
+  /* 區段進到畫面上方 60% 才播 */
+  if("IntersectionObserver" in window)new IntersectionObserver(([en])=>{visible=en.isIntersecting;if(visible&&pending)play()},{rootMargin:"0px 0px -40% 0px",threshold:0}).observe(el);
+  else visible=true;
+  return {update,select,replay:()=>{if(visible)play();else pending=true}};
 }
-function playTagStats(){
-  if(!tsNeed)return;
-  tsNeed=false;cancelAnimationFrame(tsRaf);
-  const rows=[...$("tsRows").children], big=$("tsHero").querySelector(".ts-big");
-  const bar=r=>r.querySelector(".ts-bar i");
-  rows.forEach(r=>{bar(r).style.transition="none";bar(r).style.width="0%";r.classList.remove("lead")});
-  void $("tsRows").offsetWidth;
-  if(reduceMotion()){
-    rows.forEach(r=>{bar(r).style.transition="";bar(r).style.width=bar(r).dataset.w;r.querySelector(".ts-pct").textContent=r.dataset.pct});
-    if(big)big.textContent=big.dataset.pct;
-    return;
-  }
-  const DUR=1200, delays=rows.map((r,i)=>i?220+i*70:0);
-  rows.forEach((r,i)=>{const b=bar(r);b.style.transition="";b.style.transitionDelay=delays[i]+"ms";b.style.width=b.dataset.w});
-  if(rows[0]){void rows[0].offsetWidth;rows[0].classList.add("lead")}
-  const t0=performance.now(), ease=t=>1-Math.pow(1-t,4);
-  const step=now=>{
-    let done=true;
-    rows.forEach((r,i)=>{const t=Math.min(1,Math.max(0,(now-t0-delays[i])/DUR));if(t<1)done=false;const el=r.querySelector(".ts-pct");el.textContent=t>=1?r.dataset.pct:Math.round(+r.dataset.p*ease(t))+"%"});
-    if(big){const t=Math.min(1,(now-t0)/DUR);big.textContent=t>=1?big.dataset.pct:Math.round(+big.dataset.p*ease(t))+"%"}
-    if(!done)tsRaf=requestAnimationFrame(step);
-    else rows.forEach(r=>{bar(r).style.transitionDelay=""});
-  };
-  tsRaf=requestAnimationFrame(step);
-}
-if("IntersectionObserver" in window){
-  new IntersectionObserver(es=>{for(const e of es){tsVisible=e.isIntersecting;if(tsVisible&&tsNeed)playTagStats()}},{threshold:.2}).observe($("tagStats"));
-}else tsVisible=true;
-/* 點一類：明細只列那一類，捲回明細上面 */
-$("tsRows").addEventListener("click",e=>{
-  const r=e.target.closest(".ts-row");if(!r)return;
-  setLtOpen(null);setTagFilter(new Set([r.dataset.k]));
+const where=kwMount($("tagStats"),{onPick:name=>{
+  setLtOpen(null);setTagFilter(name==null?new Set():new Set([name===KW_NONE?"":name]));
+  if(name==null)return;
+  /* 捲到篩選列 */
   const el=$("listTools"), cover=Math.max(...[document.querySelector(".topbar"),$("tabbar")].filter(x=>x&&getComputedStyle(x).position==="sticky"&&x.offsetHeight).map(x=>x.getBoundingClientRect().bottom),0);
   window.scrollTo({top:Math.max(0,docY(el)-cover-12),behavior:reduceMotion()?"auto":"smooth"});
-});
+}});
+function drawTagStats(pool,curMonth){
+  const m=listView==="month"?listMonth:listDay.slice(0,7);
+  const list=pool.filter(e=>!e.virtual&&e.date.slice(0,7)===m&&(e.type==="personal"||(TYPES[e.type]||{}).kind==="spend"));
+  where.update({entries:list.map(e=>({amount:e.amount,tag:e.tag||null})),period:m+"|"+filter,label:m===curMonth?"這個月":(+m.slice(5))+" 月"});
+  /* 篩選剛好只選一個標籤＝那一類亮起來；其他情況都不亮 */
+  where.select(tagFilter.size===1?([...tagFilter][0]||KW_NONE):null);
+}
 
 /* ---------- 連結 Google 試算表 ---------- */
 let unlinkArmed=false;
