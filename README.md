@@ -34,13 +34,13 @@ repo 裡不放任何個人記帳資料。
 ## 資料格式
 
 - 每筆紀錄：`{id, type, amount, note, date: "YYYY-MM-DD", ts, fx?}`（`fx`：浮動固定支出的實際金額對應哪一項）
-- 設定：`{opening, until, pay, payday, pct, daily, notes, prefs, fixed: [{id, sid, name, amount, day, since: "YYYY-MM", end?: "YYYY-MM", vary?: true, from?: "YYYY-MM-DD", skip?: ["YYYY-MM-DD"]}]}`（pay＝手動改過的上次薪水，0＝自動抓；payday＝每月發薪日，預設 10；pct＝生活費比例，預設 35；daily＝每日基準，預設 500；notes＝通知狀態；prefs＝深淺色、明細檢視和排序、標籤順序、自己新增的標籤）
+- 設定：`{opening, until, pay, payday, pct, daily, notes, prefs, fixed: [{id, sid, name, amount, day, since: "YYYY-MM", end?: "YYYY-MM", vary?: true, from?: "YYYY-MM-DD", skip?: ["YYYY-MM-DD"]}]}`（pay＝手動改過的上次薪水，0＝自動抓；payday＝每月發薪日，預設 10；pct＝生活費比例，預設 35；daily＝每日基準，預設 500；notes＝通知狀態；prefs＝深淺色、明細檢視、標籤順序、自己新增的標籤）
 - 瀏覽器裡的 `localStorage`：
   - `kyx-data-v1`：資料快取
   - `kyx-queue-v1`：待送清單
   - `kyx-sheet-v1`：試算表網址和通行碼
   - `kyx-serverv-v1`：試算表程式的版本（2＝可以只存一部分設定）
-  - `kyx-notes-v1`、`kyx-theme`、`kyx-list-view`、`kyx-list-sort-v1`、`kyx-tag-order-v1`、`kyx-tag-custom-v1`：通知狀態、深淺色、明細檢視和排序、標籤順序、自己新增的標籤（新版試算表程式也會同步）
+  - `kyx-notes-v1`、`kyx-theme`、`kyx-list-view`、`kyx-tag-order-v1`、`kyx-tag-custom-v1`：通知狀態、深淺色、明細檢視、標籤順序、自己新增的標籤（新版試算表程式也會同步）
 - Apps Script 的 API：
   - `GET ?token=…`：回傳全部紀錄和設定。
   - `POST`（`Content-Type: text/plain`）：`{token, action}`，`action` 是 `add`（`entries` 陣列，id 重複會略過）、`delete`（`id`）或 `saveSettings`（`settings`，只寫有送來的欄位）。`GET` 回傳 `v: 2` 時，前端才會單獨送通知狀態和偏好。

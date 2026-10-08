@@ -643,13 +643,18 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .lt-in{min-height:0;overflow:hidden}
 .lt-chip .lt-n{margin-left:8px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:.04em;color:var(--fg-3)}
 .lt-chip.zero:not(.on){opacity:.45}
+/* 排序標籤：每顆左邊有握把點點，按住就能拖（手指底下頁面不捲動） */
+.lt-sort .tag-chip{position:relative;padding-left:24px;border-color:var(--fg-3);color:var(--fg);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lt-sort .tag-chip::before{content:"";position:absolute;left:10px;top:50%;width:6px;height:10px;margin-top:-5px;background:radial-gradient(circle,currentColor 1px,transparent 1.3px) 0 0/3px 3.4px;opacity:.55}
+.lt-sort .tag-chip.drag{z-index:2;cursor:grabbing;background:var(--bg-raised);border-color:var(--focus);box-shadow:0 6px 18px rgba(0,0,0,.28);scale:1.06;transition:none}
+.lt-wrap.open .lt-in:has(.drag){overflow:visible}
 .lt-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0 0;font-size:12px;letter-spacing:.04em;color:var(--fg-3)}
 .lt-clear{flex:none;background:none;border:0;padding:4px 0;font-family:var(--font-han-sans);font-size:12.5px;letter-spacing:.1em;color:var(--gold-text);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .lt-clear:hover{color:var(--gh-gold)}
 .lt-result{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 0;padding:10px 14px;background:var(--bg-card);border-left:3px solid var(--focus);font-size:13.5px;letter-spacing:.04em}
 .lt-result[hidden]{display:none}
 .lt-result .num{font-family:var(--font-display);font-variant-numeric:tabular-nums}
-.d-date{margin-right:8px;color:var(--fg-2);letter-spacing:.06em}
+
 /* 這個月／這一天的小計 */
 .list-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin-bottom:6px}
 .ls-item{background:var(--bg-card);padding:12px 14px;min-width:0}
@@ -884,14 +889,15 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
       <div class="list-sum" id="listSum"></div>
       <div class="list-tools" id="listTools">
         <button type="button" class="lt-btn" id="ltTagBtn" aria-expanded="false" aria-controls="ltTagPane"><svg class="lt-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5V8.5z"/></svg><span class="lt-v" id="ltTagV">全部標籤</span><i class="tag-chev" aria-hidden="true"></i></button>
-        <button type="button" class="lt-btn" id="ltSortBtn" aria-expanded="false" aria-controls="ltSortPane"><svg class="lt-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 13V3M2 6l3-3 3 3M11 3v10M8 10l3 3 3-3"/></svg><span class="lt-v" id="ltSortV">最新</span><i class="tag-chev" aria-hidden="true"></i></button>
+        <button type="button" class="lt-btn" id="ltSortBtn" aria-expanded="false" aria-controls="ltSortPane"><svg class="lt-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 13V3M2 6l3-3 3 3M11 3v10M8 10l3 3 3-3"/></svg><span class="lt-v">排序標籤</span><i class="tag-chev" aria-hidden="true"></i></button>
       </div>
       <div class="lt-wrap" id="ltTagPane" inert><div class="lt-in">
         <div class="tag-chips" id="ltTagChips" role="group" aria-label="用標籤篩選（可以選好幾個）"></div>
         <p class="lt-foot"><span>可以選好幾個。只會列出有選的標籤的花費。</span><button type="button" class="lt-clear" id="ltClear">清除</button></p>
       </div></div>
       <div class="lt-wrap" id="ltSortPane" inert><div class="lt-in">
-        <div class="tag-chips" id="ltSortChips" role="radiogroup" aria-label="排序"></div>
+        <div class="tag-chips lt-sort" id="ltSortChips" role="group" aria-label="排序標籤（拖曳，或用左右鍵移動）"></div>
+        <p class="lt-foot"><span>按住標籤拖到想要的位置。記帳時的標籤、上面的篩選都照這個順序。</span></p>
       </div></div>
       <p class="lt-result" id="ltResult" hidden><span id="ltResT"></span><button type="button" class="lt-clear" id="ltResClear">清除篩選</button></p>
       <ul id="list"></ul>
@@ -1082,8 +1088,7 @@ let opening=0, until="", fixed=[], pay=0, payday=10, pct=35, daily=500;
 let cfg=null, queue=[], loaded=false;
 let filter="all", shown=60, todayRemainNow=0;
 /* 明細：用標籤篩選（這次打開有效，不存）、排序（存起來，也同步） */
-const SORTS=[["new","最新"],["old","最舊"],["big","金額高→低"],["small","金額低→高"]], LS_LISTSORT="kyx-list-sort-v1";
-let tagFilter=new Set(), ltOpen=null, listSort=(v=>SORTS.some(x=>x[0]===v)?v:"new")(lsGet(LS_LISTSORT));
+let tagFilter=new Set(), ltOpen=null;
 /* 明細的檢視方式（月／日）記在這個瀏覽器；看哪個月、哪一天每次打開都回到現在 */
 let listView="month", listMonth="", listDay="", navPrevKey=null, navNextKey=null;
 try{if(localStorage.getItem("kyx-list-view")==="day")listView="day"}catch(e){}
@@ -1157,7 +1162,7 @@ const LATEST_SERVER_V=3, LS_SHEETLINK="kyx-sheetlink-v1";
 let sheetLink=lsGet(LS_SHEETLINK)||"";
 let serverV=Number(lsGet(LS_SERVERV))||0, prefsTimer=null, lastPrefs="";
 const syncedNotes=()=>{const n=Object.assign({},notes);return n};
-const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView,listSort,tagOrder,tagCustom}};
+const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView,tagOrder,tagCustom}};
 const prefsKey=()=>JSON.stringify([syncedNotes(),prefsObj()]);
 function syncPrefs(){
   if(!cfg||serverV<2)return;
@@ -1191,7 +1196,6 @@ function applyRemotePrefs(rn,rp){
     }
     if(Array.isArray(rp.tagCustom)&&!tagAdding)setTagCustom(rp.tagCustom,true);
     if(Array.isArray(rp.tagOrder))setTagOrder(rp.tagOrder,true);
-    if(SORTS.some(x=>x[0]===rp.listSort)&&rp.listSort!==listSort){listSort=rp.listSort;lsSet(LS_LISTSORT,listSort)}
   }
   lastPrefs=prefsKey();
   /* 這台有、試算表還沒有的（例如第一次連上新版程式）：送上去 */
@@ -1427,7 +1431,7 @@ const TAGS=["早餐","午餐","晚餐","飲料","點心","日用品","交通","�
 const tagAllowed=type=>!!TYPES[type]&&TYPES[type].sign<0&&type!=="fixpay"&&type!=="fixed";
 let curTag="";
 /* 自己新增的標籤（選項右邊的「＋」），按「＋」的時候自己新增的旁邊有 × 可以刪；內建的不能刪。
-   存在這台、也跟著偏好同步到試算表。順序：內建的照原本，自己新增的排在後面（tagOrder 也同步，留給之後用） */
+   存在這台、也跟著偏好同步到試算表。順序在明細的「排序標籤」手動拖（tagOrder，也同步）；新增的排在最後 */
 const LS_TAGORDER="kyx-tag-order-v1", LS_TAGCUSTOM="kyx-tag-custom-v1", TAG_MAX=8;
 const cleanTag=t=>String(t==null?"":t).replace(/\s+/g," ").trim().slice(0,TAG_MAX);
 const normTagCustom=l=>(Array.isArray(l)?l:[]).map(cleanTag).filter((t,i,a)=>t&&!TAGS.includes(t)&&a.indexOf(t)===i);
@@ -2867,11 +2871,7 @@ function renderCore(){
     $("ltResT").innerHTML=esc(names.length>2?names.slice(0,2).join("、")+" 等 "+names.length+" 個":names.join("、"))+'：<span class="num">'+full.length+'</span> 筆，共 <span class="num">$'+fmt(full.reduce((a,e)=>a+e.amount,0))+'</span>';
   }
   $("ltResult").hidden=!tagFilter.size;
-  const byAmt=listSort==="big"||listSort==="small", amtOf=e=>e.virtual&&e.vary?(e.est||0):e.amount;
-  full.sort(listSort==="old"?(a,b)=>a.date.localeCompare(b.date)||a.ts-b.ts
-    :listSort==="big"?(a,b)=>amtOf(b)-amtOf(a)||b.date.localeCompare(a.date)||b.ts-a.ts
-    :listSort==="small"?(a,b)=>amtOf(a)-amtOf(b)||b.date.localeCompare(a.date)||b.ts-a.ts
-    :(a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+  full.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
   const list=full.slice(0,shown);
   $("more").hidden=full.length<=shown;
 
@@ -2885,8 +2885,7 @@ function renderCore(){
   }
   let lastDate=null, lastYear=today.slice(0,4);
   for(const e of list){
-    /* 照金額排的時候不分日期，日期寫在每一列裡 */
-    if(listView==="month"&&!byAmt&&e.date!==lastDate){
+    if(listView==="month"&&e.date!==lastDate){
       lastDate=e.date;
       const d=parseDate(e.date);
       const daySpent=all.filter(x=>x.date===e.date&&x.type==="personal").reduce((s,x)=>s+x.amount,0);
@@ -2917,7 +2916,6 @@ function renderCore(){
       else{amt.textContent=fmt(e.est);amt.classList.add("struck")}
     }else{n.textContent=e.note||T.name;dd.textContent=(e.virtual?"自動・":"")+T.name+" · "+T.en}
     if(e.tag){const tg=document.createElement("span");tg.className="tag-lbl";tg.textContent=e.tag;n.prepend(tg)}
-    if(byAmt&&listView==="month"){const dt=document.createElement("span");dt.className="d-date";dt.textContent=mdOf(e.date);dd.prepend(dt)}
     info.append(n,dd);
     /* 點一筆就地展開編輯；浮動還沒記實際金額的那期，點了可以直接記實際金額 */
     const pend=e.virtual&&e.vary&&!e.covered&&!e.skipped;
@@ -2947,14 +2945,10 @@ function drawListTools(fl){
   const box=$("ltTagChips"), a=document.activeElement, fk=a&&box.contains(a)?a.dataset.tag:null;
   box.innerHTML=keys.map(k=>{const n=cnt.get(k)||0, on=tagFilter.has(k);return '<button type="button" class="tag-chip lt-chip'+(on?" on":"")+(n?"":" zero")+'" data-tag="'+esc(k)+'" aria-pressed="'+on+'">'+esc(k||"沒標籤")+'<span class="lt-n">'+n+'</span></button>'}).join("");
   if(fk!=null){const c=box.querySelector('[data-tag="'+CSS.escape(fk)+'"]');if(c)c.focus({preventScroll:true})}
-  const sb=$("ltSortChips"), sk=a&&sb.contains(a)?a.dataset.sort:null;
-  sb.innerHTML=SORTS.map(([k,l])=>'<button type="button" class="tag-chip'+(k===listSort?" on":"")+'" role="radio" data-sort="'+k+'" aria-checked="'+(k===listSort)+'">'+l+'</button>').join("");
-  if(sk){const c=sb.querySelector('[data-sort="'+sk+'"]');if(c)c.focus({preventScroll:true})}
+  drawSortChips();
   const names=[...tagFilter].map(t=>t||"沒標籤");
   $("ltTagV").textContent=!names.length?"全部標籤":names.length===1?names[0]:names[0]+" 等 "+names.length+" 個";
   $("ltTagBtn").classList.toggle("on",!!names.length);
-  $("ltSortV").textContent=SORTS.find(x=>x[0]===listSort)[1];
-  $("ltSortBtn").classList.toggle("on",listSort!=="new");
 }
 function setLtOpen(w){
   ltOpen=w;
@@ -2973,10 +2967,69 @@ $("ltTagChips").addEventListener("click",e=>{
   setTagFilter(s);
 });
 $("ltClear").onclick=$("ltResClear").onclick=()=>{if(tagFilter.size)setTagFilter(new Set())};
-$("ltSortChips").addEventListener("click",e=>{
-  const c=e.target.closest("[data-sort]");if(!c)return;
-  if(listSort!==c.dataset.sort){listSort=c.dataset.sort;lsSet(LS_LISTSORT,listSort);syncPrefs();shown=60;armed=null;render();listFade()}
-  setLtOpen(null);
+/* 排序標籤：這一區打開就可以直接拖（不用另外按「編輯」）；放開就存，記帳和篩選都照這個順序 */
+function drawSortChips(){
+  if(tagDrag)return;   // 拖到一半不要重畫
+  const sb=$("ltSortChips"), a=document.activeElement, fk=a&&sb.contains(a)?a.dataset.tag:null;
+  const html=tagOrder.map(t=>'<button type="button" class="tag-chip" data-tag="'+esc(t)+'" aria-label="'+esc(t)+'，可以拖曳，或用左右鍵移動">'+esc(t)+'</button>').join("");
+  if(sb.dataset.k===tagOrder.join("\n"))return;
+  sb.dataset.k=tagOrder.join("\n");sb.innerHTML=html;
+  if(fk!=null){const c=sb.querySelector('[data-tag="'+CSS.escape(fk)+'"]');if(c)c.focus({preventScroll:true})}
+}
+function flipSort(box,move){
+  const cs=[...box.querySelectorAll(".tag-chip:not(.drag)")];
+  const before=new Map(cs.map(c=>[c,c.getBoundingClientRect()]));
+  move();
+  if(reduceMotion())return;
+  for(const c of cs){
+    const a=before.get(c), b=c.getBoundingClientRect(), dx=a.left-b.left, dy=a.top-b.top;
+    if(dx||dy)c.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"none"}],{duration:220,easing:"cubic-bezier(.16,1,.3,1)"});
+  }
+}
+/* 「畫面維持原位」改釘在整區標籤上（不是被拖的那顆，它換了位置畫面就會跟著跑） */
+const saveSortDom=()=>{stayMark($("ltSortChips"));const o=[...$("ltSortChips").querySelectorAll(".tag-chip")].map(c=>c.dataset.tag);$("ltSortChips").dataset.k=o.join("\n");setTagOrder(o);render()};
+let tagDrag=null;
+$("ltSortChips").addEventListener("pointerdown",e=>{
+  const c=e.target.closest(".tag-chip");if(!c||e.button>0)return;
+  e.preventDefault();
+  const r=c.getBoundingClientRect();
+  tagDrag={c,id:e.pointerId,ox:e.clientX-r.left,oy:e.clientY-r.top,moved:false};
+  c.setPointerCapture(e.pointerId);c.classList.add("drag");
+});
+$("ltSortChips").addEventListener("pointermove",e=>{
+  if(!tagDrag||e.pointerId!==tagDrag.id)return;
+  const {c}=tagDrag, box=$("ltSortChips");
+  /* 先放回原位量位置，再找手指底下的標籤，決定插到它前面還是後面；拖的那顆跟著手指走，其他的用動畫讓位 */
+  c.style.transform="";
+  let tgt=null;
+  for(const o of box.querySelectorAll(".tag-chip:not(.drag)")){const r=o.getBoundingClientRect();if(e.clientX>=r.left-4&&e.clientX<=r.right+4&&e.clientY>=r.top-4&&e.clientY<=r.bottom+4){tgt=o;break}}
+  if(tgt){
+    const r=tgt.getBoundingClientRect(), ref=e.clientX>r.left+r.width/2?tgt.nextElementSibling:tgt;
+    if(ref!==c&&ref!==c.nextElementSibling){flipSort(box,()=>box.insertBefore(c,ref));tagDrag.moved=true}
+  }
+  const r=c.getBoundingClientRect();
+  c.style.transform="translate("+(e.clientX-tagDrag.ox-r.left)+"px,"+(e.clientY-tagDrag.oy-r.top)+"px)";
+});
+function endTagDrag(e){
+  if(!tagDrag||e.pointerId!==tagDrag.id)return;
+  const {c,moved}=tagDrag;tagDrag=null;
+  const r0=c.getBoundingClientRect();c.style.transform="";c.classList.remove("drag");
+  const r1=c.getBoundingClientRect();
+  if(!reduceMotion())c.animate([{transform:"translate("+(r0.left-r1.left)+"px,"+(r0.top-r1.top)+"px)"},{transform:"none"}],{duration:200,easing:"cubic-bezier(.16,1,.3,1)"});
+  if(moved)saveSortDom();
+}
+$("ltSortChips").addEventListener("pointerup",endTagDrag);
+$("ltSortChips").addEventListener("pointercancel",endTagDrag);
+$("ltSortChips").addEventListener("keydown",e=>{
+  const c=e.target.closest(".tag-chip");if(!c)return;
+  const k=e.key, back=k==="ArrowLeft"||k==="ArrowUp", fwd=k==="ArrowRight"||k==="ArrowDown";
+  if(!back&&!fwd)return;
+  e.preventDefault();
+  const box=$("ltSortChips"), ref=back?c.previousElementSibling:c.nextElementSibling;
+  if(!ref)return;
+  stayMark(box);
+  flipSort(box,()=>back?box.insertBefore(c,ref):box.insertBefore(ref,c));
+  c.focus();saveSortDom();c.focus();
 });
 
 /* ---------- 明細最下面：各標籤占花費的比例（跟著上面看的月份／那一天、全部／私人／工作） ---------- */
