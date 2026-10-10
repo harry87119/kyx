@@ -1196,7 +1196,7 @@ const LATEST_SERVER_V=3, LS_SHEETLINK="kyx-sheetlink-v1";
 let sheetLink=lsGet(LS_SHEETLINK)||"";
 let serverV=Number(lsGet(LS_SERVERV))||0, prefsTimer=null, lastPrefs="";
 const syncedNotes=()=>{const n=Object.assign({},notes);return n};
-const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView,listSort,tagOrder,tagCustom}};
+const prefsObj=()=>{let theme="";try{theme=localStorage.getItem("kyx-theme")||""}catch(e){}return {theme,listView,listSort,tagOrder,tagCustom,tagOff}};
 const prefsKey=()=>JSON.stringify([syncedNotes(),prefsObj()]);
 function syncPrefs(){
   if(!cfg||serverV<2)return;
@@ -1229,6 +1229,7 @@ function applyRemotePrefs(rn,rp){
       document.querySelectorAll(".views button").forEach(b=>b.classList.toggle("on",b.dataset.v===listView));
     }
     if(Array.isArray(rp.tagCustom)&&!tagAdding)setTagCustom(rp.tagCustom,true);
+    if(Array.isArray(rp.tagOff)&&!tagAdding)setTagOff(rp.tagOff,true);
     if(Array.isArray(rp.tagOrder))setTagOrder(rp.tagOrder,true);
     if(SORTS.some(x=>x[0]===rp.listSort)&&rp.listSort!==listSort){listSort=rp.listSort;lsSet(LS_LISTSORT,listSort)}
   }
@@ -1471,7 +1472,11 @@ const LS_TAGORDER="kyx-tag-order-v1", LS_TAGCUSTOM="kyx-tag-custom-v1", TAG_MAX=
 const cleanTag=t=>String(t==null?"":t).replace(/\s+/g," ").trim().slice(0,TAG_MAX);
 const normTagCustom=l=>(Array.isArray(l)?l:[]).map(cleanTag).filter((t,i,a)=>t&&!TAGS.includes(t)&&a.indexOf(t)===i);
 let tagCustom=normTagCustom(lsGet(LS_TAGCUSTOM));
-const allTags=()=>TAGS.concat(tagCustom);
+/* 內建標籤也可以刪：刪掉的記在 tagOff（也同步）；之後用「＋」打一樣的名字就加回來 */
+const LS_TAGOFF="kyx-tag-off-v1";
+const normTagOff=l=>(Array.isArray(l)?l:[]).filter((t,i,a)=>TAGS.includes(t)&&a.indexOf(t)===i);
+let tagOff=normTagOff(lsGet(LS_TAGOFF));
+const allTags=()=>TAGS.filter(t=>!tagOff.includes(t)).concat(tagCustom);
 const normTagOrder=o=>{const all=allTags(), a=Array.isArray(o)?o.filter((t,i)=>all.includes(t)&&o.indexOf(t)===i):[];return a.concat(all.filter(t=>!a.includes(t)))};
 let tagOrder=normTagOrder(lsGet(LS_TAGORDER));
 let tagAdding=false;
@@ -1481,6 +1486,16 @@ function setTagOrder(o,fromRemote){
   drawTagChips();
   if(!fromRemote&&typeof syncPrefs==="function")syncPrefs();
   if(fromRemote&&typeof render==="function")render();
+  return true;
+}
+function setTagOff(l,fromRemote){
+  const n=normTagOff(l);if(n.join()===tagOff.join())return false;
+  tagOff=n;lsSet(LS_TAGOFF,tagOff);
+  tagOrder=normTagOrder(tagOrder);lsSet(LS_TAGORDER,tagOrder);
+  drawTagChips();
+  if(curTag&&!allTags().includes(curTag)){curTag="";drawTagBtn()}
+  if(!fromRemote&&typeof syncPrefs==="function")syncPrefs();
+  if(typeof render==="function")render();
   return true;
 }
 function setTagCustom(l,fromRemote){
@@ -1493,7 +1508,8 @@ function setTagCustom(l,fromRemote){
   if(typeof render==="function")render();
   return true;
 }
-const chipHTML=(t,sel)=>{const mine=tagCustom.includes(t);return '<button type="button" class="tag-chip'+(t===sel?' on':'')+(mine?' mine':'')+'" data-tag="'+esc(t)+'" aria-pressed="'+(t===sel)+'">'+esc(t)+(mine?'<span class="tag-x" aria-hidden="true"></span>':'')+'</button>'};
+const chipHTML=(t,sel)=>{const mine=true;   // 每一顆都能刪（按「＋」時右邊出現 ×）
+return '<button type="button" class="tag-chip'+(t===sel?' on':'')+(mine?' mine':'')+'" data-tag="'+esc(t)+'" aria-pressed="'+(t===sel)+'">'+esc(t)+(mine?'<span class="tag-x" aria-hidden="true"></span>':'')+'</button>'};
 /* 明細編輯也用：那一筆的標籤後來被刪掉了，照樣顯示在最後 */
 const tagChipsHTML=sel=>{const l=tagOrder.slice();if(sel&&!l.includes(sel))l.push(sel);return l.map(t=>chipHTML(t,sel)).join("")};
 function drawTagChips(){
@@ -1501,14 +1517,14 @@ function drawTagChips(){
   /* 只換標籤，正在打的新標籤欄位留著（不會失去游標） */
   box.querySelectorAll(".tag-chip").forEach(c=>c.remove());
   box.insertAdjacentHTML("afterbegin",tagOrder.map(t=>chipHTML(t,curTag)).join(""));
-  if(tagAdding)box.querySelectorAll(".tag-chip.mine").forEach(c=>c.setAttribute("aria-label",c.dataset.tag+"（自己新增的，按 Delete 刪除）"));
+  if(tagAdding)box.querySelectorAll(".tag-chip.mine").forEach(c=>c.setAttribute("aria-label",c.dataset.tag+"（按 Delete 刪除）"));
 }
 function drawTagBtn(){
   $("tagBtnT").textContent=curTag||"選擇";
   $("tagBtn").classList.toggle("has",!!curTag);
   $("tagChips").querySelectorAll(".tag-chip").forEach(c=>{const on=c.dataset.tag===curTag;c.classList.toggle("on",on);c.setAttribute("aria-pressed",String(on))});
 }
-const tagHint=()=>{$("tagHint").textContent=tagAdding?"最多 "+TAG_MAX+" 個字，打好按「完成」或 Enter。"+(tagCustom.length?"自己新增的標籤按 × 可以刪掉。":""):""};
+const tagHint=()=>{$("tagHint").textContent=tagAdding?"最多 "+TAG_MAX+" 個字，打好按「完成」或 Enter。按標籤右邊的 × 可以刪掉（刪掉的內建標籤，用＋打一樣的名字就會回來）。":""};
 function setTagAdding(on){
   if(tagAdding===on)return;
   tagAdding=on;
@@ -1543,8 +1559,9 @@ function addTag(raw){
     if(c){c.classList.remove("flash");void c.offsetWidth;c.classList.add("flash")}
     return false;
   }
-  tagCustom=tagCustom.concat(t);lsSet(LS_TAGCUSTOM,tagCustom);
-  tagOrder=tagOrder.concat(t);lsSet(LS_TAGORDER,tagOrder);
+  if(TAGS.includes(t)){tagOff=tagOff.filter(x=>x!==t);lsSet(LS_TAGOFF,tagOff)}   // 刪掉的內建標籤：加回來
+  else{tagCustom=tagCustom.concat(t);lsSet(LS_TAGCUSTOM,tagCustom)}
+  tagOrder=tagOrder.filter(x=>x!==t).concat(t);lsSet(LS_TAGORDER,tagOrder);
   curTag=t;   // 新增的直接選起來
   drawTagChips();drawTagBtn();
   const c=box.querySelector('.tag-chip[data-tag="'+CSS.escape(t)+'"]');
@@ -1569,12 +1586,14 @@ function removeTag(t){
   const at=tagOrder.indexOf(t);
   const go=()=>{
     tagOrder=tagOrder.filter(x=>x!==t);lsSet(LS_TAGORDER,tagOrder);
-    tagCustom=tagCustom.filter(x=>x!==t);lsSet(LS_TAGCUSTOM,tagCustom);
+    if(TAGS.includes(t)){tagOff=tagOff.concat(t);lsSet(LS_TAGOFF,tagOff)}
+    else{tagCustom=tagCustom.filter(x=>x!==t);lsSet(LS_TAGCUSTOM,tagCustom)}
     if(curTag===t){curTag="";drawTagBtn()}
     flipChips(box,()=>{if(c)c.remove()});
     tagHint();syncPrefs();render();
     snack("已刪除標籤「"+t+"」。用過這個標籤的紀錄不會變。",()=>{
-      tagCustom=tagCustom.concat(t);lsSet(LS_TAGCUSTOM,tagCustom);
+      if(TAGS.includes(t)){tagOff=tagOff.filter(x=>x!==t);lsSet(LS_TAGOFF,tagOff)}
+      else{tagCustom=tagCustom.concat(t);lsSet(LS_TAGCUSTOM,tagCustom)}
       const o=tagOrder.filter(x=>x!==t);o.splice(Math.min(at,o.length),0,t);
       tagOrder=normTagOrder(o);lsSet(LS_TAGORDER,tagOrder);
       drawTagChips();tagHint();syncPrefs();render();
