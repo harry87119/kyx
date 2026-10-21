@@ -39,7 +39,7 @@ color-scheme:dark;
 --line:rgba(255,255,255,.16);--line-2:rgba(255,255,255,.24);--line-strong:rgba(255,255,255,.56);--bar-track:rgba(255,255,255,.30);
 --invert-bg:#ffffff;--invert-fg:#000000;
 --focus:#03c2b8;--accent-text:#03c2b8;--gold-text:#a89379;
---expense:#f92c16;--income:#03c2b8;--input-ink:#03c2b8;
+--expense:#f92c16;--income:#03c2b8;--input-ink:#03c2b8;--low-line:#ffbb22;
 /* 給程式用的別名 */
 --accent:var(--accent-text);--warn:var(--expense);--muted:var(--fg-3);--ink:var(--fg);
 }
@@ -51,7 +51,7 @@ color-scheme:light;
 --line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;--bar-track:rgba(0,0,0,.24);
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
---expense:#f92c16;--income:#00807a;--input-ink:#00807a;
+--expense:#f92c16;--income:#00807a;--input-ink:#00807a;--low-line:#d39a00;
 }}
 :root[data-theme="light"]{
 color-scheme:light;
@@ -60,7 +60,7 @@ color-scheme:light;
 --line:rgba(0,0,0,.16);--line-2:rgba(0,0,0,.24);--line-strong:#000000;--bar-track:rgba(0,0,0,.24);
 --invert-bg:#000000;--invert-fg:#ffffff;
 --focus:#00807a;--accent-text:#00807a;--gold-text:#7a6650;
---expense:#f92c16;--income:#00807a;--input-ink:#00807a;
+--expense:#f92c16;--income:#00807a;--input-ink:#00807a;--low-line:#d39a00;
 }
 
 /* ===== 基礎 ===== */
@@ -170,7 +170,9 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .work{display:none}
 .work.on{display:block;margin:6px 0 4px;animation:pop-in 260ms var(--ease-settle) both}
 .work-h{display:flex;align-items:baseline;gap:12px;margin:14px 0 4px;font-family:var(--font-han-sans);font-size:15px;font-weight:700;letter-spacing:.08em}
-.notice-empty{margin:0}
+.notice-empty{margin:0;display:flex;flex-direction:column;gap:6px}
+.notice-empty .ne-t{font-size:15px;letter-spacing:.04em;color:var(--fg-2)}
+.notice-empty .ne-s{font-size:12.5px;line-height:1.7;letter-spacing:.04em;color:var(--fg-3)}
 /* 手機（和窄的平板）：分頁，一次只顯示一頁，下面一排分頁列 */
 @media (max-width:959px){
   .page{display:block}
@@ -218,7 +220,7 @@ section,details.settings,#sec-hero,#settleLabel{scroll-margin-top:124px}
 .mini-sum{align-items:center;gap:18px;width:100%;margin:0 0 -24px;padding:7px 14px;border:0;text-align:left;cursor:pointer;transition:background var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
 .mini-sum .ms-i{display:flex;align-items:baseline;gap:7px;min-width:0}   /* 標籤和數字同一行，整條更扁 */
 .mini-sum .ms-l{font-size:11px;letter-spacing:.12em;opacity:.8}
-.mini-sum b{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px;font-weight:500;white-space:nowrap}
+.mini-sum b{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-size:16px;font-weight:400;white-space:nowrap}
 .mini-sum b.bump{animation:ms-bump 420ms var(--ease-settle)}
 @keyframes ms-bump{0%{opacity:.25;transform:translateY(6px)}100%{opacity:1;transform:none}}
 .mini-sum .ms-go{margin-left:auto;width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
@@ -257,7 +259,7 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .alert.folded .n-wrap{grid-template-rows:0fr}
 .n-list{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}
 @media (max-width:560px){.n-head .b-label{display:none}.n-head .n-act{margin-left:auto}}
-.notice{position:relative;--bar:var(--gh-red);padding:14px 16px;background:var(--bg-raised);border:1px solid var(--line);border-left:4px solid var(--bar);font-size:14px;line-height:1.6;letter-spacing:.02em}
+.notice{position:relative;--bar:var(--gh-red);padding:14px 16px;background:var(--bg-raised);border:1px solid var(--line);border-left:3px solid var(--bar);font-size:14px;line-height:1.6;letter-spacing:.02em}
 .notice[data-kind="ask"]{--bar:var(--gh-amber)}
 .notice[data-kind="alloc"]{--bar:var(--gh-gold)}
 .notice[data-kind="info"]{--bar:var(--gh-turquoise)}
@@ -289,6 +291,8 @@ details.settings.closing .sum-right::after{transform:translateY(-3px) rotate(45d
 .tt-arr{width:9px;height:9px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:translateY(2px) rotate(45deg);transition:transform var(--dur-fast) var(--ease)}
 .tt-l{font-family:var(--font-display);font-size:9px;font-weight:500;letter-spacing:.2em;line-height:1;margin-right:-.2em}
 body.typing .to-top{display:none}
+/* 明細點開一筆的時候也收起來：編輯區最右邊的刪除鈕在畫面底部時，才不會被它蓋住 */
+body.editing .to-top{opacity:0;transform:translateY(12px);pointer-events:none}
 body.head-folded .topbar,body.head-folded #miniSum,body.head-folded #sec-entry>.sec-head{display:none}
 @media (max-width:560px){.to-top{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px}}
 
@@ -309,15 +313,18 @@ body.head-folded .topbar,body.head-folded #miniSum,body.head-folded #sec-entry>.
 }
 @media (min-width:960px){.panels>.panel{min-height:300px;padding:28px}}
 .panel{display:flex;flex-direction:column;justify-content:flex-start;gap:28px;padding:24px;min-height:200px;min-width:0;container-type:inline-size}
-.panel .b-label{color:inherit}
+.panel .b-label{color:var(--fg-2)}
 /* 還可花的三種顏色：充裕／注意＝綠 #A8DA40、緊繃＝琥珀 #FFBB22、超支／不夠＝紅 #F92C16。
-   色塊只畫外框，字照一般顏色；顏色出現在外框和右上角的小方塊。超支例外，整塊塗滿紅色（見下面） */
+   平常安靜、出狀況才有顏色：充裕只有右上角的小方塊是綠的（外框細灰線、長條用字色）；
+   緊繃＝細的琥珀色外框和長條；超支＝整塊塗滿紅色（見下面） */
 .tone-ok{--tone:var(--ok)}
 .tone-low{--tone:var(--low)}
 .tone-over{--tone:var(--gh-red)}
-.panel.tone-ok,.panel.tone-low,.panel.tone-over,.mini-sum{background:transparent;border:2px solid var(--tone,var(--line));color:var(--fg)}
+.panel.tone-ok,.panel.tone-low,.panel.tone-over,.mini-sum{background:transparent;border:1px solid var(--frame,var(--line-2));color:var(--fg)}
+.tone-ok{--fill:var(--fg)}
+.tone-low{--frame:var(--low-line);--fill:var(--low)}
 /* 超支例外：整塊塗滿紅色、白字，一眼就看得出來（長條、右上角小方塊改白色） */
-.panel.tone-over,.mini-sum.tone-over{background:var(--gh-red);border-color:var(--gh-red);--tone:#fff;--fg:#fff;--fg-2:rgba(255,255,255,.85);--fg-3:rgba(255,255,255,.72);--line:rgba(255,255,255,.32);--focus:#fff;--expense:#fff;color:#fff}
+.panel.tone-over,.mini-sum.tone-over{background:var(--gh-red);border-color:var(--gh-red);--tone:#fff;--fill:#fff;--fg:#fff;--fg-2:rgba(255,255,255,.85);--fg-3:rgba(255,255,255,.72);--line:rgba(255,255,255,.32);--focus:#fff;--expense:#fff;color:#fff}
 .panel{transition:border-color var(--dur-base) var(--ease-wipe),background-color var(--dur-base) var(--ease-wipe),color var(--dur-base) var(--ease-wipe)}
 .panel .neg{color:inherit}
 /* 兩塊的大數字放在同一個高度（標題下面），下面的小字和長條貼齊底部 */
@@ -326,8 +333,8 @@ body.head-folded .topbar,body.head-folded #miniSum,body.head-folded #sec-entry>.
 .panel-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .tone-tag{flex:none;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-han-sans);font-size:12px;font-weight:700;letter-spacing:.14em;line-height:1.2}
 .tone-tag::before{content:"";width:8px;height:8px;background:var(--tone,currentColor)}
-.big{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1;font-size:64px;font-size:clamp(40px,17cqi,88px);white-space:nowrap}
-.mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:400;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
+.big{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:300;letter-spacing:-.01em;line-height:1;font-size:64px;font-size:clamp(40px,17cqi,88px);white-space:nowrap}
+.mid{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:300;letter-spacing:-.01em;line-height:1.05;font-size:40px;overflow-wrap:anywhere}
 .panel .mid{font-size:40px;font-size:clamp(28px,12cqi,48px);white-space:nowrap}
 .panel .big.is-short{font-size:40px;font-size:clamp(28px,12cqi,48px)}
 .dg{display:inline-block;height:1em;overflow:hidden;vertical-align:top;line-height:1}
@@ -342,7 +349,7 @@ body.head-folded .topbar,body.head-folded #miniSum,body.head-folded #sec-entry>.
 .cmp-v{text-align:right;white-space:nowrap;min-width:3.6em}
 .cmp-bar{position:relative;height:8px;background:var(--line)}
 .cmp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;transform-origin:left;animation:b-wipe var(--dur-reveal) var(--ease-wipe) both;transition:width var(--dur-reveal) var(--ease-wipe)}
-.cmp-bar.money i{background:var(--tone,var(--fg))}   /* 進度條跟色塊外框同色（綠／琥珀／紅） */
+.cmp-bar.money i{background:var(--fill,var(--fg))}   /* 充裕＝字色、緊繃＝琥珀、超支＝白 */
 .panel-sub{font-family:var(--font-display);font-size:12px;letter-spacing:.08em;margin-top:12px;line-height:1.6}
 .panel .panel-sub{color:var(--fg-2)}
 .panel .panel-sub .num{color:var(--fg)}
@@ -350,7 +357,7 @@ body.head-folded .topbar,body.head-folded #miniSum,body.head-folded #sec-entry>.
 .reserve{font-size:12.5px;color:var(--fg-3);letter-spacing:.02em}
 
 /* ===== 剩餘資產・下次發薪日：兩塊還可花下面的一條，點箭頭才展開 ===== */
-.balance{background:var(--bg-raised);border:1px solid var(--line-2);margin-top:-10px;padding:0 24px}
+.balance{background:transparent;border:1px solid var(--line-2);margin-top:-10px;padding:0 24px}
 .balance summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:16px 0;font-family:var(--font-han-sans);font-size:14px;font-weight:500;letter-spacing:.08em;color:var(--fg)}
 .balance summary .b-label{margin-left:auto}
 .balance summary::-webkit-details-marker{display:none}
@@ -359,14 +366,14 @@ body.head-folded .topbar,body.head-folded #miniSum,body.head-folded #sec-entry>.
 .balance[open] .chev{transform:translateY(2px) rotate(225deg)}
 .balance-body{padding:4px 0 22px;border-top:1px solid var(--line)}
 .balance-body>div{padding-top:16px}
-.bal-num{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:28px;line-height:1.1;margin-top:4px}
+.bal-num{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-weight:300;font-size:28px;line-height:1.1;margin-top:4px}
 .balance-body .sub{margin-top:8px}
 .wf{margin-top:8px;display:flex;flex-direction:column}
 .wf-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;font-size:13.5px;letter-spacing:.04em;color:var(--fg-2)}
 .wf-row .num{font-size:16px;color:var(--fg);white-space:nowrap}
 .wf-sub{border-top:1px solid var(--line)}
 .wf-total{border-top:2px solid var(--fg);color:var(--fg);font-weight:700;margin-top:4px}
-.wf-total .num{font-size:22px}
+.wf-total .num{font-size:22px;font-weight:400}
 .wf-note{font-size:11.5px;color:var(--fg-3);margin:-4px 0 4px;letter-spacing:.02em}
 .wf-note:empty{display:none}
 .wf-row>span:first-child{display:block;min-width:0}
@@ -401,8 +408,8 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .fx-check .box::after{content:"";width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg) scale(0);transition:transform 200ms var(--ease-settle)}
 .fx-check input:checked+.box::after{transform:translateY(-1px) rotate(45deg) scale(1)}
 .fx-check input:focus-visible+.box{outline:1px solid var(--focus);outline-offset:2px}
-.fx-pick-wrap{display:grid;grid-template-rows:0fr;opacity:0;margin-top:0;transition:grid-template-rows 280ms var(--ease-wipe),opacity 200ms var(--ease),margin-top 280ms var(--ease-wipe)}
-.fx-pick-wrap.open{grid-template-rows:1fr;opacity:1;margin-top:14px}
+.fx-pick-wrap{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-20px;transition:grid-template-rows 280ms var(--ease-wipe),opacity 200ms var(--ease),margin-top 280ms var(--ease-wipe)}
+.fx-pick-wrap.open{grid-template-rows:1fr;opacity:1;margin-top:-6px}   /* 收起來時抵掉上下的間距（.entry 的 gap 20px） */
 .fx-pick-wrap>.fx-pick{min-height:0;overflow:hidden}
 .fx-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:12.5px;letter-spacing:.06em;color:var(--fg-2)}
 .fx-chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -446,10 +453,13 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .tag-chip{min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:0;background:transparent;color:var(--fg-2);font-family:var(--font-han-sans);font-size:14px;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .tag-chip:hover{color:var(--fg);border-color:var(--fg-3)}
 .tag-chip.on{color:var(--input-ink);border-color:var(--focus)}
-.tag-lbl{display:inline-block;margin-right:8px;padding:0 6px;border:1px solid var(--line-2);font-size:12px;line-height:1.5;letter-spacing:.06em;color:var(--fg-2);vertical-align:1px}
+.tag-lbl{display:inline-block;margin-right:8px;padding:0 6px;border:1px solid var(--line);font-size:12px;line-height:1.5;letter-spacing:.06em;color:var(--fg-2);vertical-align:1px}
 /* 明細：點一筆就地展開編輯 */
-#list li[data-eid],#list li[data-pend]{cursor:pointer}
-#list li[data-eid]:hover .n,#list li[data-pend]:hover .n{color:var(--input-ink)}
+#list li[data-eid],#list li[data-pend],#list li[data-vid]{cursor:pointer;grid-template-columns:10px minmax(0,1fr) auto}
+#list li[data-eid]:hover .n,#list li[data-pend]:hover .n,#list li[data-vid]:hover .n{color:var(--input-ink)}
+#list li:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+/* 編輯區裡的刪除（或「這期不扣」「恢復這期」）放在最右邊，跟儲存分開 */
+.edit-acts .del{margin-left:auto}
 .edit-wrap{grid-column:1/-1;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows 300ms var(--ease-wipe),opacity 220ms var(--ease)}
 .edit-wrap.open{grid-template-rows:1fr;opacity:1}
 .edit-wrap>.edit{min-height:0;overflow:hidden}
@@ -459,7 +469,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .edit .b-input{font-size:16px}
 .edit .e-amt{font-family:var(--font-display);font-size:22px;font-variant-numeric:tabular-nums}
 .edit-hint{font-size:12.5px;color:var(--fg-3);margin:0}
-.edit-acts{display:flex;gap:10px;margin-bottom:4px}
+.edit-acts{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px}
 .snack{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;align-items:center;gap:14px;max-width:min(560px,calc(100vw - 32px));padding:12px 16px;background:var(--fg);color:var(--bg);font-size:14px;letter-spacing:.04em;line-height:1.5;transform:translate(-50%,16px);opacity:0;pointer-events:none;transition:transform 260ms var(--ease-settle),opacity 200ms var(--ease)}
 .snack.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
 .snack.bad{background:var(--gh-red);color:#fff}
@@ -470,7 +480,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .amount-row{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);transition:border-color var(--dur-fast) var(--ease)}
 .amount-row:focus-within{border-bottom-color:var(--focus)}
 .amount-row .cur{font-family:var(--font-display);font-size:13px;letter-spacing:.16em;color:var(--fg-3)}
-#amount{flex:1;min-width:0;border:0;background:transparent;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:48px;font-weight:400;line-height:1.1;padding:6px 0;outline:none}
+#amount{flex:1;min-width:0;border:0;background:transparent;font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-size:48px;font-weight:300;line-height:1.1;padding:6px 0;outline:none}
 #amount::placeholder{color:var(--fg-3)}
 .meta{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:14px;row-gap:0;align-items:end}   /* 標籤／備註／日期 */
 .meta .b-input{height:44px;padding-top:0;padding-bottom:0;line-height:44px}
@@ -515,7 +525,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .settle-col{min-width:0;display:flex;flex-direction:column}
 /* 誰欠誰：顏色跟著方向走，方向一翻轉顏色就換；出現時從下方升起 */
 /* 誰欠誰：不畫框。跟各區塊標題一樣，上面一條粗線（顏色＝方向），下面是英文小標、粗黑體「我欠公司」、大金額 */
-.settle{--dir:var(--gh-turquoise);background:transparent;border:0;border-top:4px solid var(--dir);color:var(--fg);padding:14px 0 4px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1;--on-cat:#000}
+.settle{--dir:var(--gh-turquoise);background:transparent;border:0;border-top:2px solid var(--dir);color:var(--fg);padding:14px 0 4px;display:flex;flex-direction:column;gap:4px;min-width:0;container-type:inline-size;flex:1;--on-cat:#000}
 .settle.owe{--dir:var(--gh-red)}   /* 我欠公司＝超支紅 */
 .settle.owed{--dir:var(--gh-turquoise)}
 .settle:not([hidden]){animation:b-rise var(--dur-base) var(--ease-settle) both}
@@ -528,15 +538,15 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .settle .dl.show{opacity:1;transform:none}
 .settle .sub{font-size:11.5px;color:inherit;opacity:.8}
 /* 已收到＝錢回到我這邊，黑色由下往上升；已還清＝錢還給公司，黑色由上往下降（滑過、按下都會跑） */
-.clear{position:relative;isolation:isolate;overflow:hidden;align-self:flex-start;margin-top:10px;padding:0 22px;min-width:124px;min-height:44px;border:1px solid var(--fg);border-radius:0;background:transparent;color:var(--fg);font-family:var(--font-display);font-size:12px;font-weight:500;letter-spacing:.16em;transition:color var(--dur-base) var(--ease-wipe)}
-.clear::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--fg);transform:scaleY(0);transition:transform var(--dur-base) var(--ease-wipe);pointer-events:none}
+.clear{position:relative;isolation:isolate;overflow:hidden;align-self:flex-start;margin-top:10px;padding:0 22px;min-width:124px;min-height:44px;border:1px solid var(--gh-gold);border-radius:0;background:transparent;color:var(--gold-text);font-family:var(--font-display);font-size:12px;font-weight:500;letter-spacing:.16em;transition:color var(--dur-base) var(--ease-wipe)}
+.clear::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--gh-gold);transform:scaleY(0);transition:transform var(--dur-base) var(--ease-wipe);pointer-events:none}
 .settle.owe .clear::before{transform-origin:top}
 .settle.owed .clear::before{transform-origin:bottom}
 .clear:hover::before,.clear:focus-visible::before,.clear.armed::before{transform:scaleY(1)}
-.clear:hover,.clear:focus-visible,.clear.armed{color:var(--bg)}
+.clear:hover,.clear:focus-visible,.clear.armed{color:#000}
 .clear.sent::before{animation:b-fill 640ms var(--ease-wipe) both}
 .clear.sent{animation:b-fill-clear 640ms var(--ease-wipe) both}
-@keyframes b-fill-clear{0%,20%{color:#000}60%,100%{color:var(--dir)}}
+@keyframes b-fill-clear{0%,20%{color:var(--gold-text)}60%,100%{color:#000}}
 .toast{font-size:13px;min-height:1.2em;letter-spacing:.02em}
 
 /* ===== 固定支出、工作帳 ===== */
@@ -554,7 +564,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .fx-row.vary::before{background:transparent;border:1px dashed var(--fg-3)}
 .fx-total small{display:block;margin-top:2px;font-weight:400;font-size:11px;letter-spacing:.04em;color:var(--fg-3)}
 .fx-total{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:14px 0 4px;border-top:2px solid var(--fg);margin-top:-1px;font-family:var(--font-han-sans);font-weight:700;letter-spacing:.06em}
-.fx-total .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:22px;white-space:nowrap}
+.fx-total .fx-amt{font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-size:24px;font-weight:400;white-space:nowrap}
 .fx-group+.fx-group{margin-top:22px}
 .fx-group .fx-gh{margin-top:0}
 .fx-ghint{margin:8px 0 2px;font-size:12px;line-height:1.6;color:var(--fg-3)}
@@ -590,7 +600,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator{background:var(--gh-
 .ln-arr.next{transform:translateX(-2px) rotate(-45deg)}
 .ln-mid{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .ln-title{font-family:var(--font-han-sans);font-size:17px;font-weight:700;letter-spacing:.1em;white-space:nowrap}
-.ln-title .num{font-family:var(--font-display);font-weight:500;letter-spacing:.02em}
+.ln-title .num{font-family:var(--font-display);font-weight:400;letter-spacing:.02em}
 .ln-now{background:none;border:0;padding:0;font-family:var(--font-han-sans);font-size:12px;letter-spacing:.12em;color:var(--gold-text);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .ln-now:hover{color:var(--gh-gold)}
 .swap{animation:l-swap 260ms var(--ease-settle) both}
@@ -695,11 +705,13 @@ padding-top:28px;color:var(--kw-fg)}
 .lt-result .num{font-family:var(--font-display);font-variant-numeric:tabular-nums}
 .d-date{margin-right:8px;color:var(--fg-2);letter-spacing:.06em}
 /* 這個月／這一天的小計 */
-.list-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;margin-bottom:6px}
-.ls-item{background:var(--bg-card);padding:12px 14px;min-width:0}
+/* 小計：不畫色塊，上下細線、中間用直線隔開（跟「花在哪裡」一樣只用線） */
+.list-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:2px 0 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ls-item{padding:12px 0 12px 16px;min-width:0;border-left:1px solid var(--line)}
+.ls-item:first-child{padding-left:0;border-left:0}
 .ls-l{display:block;font-size:11.5px;letter-spacing:.1em;color:var(--fg-3)}
-.ls-v{display:block;margin-top:4px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:420px){.ls-item{padding:10px}.ls-v{font-size:16px}}
+.ls-v{display:block;margin-top:4px;font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-size:20px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){.ls-item{padding-left:12px}.ls-v{font-size:18px}}
 .filters button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:0 0 12px;font-family:var(--font-han-sans);font-size:14px;letter-spacing:.12em;color:var(--fg-3);transition:color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
 .filters button:hover{color:var(--fg)}
 .filters button.on{color:var(--fg)}
@@ -756,7 +768,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .saved-tag.show{opacity:1;transform:none}
 .set-row .b-input{width:180px;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:16px}
 .set-col{display:flex;flex-direction:column;gap:18px;margin-top:6px}
-.suggest{border-left:4px solid var(--gh-gold);background:var(--bg-card);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.suggest{border-left:3px solid var(--gh-gold);background:var(--bg-card);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
 .sg-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;color:var(--fg-2)}
 .sg-row .num{font-size:18px;color:var(--fg)}
 .pct-row>span:first-child{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -786,7 +798,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
 .set-note{margin-top:12px;font-size:12.5px;color:var(--fg-3)}
 .set-note:empty{display:none}
 .set-note.bad{color:var(--expense)}
-.confirm{margin-top:16px;padding:16px;background:var(--bg-raised);border:1px solid var(--line);border-left:4px solid var(--gh-amber);font-size:14px;line-height:1.6}
+.confirm{margin-top:16px;padding:16px;background:var(--bg-raised);border:1px solid var(--line);border-left:3px solid var(--gh-amber);font-size:14px;line-height:1.6}
 .confirm .set-row{margin-top:14px}
 
 @keyframes b-wipe{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -1070,7 +1082,7 @@ details.settings[open] .sum-right::after{transform:translateY(1px) rotate(225deg
     <div class="pane" data-pane="notice">
       <section class="notices" id="sec-notice" aria-label="通知">
         <div class="sec-head"><h2 class="sec-han">通知</h2><span class="b-label">Notice</span></div>
-        <p class="empty notice-empty" id="noticeEmpty">目前沒有通知。</p>
+        <p class="empty notice-empty" id="noticeEmpty"><span class="ne-t">目前沒有通知</span><span class="ne-s">錢快不夠、該填發薪日，或試算表程式要更新時，會出現在這裡。</span></p>
         <div class="alert" id="alert" hidden>
           <button type="button" class="n-head" id="noticeHead" aria-expanded="true" aria-controls="noticeList">
             <span class="n-dots" id="noticeDots" aria-hidden="true"></span><span id="noticeTitle">提示</span>
@@ -1712,16 +1724,29 @@ function collapseOut(el,done){
 }
 /* ---------- 明細：就地編輯 ---------- */
 let editKey=null, editDraft=null, editAnim=false;
+/* 刪除類的按鈕：按一次變「確定…」，3 秒內再按一次才算（自動扣款是「這期不扣」、刪掉的是「恢復這期」） */
+const delBtn=(e,label,restore)=>'<button type="button" class="b-btn b-btn--secondary b-btn--sm del" data-id="'+esc(e.id)+'"'+(e.virtual?' data-fid="'+esc(e.fid)+'" data-date="'+esc(e.date)+'"':'')+(restore?' data-restore="1"':'')+' data-label="'+label+'">'+label+'</button>';
 function editorEl(e,mode){
   const d=editDraft, showTags=mode==="edit"&&tagAllowed(e.type);
   const wrap=document.createElement("div");wrap.className="edit-wrap"+(editAnim?"":" open");
+  if(mode==="auto"){
+    const how=e.skipped?"這期（"+mdOf(e.date)+"）不扣。要照常扣就按「恢復這期」。"
+      :e.covered?"這期（"+mdOf(e.date)+"）已經記了實際金額，預估的 $"+fmt(e.est)+" 不算。"
+      :"每月自動扣款，這期（"+mdOf(e.date)+"）扣 $"+fmt(e.amount)+"。這期不用扣的話按「這期不扣」，下一期照常。";
+    wrap.innerHTML='<div class="edit"><p class="edit-hint">'+esc(how)+'</p><div class="edit-acts">'
+      +'<button type="button" class="b-btn b-btn--secondary b-btn--sm e-cancel">收起</button>'
+      +(e.skipped?delBtn(e,"恢復這期",true):delBtn(e,"這期不扣"))+'</div></div>';
+    if(editAnim){editAnim=false;requestAnimationFrame(()=>requestAnimationFrame(()=>wrap.classList.add("open")))}
+    return wrap;
+  }
   wrap.innerHTML='<div class="edit">'
     +(mode==="fx"?'<p class="edit-hint">記下這一期'+esc(e.note)+'的實際金額（預估 $'+fmt(e.est)+'），會取代預估，預留的錢放回來。</p>':'')
     +'<div class="edit-row"><label class="b-field"><span class="b-field__label">金額 / Amount</span><input class="b-input e-amt" inputmode="decimal" aria-label="金額"></label>'
     +'<label class="b-field"><span class="b-field__label">日期 / Date</span><input type="date" class="b-input e-date" aria-label="日期"></label></div>'
     +(showTags?'<div class="b-field"><span class="b-field__label">標籤 / Tag</span><div class="tag-chips e-tags">'+tagChipsHTML(d.tag)+'</div></div>':'')
     +'<label class="b-field"><span class="b-field__label">備註 / Note</span><input class="b-input e-note" maxlength="60" placeholder="選填" aria-label="備註"></label>'
-    +'<div class="edit-acts"><button type="button" class="b-btn b-btn--secondary b-btn--sm e-save">'+(mode==="fx"?"記下實際金額":"儲存")+'</button><button type="button" class="b-btn b-btn--secondary b-btn--sm e-cancel">取消</button></div></div>';
+    +'<div class="edit-acts"><button type="button" class="b-btn b-btn--secondary b-btn--sm e-save">'+(mode==="fx"?"記下實際金額":"儲存")+'</button><button type="button" class="b-btn b-btn--secondary b-btn--sm e-cancel">取消</button>'
+    +(mode==="fx"?delBtn(e,"這期不扣"):delBtn(e,"刪除"))+'</div></div>';
   wrap.querySelector(".e-amt").value=d.amount;wrap.querySelector(".e-date").value=d.date;wrap.querySelector(".e-note").value=d.note;
   if(editAnim){editAnim=false;requestAnimationFrame(()=>requestAnimationFrame(()=>wrap.classList.add("open")))}
   return wrap;
@@ -1730,8 +1755,10 @@ function openEditor(li){
   if(li.dataset.eid){
     const e=entries.find(x=>x.id===li.dataset.eid);if(!e)return;
     editKey=e.id;editDraft={amount:String(e.amount),date:e.date,note:e.note||"",tag:e.tag||""};
-  }else{
+  }else if(li.dataset.pend){
     editKey=li.dataset.pend;editDraft={amount:String(+li.dataset.est),date:todayStr(),note:"",tag:""};
+  }else{
+    editKey=li.dataset.vid;editDraft={amount:"",date:"",note:"",tag:""};
   }
   editAnim=true;armed=null;render();
 }
@@ -1787,24 +1814,37 @@ $("list").addEventListener("click",ev=>{
     return;
   }
   if(ev.target.closest(".del,button,a,input"))return;
-  const li=ev.target.closest("li[data-eid],li[data-pend]");if(!li)return;
-  const key=li.dataset.eid||li.dataset.pend;
+  const li=ev.target.closest("li[data-eid],li[data-pend],li[data-vid]");if(!li)return;
+  const key=li.dataset.eid||li.dataset.pend||li.dataset.vid;
+  if(editKey===key)closeEditor();else openEditor(li);
+});
+/* 鍵盤：在一列上按 Enter 或空白鍵＝點一下 */
+$("list").addEventListener("keydown",ev=>{
+  if(ev.key!=="Enter"&&ev.key!==" ")return;
+  const li=ev.target;if(!li.matches||!li.matches("li[data-eid],li[data-pend],li[data-vid]"))return;
+  ev.preventDefault();const key=li.dataset.eid||li.dataset.pend||li.dataset.vid;
   if(editKey===key)closeEditor();else openEditor(li);
 });
 /* ---------- 刪除 ---------- */
-let armed=null;
+let armed=null, armTimer=0;
 $("list").addEventListener("click",ev=>{
   const btn=ev.target.closest(".del");if(!btn)return;
   const id=btn.dataset.id;
+  const arm=()=>{
+    if(armed===id)return false;
+    armed=id;btn.classList.add("armed");btn.textContent=btn.dataset.fid?"確定這期不扣":"確定刪除";
+    clearTimeout(armTimer);armTimer=setTimeout(()=>{if(armed!==id)return;armed=null;if(btn.isConnected){btn.classList.remove("armed");btn.textContent=btn.dataset.label}},3000);
+    return true;
+  };
   if(btn.dataset.fid){
-    /* 自動扣款：刪除＝這一期不扣（記在那一項的 skip），恢復＝拿掉 */
+    /* 自動扣款：這期不扣（記在那一項的 skip），恢復＝拿掉 */
     const f=fixed.find(x=>x.id===btn.dataset.fid), d=btn.dataset.date;if(!f)return;
-    if(btn.dataset.restore){f.skip=(f.skip||[]).filter(x=>x!==d);if(!f.skip.length)delete f.skip;armed=null;persistSettings();render();toast("已恢復 "+mdOf(d)+" "+(f.name||"固定支出")+"，這期照常扣");return}
-    if(armed!==id){armed=id;render();return}
-    armed=null;f.skip=(f.skip||[]).concat(d);persistSettings();render();
-    toast("已刪除 "+mdOf(d)+" "+(f.name||"固定支出")+"，這期不扣（明細裡可以按「恢復」）");return;
+    if(btn.dataset.restore){f.skip=(f.skip||[]).filter(x=>x!==d);if(!f.skip.length)delete f.skip;armed=null;editKey=null;editDraft=null;persistSettings();render();toast("已恢復 "+mdOf(d)+" "+(f.name||"固定支出")+"，這期照常扣");return}
+    if(arm())return;
+    armed=null;editKey=null;editDraft=null;f.skip=(f.skip||[]).concat(d);persistSettings();render();
+    toast("已設定 "+mdOf(d)+" "+(f.name||"固定支出")+" 這期不扣（點那一列可以恢復）");return;
   }
-  if(armed!==id){armed=id;render();return}
+  if(arm())return;
   armed=null;
   /* 那一列先收起來，再真的刪掉 */
   const gone=entries.find(e=>e.id===id);
@@ -2933,6 +2973,7 @@ function renderCore(){
   const list=full.slice(0,shown);
   $("more").hidden=full.length<=shown;
 
+  document.body.classList.toggle("editing",!!editKey);
   /* 正在明細裡編輯（游標在編輯欄位裡）：先不重畫明細，免得同步回來時打到一半被洗掉 */
   if(editKey&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#list .edit"))return;
   const ul=$("list");ul.textContent="";
@@ -2964,7 +3005,7 @@ function renderCore(){
     amt.textContent=(T.sign>0?"+":"−")+fmt(e.amount);
     if(e.type==="fixpay"){n.textContent=e.note||fxName(e.fx);dd.textContent=(e.note?fxName(e.fx):"固定支出")+"・實際金額 · "+T.en}
     else if(e.virtual&&e.skipped){
-      n.textContent=e.note;dd.textContent="自動扣款・已刪除，這期不扣";
+      n.textContent=e.note;dd.textContent="自動扣款・這期不扣";
       amt.textContent="−"+fmt(e.est);amt.classList.add("struck");
     }else if(e.virtual&&e.vary){
       n.textContent=e.note;
@@ -2977,22 +3018,19 @@ function renderCore(){
     if(e.tag){const tg=document.createElement("span");tg.className="tag-lbl";tg.textContent=e.tag;n.prepend(tg)}
     if(byAmt&&listView==="month"){const dt=document.createElement("span");dt.className="d-date";dt.textContent=mdOf(e.date);dd.prepend(dt)}
     info.append(n,dd);
-    /* 點一筆就地展開編輯；浮動還沒記實際金額的那期，點了可以直接記實際金額 */
+    /* 點一筆就地展開：一般紀錄＝編輯（刪除也在裡面）；浮動還沒記實際金額的那期＝記實際金額；
+       自動扣款＝這期不扣／恢復。每一列不再各放一顆刪除鈕，明細看起來乾淨 */
     const pend=e.virtual&&e.vary&&!e.covered&&!e.skipped;
     if(!e.virtual)li.dataset.eid=e.id;
     else if(pend){li.dataset.pend=e.id;li.dataset.sid=e.sid;li.dataset.date=e.date;li.dataset.est=e.est;li.dataset.name=e.note}
-    const addEditor=()=>{if(editKey===e.id&&(!e.virtual||pend))li.appendChild(editorEl(e,pend?"fx":"edit"))};
-    if(e.virtual){
-      /* 自動扣款也可以刪（這一期不扣），金色的鈕跟一般紀錄的紅色刪除分開；刪掉的留在明細、可以恢復 */
-      li.className="virtual";
-      const b=document.createElement("button");b.className="del gold"+(armed===e.id?" armed":"");b.dataset.id=e.id;b.dataset.fid=e.fid;b.dataset.date=e.date;
-      if(e.skipped){b.dataset.restore="1";b.textContent="恢復"}else b.textContent=armed===e.id?"確定刪除":"刪除";
-      li.append(dot,info,amt,b);addEditor();ul.appendChild(li);continue;
-    }
-    const del=document.createElement("button");del.className="del"+(armed===e.id?" armed":"");del.dataset.id=e.id;
-    del.textContent=armed===e.id?"確定刪除":"刪除";
-    li.append(dot,info,amt,del);addEditor();ul.appendChild(li);
+    else li.dataset.vid=e.id;
+    if(e.virtual)li.className="virtual";
+    li.tabIndex=0;
+    li.append(dot,info,amt);
+    if(editKey===e.id)li.appendChild(editorEl(e,!e.virtual?"edit":pend?"fx":"auto"));
+    ul.appendChild(li);
   }
+  document.body.classList.toggle("editing",!!editKey&&!!ul.querySelector(".edit"));
 }
 
 /* ---------- 明細：用標籤篩選（可以選好幾個）、排序 ---------- */
